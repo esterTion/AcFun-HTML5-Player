@@ -1,0 +1,42 @@
+{
+  "manifest_version": 2,
+  "name": "__MSG_extName__",
+  "version": "1.0.0",
+  "description": "__MSG_extDesc__",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://www.acfun.cn/v/*"
+      ],
+      "all_frames": true,
+      "js": [
+        "dom_gen.js",
+        "resizeSensor.js",
+        "rc4.js",
+        "flv.min.js",
+        "jquery-2.1.4.min.js",
+        "google-style-loading.min.js",
+        "CommentCoreLibrary.min.js",
+        "biliplus_shield.min.js",
+        "ABPlayer.min.js",
+        "acfun_html5.js"
+      ],
+      "css": [
+        "ABPlayer.css"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": [
+    "*://*/*",
+    "storage"
+  ],
+  "icons": {
+    "48": "icon.png"
+  },
+  "default_locale": "en",
+  "web_accessible_resources": [
+    "player.html"
+  ],
+  "minimum_chrome_version": "49.0"
+}
