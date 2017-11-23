@@ -61,3 +61,4 @@ var resizeSensor = function (element, resized) {
     expand.addEventListener('scroll', onScroll);
     shrink.addEventListener('scroll', onScroll);
 };
+null;

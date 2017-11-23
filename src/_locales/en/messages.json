@@ -47,6 +47,9 @@
     "overallBitrate": {
         "message": "Overall bitrate："
     },
+    "reload": {
+        "message": "Reload"
+    },
     "statsDownloadSpeed": {
         "message": "Download speed："
     },
@@ -85,6 +88,9 @@
     },
     "commentScale": {
         "message": "Comment scale"
+    },
+    "commentDensity": {
+        "message": "Comment density"
     },
     "commentOpacity": {
         "message": "Comment opacity"
@@ -350,6 +356,9 @@
     "playErr": {
         "message": "Playback error"
     },
+    "playErrPop": {
+        "message": " failed to play, downgrading to "
+    },
     "switchErr": {
         "message": "Switching failed, this language / definition cannot be played"
     },
@@ -365,46 +374,82 @@
     "uploader": {
         "message": "Uploader："
     },
-    "outputUrl":{
-        "message":"Output all parts"
+    "outputUrl": {
+        "message": "Output all parts"
     },
-    "noVisitorComment":{
-        "message":"Visitor can't post comments"
+    "noVisitorComment": {
+        "message": "Visitor can't post comments"
     },
-    "postCommentFail":{
-        "message":"Post comment failed"
+    "postCommentFail": {
+        "message": "Post comment failed"
     },
-    "replaceEmbed":{
-        "message":"Replace embed players"
+    "replaceEmbed": {
+        "message": "Replace embed players"
     },
-    "autoSwitch":{
-        "message":"Auto jump to next episode"
+    "autoSwitch": {
+        "message": "Auto jump to next episode"
     },
-    "mayBlocked":{
-        "message":"You may have enabled an ad blocker, and it had blocked some important content. Please try again after disable the blocker. \nAfter player normally loaded, you can enable blocker again. \n\nIf you had seen this note in the past, please check your network status. "
+    "mayBlocked": {
+        "message": "You may have enabled an ad blocker, and it had blocked some important content. Please try again after disable the blocker. \nAfter player normally loaded, you can enable blocker again. \n\nIf you had seen this note in the past, please check your network status. "
     },
-    "officialHtml5":{
-        "message":"Enable official html5 player (unstable)"
+    "officialHtml5": {
+        "message": "Use official html5 player"
     },
-    "settings":{
-        "message":"Settings"
+    "settings": {
+        "message": "Settings"
     },
-    "settComment":{
-		"message":"Comment preferences"
-	},
-	"recordPlaySpeed":{
-		"message":"Set current speed as default"
-	},
-	"settPlayer":{
-		"message":"Player preferences"
-	},
-	"autoPlay":{
-		"message":"Start playback automatically"
-	},
-	"defaultFull":{
-		"message":"Enter fullscreen mode automatically"
-	},
-    "settExtension":{
-        "message":"Extension preferences"
+    "settComment": {
+        "message": "Comment preferences"
+    },
+    "recordPlaySpeed": {
+        "message": "Set current speed as default"
+    },
+    "settPlayer": {
+        "message": "Player preferences"
+    },
+    "autoPlay": {
+        "message": "Start playback automatically"
+    },
+    "defaultFull": {
+        "message": "Enter fullscreen mode automatically"
+    },
+    "settExtension": {
+        "message": "Extension preferences"
+    },
+    "statsSourceHost": {
+        "message": "Source host："
+    },
+    "statsRedirection": {
+        "message": "Redirection："
+    },
+    "statsRedirectionNone": {
+        "message": "None"
+    },
+    "extUpdated": {
+        "message": "Yet Another Player for Youku has been updated!"
+    },
+    "extUpdated_ver": {
+        "message": "We are currently at version "
+    },
+    "extUpdated_detail": {
+        "message": "Here are some update notes:\n1、Project has been renamed to 【Yet Another Player for Youku】\n2、Attempt to play the lower quality video when playback error occurs."
+    },
+    "playerTheme": {
+        "message": "Player theme"
+    },
+    "next": {
+        "message": "Next video: "
+    },
+    "storylinePoints": {
+        "message": "Timeline Highlights"
+    },
+    "skipHead": {
+        "message": "Skip the opening and ending part"
+    },
+    "volumeChange": {
+        "message": "Volume changed to "
+    },
+    "rateChange": {
+        "message": "Speed changed to "
     }
 }

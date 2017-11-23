@@ -33,7 +33,11 @@ ABP.Strings={
 	statsCurrentBitrate:_t('statsCurrentBitrate'),
 	statsRealtimeBitrate:_t('statsRealtimeBitrate'),
 	overallBitrate:_t('overallBitrate'),
+	reload:_t('reload'),
 	statsDownloadSpeed:_t('statsDownloadSpeed'),
+	statsSourceHost:_t('statsSourceHost'),
+	statsRedirection:_t('statsRedirection'),
+	statsRedirectionNone:_t('statsRedirectionNone'),
 	
 	sendSmall:_t('sendSmall'),
 	sendMid:_t('sendMid'),
@@ -45,10 +49,10 @@ ABP.Strings={
 	send:_t('send'),
 	sendStyle:_t('sendStyle'),
 	sendColor:_t('sendColor'),
-
 	
 	commentSpeed:_t('commentSpeed'),
 	commentScale:_t('commentScale'),
+	commentDensity:_t('commentDensity'),
 	commentOpacity:_t('commentOpacity'),
 	commentBlock:_t('commentBlock'),
 	
@@ -82,6 +86,7 @@ ABP.Strings={
 	fetchURL:_t('fetchURL'),
 	buffering:_t('buffering'),
 	play:_t('play'),
+	next:_t('next'),
 	pause:_t('pause'),
 	mute:_t('mute'),
 	unmute:_t('unmute'),
@@ -129,8 +134,11 @@ ABP.Strings={
 	recordPlaySpeed:_t('recordPlaySpeed'),
 	settPlayer:_t('settPlayer'),
 	autoPlay:_t('autoPlay'),
-	defaultWide:_t('defaultWide'),
-	defaultFull:_t('defaultFull')
+	defaultFull:_t('defaultFull'),
+	playerTheme:_t('playerTheme'),
+
+	volumeChange:_t('volumeChange'),
+	rateChange:_t('rateChange')
 };
 
 (function() {
@@ -140,7 +148,7 @@ ABP.Strings={
 	setTimeout=window.setTimeout,
 	clearTimeout=window.clearTimeout,
 	addEventListener='addEventListener',
-	versionString='HTML5 Player ver.170426 based on ABPlayer-bilibili-ver',
+	versionString='HTML5 Player ver.170912 based on ABPlayer-bilibili-ver',
 	mousePrevPos=[0,0],
 	mouseMoved=function(e){
 		var oldPos=mousePrevPos;
@@ -151,7 +159,7 @@ ABP.Strings={
 	$ = function(e) {
 		return document.getElementById(e);
 	};
-	var _ = function(type, props, children, callback) {
+	var _ = function (type, props, children) {
 		var elem = null;
 		if (type === "text") {
 			return document.createTextNode(props);
@@ -159,14 +167,18 @@ ABP.Strings={
 			elem = document.createElement(type);
 		}
 		for (var n in props) {
-			if (n !== "style" && n !== "className") {
-				elem.setAttribute(n, props[n]);
-			} else if (n === "className") {
-				elem.className = props[n];
-			} else {
+			if (n === "style") {
 				for (var x in props.style) {
 					elem.style[x] = props.style[x];
 				}
+			} else if (n === "className") {
+				elem.className = props[n];
+			} else if (n === "event") {
+				for (var x in props.event) {
+					elem.addEventListener(x, props.event[x]);
+				}
+			} else {
+				elem.setAttribute(n, props[n]);
 			}
 		}
 		if (children) {
@@ -174,9 +186,6 @@ ABP.Strings={
 				if (children[i] != null)
 					elem.appendChild(children[i]);
 			}
-		}
-		if (callback && typeof callback === "function") {
-			callback(elem);
 		}
 		return elem;
 	};
@@ -351,7 +360,7 @@ ABP.Strings={
 		elem[addEventListener]("updatetooltip", function(e) {
 			var tooltip = $("ABP-Tooltip");
 			if (tooltip && tooltip.by == e.target) {
-				tooltip.innerHTML = elem.tooltipData;
+				tooltip.textContent = elem.tooltipData;
 			}
 		});
 	}
@@ -422,7 +431,7 @@ ABP.Strings={
 		}
 		// Create the innards if empty
 		if (container.children.length > 0 && params.replaceMode) {
-			container.innerHTML = "";
+			container.textContent = "";
 		}
 		var playlist = [];
 		var danmaku = [];
@@ -465,7 +474,7 @@ ABP.Strings={
 		}, [_("div", {
 			"className": "ABP-Video",
 			"tabindex": "10"
-		}, [_('div',{id:'ABP-info-box',style:{opacity:1}},[
+		}, [_('div',{id:'info-box',style:{opacity:1}},[
 				_('div',{className:'text-wrapper'},[_('div',{},[_('text',ABP.Strings.loadingMeta)])]),
 				_('div',{id:'dots'})
 			]),
@@ -516,8 +525,11 @@ ABP.Strings={
 				_('div',{className:'flvjs',title:'1 kbps = 1000 bps'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsCurrentBitrate)]),_('span')]),
 				
 				_('div',{title:'1 kbps = 1000 bps'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.overallBitrate)]),_('span',{id:'overall-bitrate'})]),
+				_('div',{className:'flvjs',style:{position:'relative'}},[_('div',{style:{position:'absolute',left:'240px',bottom:'100%',cursor:'pointer'},event:{click:function(e){e.stopPropagation(),flvplayer&&flvplayer.reloadSegment&&flvplayer.reloadSegment()}}},[_('text','[ '+ABP.Strings.reload+' ]')])]),
 				_('div',{className:'flvjs',title:'1 kbps = 1000 bps'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsRealtimeBitrate)]),_('span',{className:'stats-column',id:'realtime-bitrate-column',style:{verticalAlign:'top'}}),_('span')]),
 				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsDownloadSpeed)]),_('span',{className:'stats-column',id:'download-speed-column',style:{verticalAlign:'top'}}),_('span')]),
+				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsSourceHost)]),_('span')]),
+				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsRedirection)]),_('span')]),
 				_('br'),
 
 				_('div',{id:'canvas-fps'},[_('span',{className:'stats_name'},[_('text','Canvas fps：')]),_('span')]),
@@ -622,7 +634,7 @@ ABP.Strings={
 					"className": "ABP-Comment-ColorPicker"
 				})])]),
 			]),
-			_('form',{style:{margin:0}},[_("input", {
+			_('form',{},[_("input", {
 				"className": "ABP-Comment-Input",
 			})]),
 			_("div", {
@@ -635,6 +647,9 @@ ABP.Strings={
 		}, [
 			_("div", {
 				"className": "button ABP-Play icon-play"
+			}),
+			_("div", {
+				"className": "button ABP-Next icon-next"
 			}),
 			_("div", {
 				"className": "progress-bar"
@@ -800,6 +815,18 @@ ABP.Strings={
 				]),
 			]), _("p", {
 				"className": "label"
+			}, [_("text", ABP.Strings.commentDensity)]), _("div", {
+				"className": "density-bar"
+			}, [
+				_("div", {
+					"className": "bar"
+				}, [
+					_("div", {
+						"className": "load"
+					})
+				]),
+			]), _("p", {
+				"className": "label"
 			}, [_("text", ABP.Strings.commentOpacity),_("div", {
 				"className": "prop-checkbox",
 				style:{
@@ -853,6 +880,10 @@ ABP.Strings={
 			_('p',{className:'label prop'},[_('text',ABP.Strings.autoPlay),_("div",{id:'setting-autoPlay',className:"prop-checkbox"})]),
 			_('p',{className:'label prop'},[_('text',ABP.Strings.defaultWide),_("div",{id:'setting-defaultWide',className:"prop-checkbox"})]),
 			_('p',{className:'label prop'},[_('text',ABP.Strings.defaultFull),_("div",{id:'setting-defaultFull',className:"prop-checkbox"})]),
+			_('p',{className:'label prop'},[_('text',ABP.Strings.playerTheme +'：'),_("select",{id:'setting-playerTheme',event:{mouseup:function(e){e.stopPropagation();}}},[
+				_('option',{value:'bilibili'},[_('text','BiliBili')]),
+				_('option',{value:'YouTube'},[_('text','YouTube')])
+			])]),
 			//end
 			])
 		])]));
@@ -870,29 +901,8 @@ ABP.Strings={
 				_('div',{className:'about'},[_('text',versionString)])
 			])
 		]));
+		container.getElementsByClassName('ABP-Next')[0].innerHTML='<svg xmlns="http://www.w3.org/2000/svg" height="19" version="1.1" viewBox="0 0 12 12" width="19"><path d="M 0,12 8.5,6 0,0 V 24 z M 10,0 v 0 h 2 V 12 h -2 z"/></svg>';
 		var bind = ABP.bind(container);
-		if (playlist.length > 0) {
-			var currentVideo = playlist[0];
-			bind.gotoNext = function() {
-				var index = playlist.indexOf(currentVideo) + 1;
-				if (index < playlist.length) {
-					currentVideo = playlist[index];
-					currentVideo.style.display = "";
-					var container = bind.video.parentNode;
-					container.removeChild(bind.video);
-					container.appendChild(currentVideo);
-					bind.video.style.display = "none";
-					bind.video = currentVideo;
-					bind.swapVideo(currentVideo);
-					currentVideo[addEventListener]("ended", function() {
-						bind.gotoNext();
-					});
-				}
-			}
-			currentVideo[addEventListener]("ended", function() {
-				bind.gotoNext();
-			});
-		}
 		return bind;
 	}
 	var BiliBili_midcrc=function(){
@@ -973,6 +983,23 @@ ABP.Strings={
 		}
 	},
 	getBuffer=function(video){
+		var index = 0, buff = video.buffered, len = buff.length, i=0, currentTime = video.currentTime;
+
+		for (; i < len; i++) {
+			if (currentTime < buff.start(i)) break;
+			index = i;
+		}
+
+		var s = buff.start(index), e = buff.end(index);
+		return {
+			start: s,
+			end: e,
+			delta: e - currentTime,
+			index:index
+		};
+
+
+		/*
 		for(var s,e,i=0,currentTime=video.currentTime;i<video.buffered.length;i++){
 			if( currentTime>=video.buffered.start(i) && currentTime<=video.buffered.end(i) ){
 				s = video.buffered.start(i);
@@ -988,6 +1015,7 @@ ABP.Strings={
 			delta:e-currentTime,
 			index:i
 		}
+		*/
 	};
 	window.crc_engine=new BiliBili_midcrc();
 
@@ -995,6 +1023,7 @@ ABP.Strings={
 		var ABPInst = {
 			playerUnit: playerUnit,
 			btnPlay: null,
+			btnNext: null,
 			barTime: null,
 			barLoad: null,
 			barTimeHitArea: null,
@@ -1046,6 +1075,7 @@ ABP.Strings={
 				w: 0,
 				h: 0
 			},
+			inited: false,
 			state: buildFromDefaults(state, {
 				fullscreen: false,
 				commentVisible: true,
@@ -1130,12 +1160,12 @@ ABP.Strings={
 				}
 				ABPInst.commentListContainer.style.height = ABPInst.commentObjArray.length * 24 + "px";
 				ABPInst.renderCommentList();
-				ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').innerHTML=ABPInst.commentObjArray.length;
+				ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').textContent=ABPInst.commentObjArray.length;
 			},
 			renderCommentList: function() {
 				var offset = ABPInst.commentListContainer.parentElement.scrollTop,
 					firstIndex = parseInt(offset / 24);
-				ABPInst.commentListContainer.innerHTML = "";
+				ABPInst.commentListContainer.textContent = "";
 				for (var i = firstIndex; i <= firstIndex + 40; i++) {
 					if (typeof ABPInst.commentObjArray[i] !== "undefined") {
 						if (i == firstIndex && i > 0) {
@@ -1156,8 +1186,10 @@ ABP.Strings={
 						}
 						if(ABPInst.commentObjArray[i].data.originalData.isBlocked){
 							ABPInst.commentObjArray[i].childNodes[0].className='cmt-time blocked';
+							ABPInst.commentObjArray[i].childNodes[0].title=ABP.Strings.blockMatch+ABPInst.commentObjArray[i].data.originalData.blockReason;
 						}else{
 							ABPInst.commentObjArray[i].childNodes[0].className='cmt-time';
+							ABPInst.commentObjArray[i].childNodes[0].title='';
 						}
 						ABPInst.commentListContainer.appendChild(commentObj);
 					} else {
@@ -1178,11 +1210,11 @@ ABP.Strings={
 		};
 		Object.defineProperty(ABPInst,'title',{
 			get:function(){
-				return ABPInst.playerUnit.getElementsByClassName('ABP-Title')[0].innerHTML;
+				return ABPInst.playerUnit.getElementsByClassName('ABP-Title')[0].textContent;
 			},
 			set:function(s){
 				var title=ABPInst.playerUnit.getElementsByClassName('ABP-Title')[0]
-				title.innerHTML='';
+				title.textContent='';
 				title.appendChild(_('text',s));
 			}
 		})
@@ -1201,6 +1233,8 @@ ABP.Strings={
 				}
 			}
 			video[addEventListener]("timeupdate", bufferListener);
+			video[addEventListener]('timeupdate', function(e){ABPInst.inited=true;});
+			video[addEventListener]('canplay', function(e){ABPInst.inited=true;});
 			var lastCheckTime = 0,isFirst=true,isEnded=false,isLooping=false,loadingNew=false,
 			autoPlay=function(){
 				loadingNew=false;
@@ -1226,7 +1260,7 @@ ABP.Strings={
 				}
 			},
 			buffering=function(){
-				var rs=video.readyState,div=document.getElementById('ABP-info-box');
+				var rs=video.readyState,div=document.getElementById('info-box');
 				if(video.ended)
 					return;
 				switch(rs){
@@ -1237,7 +1271,7 @@ ABP.Strings={
 						}
 					case 2:
 						try{
-							var buffered=video.buffered, buffer=getBuffer(video)
+							var buffered=video.buffered, buffer=getBuffer(video);
 							if(flvplayer && flvplayer._mediaDataSource && buffer.delta<.2 && buffer.index<buffered.length-1){
 								console.warn('buffer gap at',buffered.end(buffer.index),', jump from',video.currentTime,'to',buffered.start(buffer.index+1));
 								video.currentTime = buffered.start(buffer.index+1);
@@ -1251,9 +1285,9 @@ ABP.Strings={
 							dots.runTimer();
 						try{
 							var buffer=getBuffer(video);
-							div.childNodes[0].childNodes[0].innerHTML=ABP.Strings.buffering+' '+Math.floor( (buffer.delta)*100 )/100+'s';
+							div.childNodes[0].childNodes[0].textContent=ABP.Strings.buffering+' '+Math.floor( (buffer.delta)*100 )/100+'s';
 						}catch(e){
-							div.childNodes[0].childNodes[0].innerHTML=ABP.Strings.buffering;
+							div.childNodes[0].childNodes[0].textContent=ABP.Strings.buffering;
 						}
 					break;
 					case 3:
@@ -1301,8 +1335,7 @@ ABP.Strings={
 			video[addEventListener]("ended", function() {
 				ABPInst.btnPlay.className = "button ABP-Play icon-play";
 				ABPInst.videoDiv.className='ABP-Video';
-				if(window.parent!=window && parent.h5NextPart)
-					parent.h5NextPart();
+				playerUnit.dispatchEvent(new Event('callNext'));
 			});
 			video[addEventListener]("progress", bufferListener);
 			/*
@@ -1321,19 +1354,12 @@ ABP.Strings={
 			});
 			*/
 			video.isBound = true;
-			var lastPosition = 0,triedLoadScripting=false;
+			var lastPosition = 0;
 			if (ABPInst.cmManager) {
 				ABPInst.cmManager[addEventListener]("load", function() {
 					ABPInst.commentList = {};
 					for (i in ABPInst.cmManager.timeline) {
 						var danmaku = ABPInst.cmManager.timeline[i];
-						if(danmaku.mode==8 && !triedLoadScripting){
-							triedLoadScripting=true;
-							setTimeout(function(){
-								var bscripter = new CCLScripting("/js/CommentCoreLibraryScripting.min.js");
-								ABPInst.cmManager.scripting = bscripter.getSandbox(ABPInst.divComment,ABPInst.video);
-							},0)
-						}
 						if (danmaku.dbid && danmaku.stime) {
 							ABPInst.commentList[danmaku.dbid] = {
 								"date": danmaku.date,
@@ -1371,7 +1397,7 @@ ABP.Strings={
 					playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Scale div.on').click();
 					this.canvasResize();
 				}
-				ABPInst.cmManager.setBounds();
+				setTimeout(function(){ABPInst.cmManager.setBounds();},0)
 				ABPInst.cmManager.clear();
 				//ABPInst.video[addEventListener]('loadedmetadata',function(){;isFirst=true;})
 				video[addEventListener]("progress", function() {
@@ -1459,6 +1485,16 @@ ABP.Strings={
 		ABPInst.btnPlay = _p[0];
 		ABPInst.btnPlay.tooltip(ABP.Strings.play);
 		hoverTooltip(ABPInst.btnPlay);
+		/** Bind the Next Button **/
+		var _n = playerUnit.getElementsByClassName("ABP-Next");
+		if (_n.length <= 0) return;
+		ABPInst.btnNext = _n[0];
+		ABPInst.btnNext.tooltip(ABP.Strings.next);
+		hoverTooltip(ABPInst.btnNext);
+		ABPInst.btnNext[addEventListener]('click',function(e){
+			e.stopPropagation();
+			playerUnit.dispatchEvent(new Event('callNext'));
+		});
 		/** Bind the Loading Progress Bar **/
 		var pbar = playerUnit.getElementsByClassName("progress-bar");
 		if (pbar.length <= 0) return;
@@ -1494,6 +1530,8 @@ ABP.Strings={
 		var sbar = sbar[0].getElementsByClassName("bar");
 		ABPInst.barScaleHitArea = sbar[0];
 		ABPInst.barScale = sbar[0].getElementsByClassName("load")[0];
+		ABPInst.barDensityHitArea = playerUnit.querySelector('.density-bar .bar');
+		ABPInst.barDensity = ABPInst.barDensityHitArea.getElementsByClassName("load")[0];
 		/** Bind the Speed Bar **/
 		var spbar = playerUnit.getElementsByClassName("speed-bar");
 		if (spbar.length <= 0) return;
@@ -1594,24 +1632,24 @@ ABP.Strings={
 			settingsOn ? removeClass(settBtn, 'on') : addClass(settBtn, 'on');
 			settingsOn = !settingsOn;
 		};
-		ABPInst.btnSetting.addEventListener('click',settingClick);
-		playerUnit.getElementsByClassName('ABP-Settings-Close')[0].addEventListener('click',settingClick);
-		document.getElementById('setting-autoPlay').addEventListener('click',function(){
+		ABPInst.btnSetting[addEventListener]('click',settingClick);
+		playerUnit.getElementsByClassName('ABP-Settings-Close')[0][addEventListener]('click',settingClick);
+		document.getElementById('setting-autoPlay')[addEventListener]('click',function(){
 			ABPInst.autoPlay=!ABPInst.autoPlay;
 			ABPInst.autoPlay?addClass(this,'on'):removeClass(this,'on')
 			saveConfigurations();
 		});
-		document.getElementById('setting-defaultWide').addEventListener('click',function(){
+		document.getElementById('setting-defaultWide')[addEventListener]('click',function(){
 			ABPInst.defaultWide=!ABPInst.defaultWide;
 			ABPInst.defaultWide?addClass(this,'on'):removeClass(this,'on')
 			saveConfigurations();
 		});
-		document.getElementById('setting-defaultFull').addEventListener('click',function(){
+		document.getElementById('setting-defaultFull')[addEventListener]('click',function(){
 			ABPInst.defaultFull=!ABPInst.defaultFull;
 			ABPInst.defaultFull?addClass(this,'on'):removeClass(this,'on')
 			saveConfigurations();
 		});
-		document.getElementById('setting-recordPlaySpeed').addEventListener('click',function(){
+		document.getElementById('setting-recordPlaySpeed')[addEventListener]('click',function(){
 			ABPInst.recordPlaySpeed=!ABPInst.recordPlaySpeed;
 			ABPInst.recordPlaySpeed?addClass(this,'on'):removeClass(this,'on')
 			saveConfigurations();
@@ -1689,9 +1727,9 @@ ABP.Strings={
 			enabledStats.videoQuality=false;
 			addStyle+='.videoQuality{display:none}'
 		}
-		style.innerHTML=addStyle,
+		style.textContent=addStyle,
 		document.head.appendChild(style);
-		flvjsStyle.innerHTML='.flvjs{display:none}';
+		flvjsStyle.textContent='.flvjs{display:none}';
 		document.head.appendChild(flvjsStyle);
 		if(window.flvplayer==undefined){
 			enabledStats.flvjs=false;
@@ -1699,19 +1737,19 @@ ABP.Strings={
 		
 		setInterval(function(){
 			odd^=1;
-			playerDimension.innerHTML=video.offsetWidth+'x'+video.offsetHeight+' *'+devicePixelRatio;
+			playerDimension.textContent=video.offsetWidth+'x'+video.offsetHeight+' *'+devicePixelRatio;
 			if(enabledStats.videoDimension){
-				videoDimension.innerHTML=video.videoWidth+'x'+video.videoHeight;
+				videoDimension.textContent=video.videoWidth+'x'+video.videoHeight;
 			}
 			
 			var buffer={};
 			try{
 				buffer=getBuffer(video);
 			}catch(e){}
-			buffer=buffer.delta||0
+			buffer=buffer.delta>0?buffer.delta:0;
 			bufferArr.push(buffer);
 			bufferArr.shift();
-			bufferNum.innerHTML=to2digitFloat(buffer)+'s';
+			bufferNum.textContent=to2digitFloat(buffer)+'s';
 			if(playerStatsOn)
 				renderColumn(bufferColumn,bufferArr);
 			
@@ -1735,33 +1773,56 @@ ABP.Strings={
 				while(i<clipsContainer.childNodes.length){
 					clipsContainer.childNodes[i].remove();
 				}
-				clipsContainer.parentNode.parentNode.childNodes[2].innerHTML=clipsTitle.join('\n');
+				clipsContainer.parentNode.parentNode.childNodes[2].textContent=clipsTitle.join('\n');
 				document_querySelector('#buffer-clips>span>div').style.left = to2digitFloat(video.currentTime / duration*100) + '%';
 			}
 			
 			if(enabledStats.flvjs){
 				if(flvplayer._mediaInfo){
-					flvjsStyle.innerHTML='';
-					var i=0,mediaInfo=flvplayer._mediaInfo,statisticsInfo=flvplayer.statisticsInfo,currentTime=video.currentTime,segs=flvplayer._mediaDataSource.segments,timeOffset=0,off=0,bitrate,j;
-					for(j=0;j<segs.length;j++){
-						if(currentTime<=(timeOffset+segs[j].duration)/1e3){
+					flvjsStyle.textContent='';
+					var i=0,mediaInfo=flvplayer._mediaInfo,statisticsInfo=flvplayer.statisticsInfo,currentTime=video.currentTime,segs=flvplayer._mediaDataSource.segments,timeOffset=0,off=0,bitrate,timeIndex;
+					for(timeIndex=0;timeIndex < segs.length;timeIndex++){
+						if(currentTime<=(timeOffset+segs[timeIndex].duration)/1e3){
 							//console.log(off,timeOffset,currentTime)
 							timeOffset=(currentTime-timeOffset/1e3)|0;
 							break;
 						}else{
-							timeOffset+=segs[j].duration;
+							timeOffset+=segs[timeIndex].duration;
 							off++
 						}
 					}
-					var currentSize=segs[j].filesize,currentDuration=segs[j].duration;
+					
+					if(playerStatsOn){
+						var segSeperator = document_querySelector('#buffer-clips>span:nth-of-type(2)'), segSeperatorChild=segSeperator.children;
+						while(segSeperatorChild.length > segs.length){
+							segSeperatorChild[segs.length].remove();
+						}
+						while(segSeperatorChild.length < segs.length){
+							segSeperator.appendChild(_('div',{style:{
+								width:'1px',
+								height:'300%',
+								top:'-100%',
+								position:'absolute',
+								background:'#CCC',
+								left:0
+							}}));
+						}
+						for(var j=1, timeBaseOffset=0; j < segs.length; j++){
+							segSeperatorChild[j].style.left = to2digitFloat((timeBaseOffset+segs[j-1].duration)/1e3 / duration*100) + '%';
+							timeBaseOffset+=segs[j-1].duration
+						}
+					}
+					
+					var segIndex=statisticsInfo.currentSegmentIndex,currentSeg=segs[segIndex]||{},currentSize=currentSeg.filesize|0,currentDuration=currentSeg.duration|0;
 					/*['mimeType','audioCodec','videoCodec'].forEach(function(name){
 						flvjsStats[i++].innerHTML=mediaInfo[name];
 					})*/
-					gEle('mimeType').lastChild.innerHTML=mediaInfo.mimeType;
-					flvjsStats[i++].innerHTML=to2digitFloat(mediaInfo.fps);
-					flvjsStats[i++].innerHTML=to2digitFloat(mediaInfo.videoDataRate)+' kbps';
-					flvjsStats[i++].innerHTML=to2digitFloat(mediaInfo.audioDataRate)+' kbps';
-					flvjsStats[i++].innerHTML=to2digitFloat(currentSize/currentDuration*8)+' kbps'
+					gEle('mimeType').lastChild.textContent=mediaInfo.mimeType;
+					flvjsStats[i++].textContent=to2digitFloat(mediaInfo.fps);
+					flvjsStats[i++].textContent=to2digitFloat(mediaInfo.videoDataRate)+' kbps';
+					flvjsStats[i++].textContent=to2digitFloat(mediaInfo.audioDataRate)+' kbps';
+					flvjsStats[i++].textContent=to2digitFloat(currentSize/currentDuration*8)+' kbps' + ('　Seg '+(segIndex+1)+'/'+statisticsInfo.totalSegmentCount);
+					i++;
 					
 					if(mediaInfo.bitrateMap){
 						
@@ -1770,7 +1831,7 @@ ABP.Strings={
 						if(bitrate!=undefined){
 							if(odd && lastCurrent!=(video.currentTime|0)){
 								lastCurrent=video.currentTime|0;
-								flvjsStats[i++].innerHTML=to2digitFloat(bitrate)+' kbps';
+								flvjsStats[i++].textContent=to2digitFloat(bitrate)+' kbps';
 								realtimeBitrateArr.push(bitrate);
 								realtimeBitrateArr.shift();
 								if(playerStatsOn)
@@ -1779,50 +1840,72 @@ ABP.Strings={
 								i++;
 							}
 						}else{
-							flvjsStats[i++].innerHTML='N/A';
+							flvjsStats[i++].textContent='N/A';
 						}
 					}else{
-						flvjsStats[i++].innerHTML='N/A'
+						flvjsStats[i++].textContent='N/A'
 					}
 					if(odd){
 						downloadSpeedArr.push(statisticsInfo.speed);
 						downloadSpeedArr.shift();
 						if(playerStatsOn)
 							renderColumn(downloadSpeedColumn,downloadSpeedArr);
-						flvjsStats[i++].innerHTML=to2digitFloat(statisticsInfo.speed)+' KB/s'
+						flvjsStats[i++].textContent=to2digitFloat(statisticsInfo.speed)+' KB/s'
 						flvplayer._statisticsInfo.speed=0;
+					}else{
+						i++;
+					}
+					var srcHostMatch = currentSeg.url.match(/(http[s]?:)?\/\/([a-zA-Z0-9\.\-]+)/),srcHost,srcProtocol;
+					if(srcHostMatch==null){
+						srcProtocol=location.protocol;
+						srcHost=location.hostname;
+					}else{
+						srcProtocol = srcHostMatch[1] || location.protocol;
+						srcHost = srcHostMatch[2];
+					}
+					flvjsStats[i].title=currentSeg.url;
+					flvjsStats[i++].textContent=srcProtocol+'//'+srcHost;
+					if(!statisticsInfo.hasRedirect){
+						flvjsStats[i++].textContent=ABP.Strings.statsRedirectionNone;
+					}else{
+						flvjsStats[i].title=currentSeg.redirectedURL;
+						flvjsStats[i++].textContent=currentSeg.redirectedURL.match(/(http[s]?:)?\/\/([a-zA-Z0-9\.\-]+)/)[0];
 					}
 				}else{
-					flvjsStyle.innerHTML='.flvjs{display:none}';
-					gEle('mimeType').lastChild.innerHTML='video/mp4';
+					flvjsStyle.textContent='.flvjs{display:none}';
+					gEle('mimeType').lastChild.textContent='video/mp4';
+					var segSeperatorChild = document_querySelector('#buffer-clips>span:nth-of-type(2)').children;
+					while(segSeperatorChild.length > 1){
+						segSeperatorChild[1].remove();
+					}
 				}
 			}
 			if(!window.overallBitrate){
 				gEle('overall-bitrate').parentNode.style.display='none'
 			}else{
 				gEle('overall-bitrate').parentNode.style.display=''
-				gEle('overall-bitrate').innerHTML=to2digitFloat(overallBitrate)+' kbps';
+				gEle('overall-bitrate').textContent=to2digitFloat(overallBitrate)+' kbps';
 			}
 			
 			if(odd)
-				canvasFPS.innerHTML = ABPInst.cmManager.canvasFPS;
+				canvasFPS.textContent = ABPInst.cmManager.canvasFPS;
 			
 			if(enabledStats.gecko){
 				['mozParsedFrames','mozDecodedFrames','mozPaintedFrames'].forEach(function(name){
-					gEle(name).innerHTML=video[name];
+					gEle(name).textContent=video[name];
 				})
 			}
 			
 			if(enabledStats.webkit){
 				['webkitDecodedFrameCount','webkitDroppedFrameCount'].forEach(function(name){
-					gEle(name).innerHTML=video[name];
+					gEle(name).textContent=video[name];
 				})
 			}
 			
 			if(enabledStats.videoQuality){
 				var quality=video.getVideoPlaybackQuality();
-				gEle('totalVideoFrames').innerHTML=quality.totalVideoFrames;
-				gEle('droppedVideoFrames').innerHTML=quality.droppedVideoFrames;
+				gEle('totalVideoFrames').textContent=quality.totalVideoFrames;
+				gEle('droppedVideoFrames').textContent=quality.droppedVideoFrames;
 			}
 		},500)
 		
@@ -1846,12 +1929,23 @@ ABP.Strings={
 			if (ABP.playerConfig.autoPlay) {ABPInst.autoPlay=true; addClass(document.getElementById('setting-autoPlay'),'on');}
 			if (ABP.playerConfig.defaultWide) {ABPInst.defaultWide=true; addClass(document.getElementById('setting-defaultWide'),'on');}
 			if (ABP.playerConfig.defaultFull) {ABPInst.defaultFull=true; addClass(document.getElementById('setting-defaultFull'),'on');}
+			if (ABP.playerConfig.commentVisible===false) {addClass(ABPInst.playerUnit, 'hide-comment');removeClass(ABPInst.btnDm,'on');ABPInst.cmManager.display = false;ABPInst.cmManager.stopTimer();ABPInst.btnDm.tooltip(ABP.Strings.showComment);}
+			if (ABP.playerConfig.autoOpacity) {addClass(ABPInst.btnAutoOpacity,'on');ABPInst.cmManager.autoOpacity(true);ABPInst.btnAutoOpacity.tooltip(ABP.Strings.autoOpacityOn);}
 			if (ABP.playerConfig.recordPlaySpeed) {
 				ABPInst.recordPlaySpeed=true;
 				addClass(document.getElementById('setting-recordPlaySpeed'),'on');
 				ABPInst.lastSpeed=ABP.playerConfig.playSpeed;
-				console.log(ABPInst.lastSpeed)
 			}
+			var density = ABP.playerConfig.density||0;
+			ABPInst.cmManager.options.global.density = density;
+			var theme = ABP.playerConfig.theme||'YouTube'
+			playerUnit.setAttribute('theme', theme);
+			(document_querySelector('#setting-playerTheme [value='+theme+']') ||{}).selected=true;
+			document.getElementById('setting-playerTheme')[addEventListener]('change',function(){
+				playerUnit.setAttribute('theme',this.value);
+				saveConfigurations();
+				playerUnit.dispatchEvent(new Event('themeChange'));
+			})
 		}
 		$$('.ABP-Comment-List-Title *').click(function() {
 			var item = $$(this).attr('item'),
@@ -2015,6 +2109,7 @@ ABP.Strings={
 			});
 			ABPInst.btnWebFull[addEventListener]("click", function() {
 				ABPInst.state.fullscreen = hasClass(playerUnit, "ABP-FullScreen");
+				parent.postMessage('YHP_CrossFrame_Fullscreen_Enter', '*');
 				addClass(playerUnit, "ABP-FullScreen");
 				ABPInst.btnFull.className = "button ABP-FullScreen icon-screen-normal";
 				ABPInst.btnFull.tooltip(ABP.Strings.exitWebFull);
@@ -2080,6 +2175,9 @@ ABP.Strings={
 				} else {
 					removeClass(playerUnit, "ABP-FullScreen");
 					this.className = "button ABP-FullScreen icon-screen-full";
+					if(this.tooltipData == ABP.Strings.exitWebFull){
+						parent.postMessage('YHP_CrossFrame_Fullscreen_Exit', '*');
+					}
 					this.tooltip(ABP.Strings.fullScreen);
 					document.exitFullscreen();
 				}
@@ -2127,12 +2225,14 @@ ABP.Strings={
 					ABPInst.cmManager.startTimer();
 					this.className = "button ABP-CommentShow icon-comment on";
 					this.tooltip(ABP.Strings.hideComment);
+					removeClass(ABPInst.playerUnit, 'hide-comment');
 				} else {
 					ABPInst.cmManager.display = false;
 					ABPInst.cmManager.clear();
 					ABPInst.cmManager.stopTimer();
 					this.className = "button ABP-CommentShow icon-comment";
 					this.tooltip(ABP.Strings.showComment);
+					addClass(ABPInst.playerUnit, 'hide-comment');
 				}
 				saveConfigurations();
 			});
@@ -2214,7 +2314,7 @@ ABP.Strings={
 						])
 					])
 					if(originalData.mode>6){
-						dmitem.childNodes[0].innerHTML='特殊弹幕';
+						dmitem.childNodes[0].textContent='特殊弹幕';
 						var dmMenu=dmitem.childNodes[1];
 						dmMenu.childNodes[0].style.display='none';
 						dmMenu.childNodes[2].style.display='none';
@@ -2226,17 +2326,21 @@ ABP.Strings={
 				for(i=0;i<itemMenu.length-1;i++){
 					itemMenu[i].childNodes[0][addEventListener]('click',function(){
 						try{
-							var copy=document.createElement('input');
-							copy.style.width=0;
-							copy.style.height=0;
-							document.body.appendChild(copy);
-							copy.value=this.getAttribute('data-content');
-							copy.select();
+							/*
+							chrome需要已有input中才能复制，新生成input无效
+							*/
+							var oldVal=ABPInst.txtText.value, prevDisabled = ABPInst.txtText.disabled;
+							prevDisabled && (ABPInst.txtText.disabled=false);
+							ABPInst.txtText.value=this.dataset.content;
+							ABPInst.txtText.select();
 							var success=document.execCommand('copy');
-							document.body.removeChild(copy);
+							ABPInst.txtText.blur();
+							ABPInst.txtText.value=oldVal;
+							prevDisabled && (ABPInst.txtText.disabled=true);
 							if(!success)
 								throw '';
 						}catch(e){
+							console.error(e)
 							ABPInst.createPopup(ABP.Strings.copyFail,3e3)
 						}
 					});
@@ -2304,7 +2408,7 @@ ABP.Strings={
 					textAlign:'center'
 				}},[
 					_('div',{},[
-						_('img',{style:{height:'130px',width:'130px'},src:card.face.replace(/http\:/,'')})
+						_('img',{style:{height:'130px',width:'130px'},src:card.face})
 					]),
 					_('div',{},[_('text',card.name)]),
 					_('div',{},[_('text',card.mid)]),
@@ -2373,7 +2477,7 @@ ABP.Strings={
 					showContextMenu(x,y,dmList);
 				},300);
 			});
-			ABPInst.playerUnit.querySelector('.shield').addEventListener('touchstart touchmove touchend',function(e){e.stopPropagation()})
+			ABPInst.playerUnit.querySelector('.shield')[addEventListener]('touchstart touchmove touchend',function(e){e.stopPropagation()})
 			ABPInst.videoDiv.parentNode[addEventListener]('touchmove',function(e){
 				if(touchContextTimer!=null){
 					clearTimeout(touchContextTimer);
@@ -2401,13 +2505,13 @@ ABP.Strings={
 					draggingStartX += dx;
 					if(draggingStartX-playerBox.left<50 || playerBox.right-draggingStartX<50){
 						document.querySelector('.Drag-Icon').className = 'Drag-Icon cancel';
-						document_querySelector('.Drag-Speed').innerHTML = ABP.Strings.dragControlCancel;
-						document_querySelector('.Drag-Time').innerHTML = '　';
+						document_querySelector('.Drag-Speed').textContent = ABP.Strings.dragControlCancel;
+						document_querySelector('.Drag-Time').textContent = '　';
 						cancelingDragging = true;
 					}else{
 						document.querySelector('.Drag-Icon').className = 'Drag-Icon '+ (increasing?'forward':'rewind');
-						document_querySelector('.Drag-Speed').innerHTML = ABP.Strings['dragControl' + speedStringMap[draggingSpeed] + (increasing?'Inc':'Dec')];
-						document_querySelector('.Drag-Time').innerHTML = formatTime(draggingTimeBase) +'╱'+ formatTime(duration);
+						document_querySelector('.Drag-Speed').textContent = ABP.Strings['dragControl' + speedStringMap[draggingSpeed] + (increasing?'Inc':'Dec')];
+						document_querySelector('.Drag-Time').textContent = formatTime(draggingTimeBase) +'╱'+ formatTime(duration);
 						cancelingDragging = false;
 						if(duration>0)
 							document.querySelector('.Drag-Time-Bar .fill').style.width = draggingTimeBase/duration*100 +'%'
@@ -2444,7 +2548,8 @@ ABP.Strings={
 			})
 
 			var saveConfigurations = function() {
-				localStorage.html5Settings=JSON.stringify({
+				if (ABPInst.inited)
+				saveStorage({PlayerSettings:{
 					volume: ABPInst.video.volume,
 					opacity: ABPInst.cmManager.options.global.opacity,
 					scale: ABPInst.commentScale,
@@ -2456,8 +2561,10 @@ ABP.Strings={
 					defaultWide: ABPInst.defaultWide,
 					defaultFull: ABPInst.defaultFull,
 					playSpeed: ABPInst.video.playbackRate,
-					recordPlaySpeed: ABPInst.recordPlaySpeed
-				});
+					recordPlaySpeed: ABPInst.recordPlaySpeed,
+					theme: document.getElementById('setting-playerTheme').value,
+					density: ABPInst.cmManager.options.global.density
+				}});
 			}
 
 			var sendComment = function() {
@@ -2485,14 +2592,6 @@ ABP.Strings={
 					"color": parseInt("0x" + ABPInst.commentColor),
 					"border": true
 				});
-				ABPInst.commentList[commentId] = {
-					"date": parseInt(date.getTime() / 1000),
-					"time": ABPInst.video.currentTime * 1000,
-					"mode": ABPInst.commentMode,
-					"user": "-",
-					"pool": 0,
-					"content": ABPInst.txtText.value
-				}
 				ABPInst.txtText.value = "";
 				ABPInst.txtText.disabled = true;
 				setTimeout(function() {
@@ -2545,16 +2644,17 @@ ABP.Strings={
 				size:[0,0]
 			},
 			fetchedPreview=function(json){
-				if(json.code!=0)
+				if(json.code!=0 || !json.data)
 					return false;
-				preview.imgs=JSON.parse(JSON.stringify(json.data.image).replace(/\"\/\//g,'"http://'));
-				preview.len=[json.data.img_x_len,json.data.img_y_len];
-				preview.size=[json.data.img_x_size,json.data.img_y_size];
-				var xhr=new XMLHttpRequest(),data,arr=[];
-				xhr.open('GET','/api/videoshot_index?cid='+cid,true);
+				var data=json.data;
+				preview.imgs=JSON.parse(JSON.stringify(data.image).replace(/\"\/\//g,'"http://'));
+				preview.len=[data.img_x_len,data.img_y_len];
+				preview.size=[data.img_x_size,data.img_y_size];
+				var xhr=new XMLHttpRequest(),arr=[];
+				xhr.open('GET','/api/videoshot_index?file='+encodeURIComponent(data.pvdata),true);
 				xhr.onreadystatechange=function(e){
 					if(xhr.readyState==4 && xhr.status==200){
-						data=JSON.parse(xhr.response);
+						var data=JSON.parse(xhr.response);
 						data.index.shift();
 						preview.data=data.index;
 					}
@@ -2582,7 +2682,7 @@ ABP.Strings={
 			});
 			var updateTime = function(time) {
 				ABPInst.barTime.style.width = (time / video.duration * 100) + "%";
-				ABPInst.timeLabel.innerHTML = formatTime(time) + " / " + formatTime(video.duration);
+				ABPInst.timeLabel.textContent = formatTime(time) + " / " + formatTime(video.duration);
 			}
 			document[addEventListener]("mousemove", function(e) {
 				var newTime = ((e.clientX - ABPInst.barTimeHitArea.getBoundingClientRect().left) / ABPInst.barTimeHitArea.offsetWidth) * ABPInst.video.duration;
@@ -2634,6 +2734,18 @@ ABP.Strings={
 			ABPInst.barVolumeHitArea[addEventListener]("mousedown", function(e) {
 				draggingVolume = true;
 			});
+			var hideVolumeTimeout=null,
+			showVolume = function(){
+				hideVolumeTimeout && clearTimeout(hideVolumeTimeout)
+				addClass(playerUnit,'volume-show');
+			},
+			hideVolume = function(){
+				hideVolumeTimeout = setTimeout(function(){removeClass(playerUnit,'volume-show');},2e3);
+			}
+			ABPInst.barVolumeHitArea[addEventListener]('mouseenter',showVolume);
+			ABPInst.btnVolume[addEventListener]('mouseenter',showVolume);
+			ABPInst.barVolumeHitArea[addEventListener]('mouseleave',hideVolume);
+			ABPInst.btnVolume[addEventListener]('mouseleave',hideVolume);
 			ABPInst.barVolume.style.width = (ABPInst.video.volume * 100) + "%";
 			var updateVolume = function(volume) {
 				ABPInst.barVolume.style.width = (volume * 100) + "%";
@@ -2677,7 +2789,6 @@ ABP.Strings={
 			var updateOpacity = function(opacity) {
 				ABPInst.barOpacity.style.width = (opacity * 100) + "%";
 				ABPInst.barOpacityHitArea.tooltip(parseInt(opacity * 100) + "%");
-				saveConfigurations();
 			}
 			document[addEventListener]("mouseup", function(e) {
 				if (draggingOpacity) {
@@ -2711,7 +2822,6 @@ ABP.Strings={
 				ABPInst.barScale.style.width = (scale - 0.2) / 1.8 * 100 + "%";
 				ABPInst.barScaleHitArea.tooltip(parseInt(scale * 100) + "%");
 				ABPInst.cmManager.setBounds();
-				saveConfigurations();
 			}
 			document[addEventListener]("mouseup", function(e) {
 				if (draggingScale) {
@@ -2736,6 +2846,60 @@ ABP.Strings={
 				}
 			});
 			hoverTooltip(ABPInst.barScaleHitArea, true, -6);
+			var draggingDensity = false;
+			ABPInst.barDensityHitArea[addEventListener]('mousedown', function() {
+				draggingDensity = true;
+			});
+			//0-0.8 -> 5-100 step 5, 0.8-0.95 -> 100-1000 step 100, 1 -> 0
+			var formatDensity = function(density){
+				if (density>=5&&density<100)
+					return ((density/5)|0)*5;
+				else if (density>=100 && density<=1000)
+					return ((density/100)|0)*100;
+				else
+					return 0
+			}
+			var updateDensity = function(density) {
+				density = formatDensity(density);
+				var width = 100;
+				if ( density >= 5 && density < 100 ) {
+					width = (density/5-1) / 19 * 80;
+				} else if ( density >= 100 && density <= 1000 ) {
+					width = (density/100-1) / 9 * 15 + 80;
+				}
+				ABPInst.barDensity.style.width = width + '%';
+				ABPInst.barDensityHitArea.tooltip(density||'无限制');
+			}
+			document[addEventListener]("mouseup", function(e) {
+				if (draggingDensity) {
+					var perc = (e.clientX - ABPInst.barScaleHitArea.getBoundingClientRect().left) / ABPInst.barScaleHitArea.offsetWidth, newDensity = 0;
+					if (perc >=0 && perc < .8){
+						newDensity = Math.round(perc/.8*19)*5+5;
+					} else if (perc >= .8 && perc <= .95) {
+						newDensity = Math.round((perc-.8)/.15*9)*100+100;
+					}
+					ABPInst.cmManager.options.global.density = newDensity;
+					updateDensity(newDensity);
+					saveConfigurations();
+				}
+				draggingDensity = false;
+			});
+			document[addEventListener]("mousemove", function(e) {
+				var perc = (e.clientX - ABPInst.barScaleHitArea.getBoundingClientRect().left) / ABPInst.barScaleHitArea.offsetWidth, newDensity = 0;
+				if (perc >=0 && perc < .8){
+					newDensity = Math.round(perc/.8*19)*5+5;
+				} else if (perc >= .8 && perc <= .95) {
+					newDensity = Math.round((perc-.8)/.15*9)*100+100;
+				}
+				if (draggingDensity) {
+					ABPInst.cmManager.options.global.density = newDensity;
+					updateDensity(newDensity);
+				} else {
+					ABPInst.barDensityHitArea.tooltip(newDensity||'无限制');
+				}
+			});
+			hoverTooltip(ABPInst.barDensityHitArea, true, -6);
+			updateDensity(ABPInst.cmManager.options.global.density);
 			/*Copy from scale bar*/
 			var draggingSpeed = false;
 			ABPInst.barSpeedHitArea[addEventListener]("mousedown", function(e) {
@@ -2816,8 +2980,8 @@ ABP.Strings={
 						e.preventDefault();
 					switch (e.keyCode) {
 						case 27:
-							if(abpinst.state.fullscreen)
-								abpinst.btnFull.click();
+							if(ABPInst.state.fullscreen)
+								ABPInst.btnFull.click();
 						break;
 						case 32:
 							ABPInst.btnPlay.click();
@@ -2841,16 +3005,36 @@ ABP.Strings={
 							ABPInst.barTimeHitArea.tooltip(formatTime(video.currentTime));
 							break;
 						case 38:
-							var newVolume = ABPInst.video.volume + .1;
-							if (newVolume > 1) newVolume = 1;
-							ABPInst.video.volume = newVolume.toFixed(3);
-							updateVolume(ABPInst.video.volume);
+							if(e.ctrlKey){
+								var newSpeed = ABPInst.video.playbackRate + .05;
+								if (newSpeed > 2) newSpeed = 2;
+								ABPInst.video.playbackRate = newSpeed.toFixed(3);
+								ABPInst.removePopup();
+								ABPInst.createPopup(ABP.Strings.rateChange + ((newSpeed*1e2)|0) + '%',1e3);
+							}else{
+								var newVolume = ABPInst.video.volume + .1;
+								if (newVolume > 1) newVolume = 1;
+								ABPInst.video.volume = newVolume.toFixed(3);
+								updateVolume(ABPInst.video.volume);
+								ABPInst.removePopup();
+								ABPInst.createPopup(ABP.Strings.volumeChange + ((newVolume*1e2)|0) + '%',1e3);
+							}
 							break;
 						case 40:
-							var newVolume = ABPInst.video.volume - .1;
-							if (newVolume < 0) newVolume = 0;
-							ABPInst.video.volume = newVolume.toFixed(3);
-							updateVolume(ABPInst.video.volume);
+							if(e.ctrlKey){
+								var newSpeed = ABPInst.video.playbackRate - .05;
+								if (newSpeed < .5) newSpeed = .5;
+								ABPInst.video.playbackRate = newSpeed.toFixed(3);
+								ABPInst.removePopup();
+								ABPInst.createPopup(ABP.Strings.rateChange + ((newSpeed*1e2)|0) + '%',1e3);
+							}else{
+								var newVolume = ABPInst.video.volume - .1;
+								if (newVolume < 0) newVolume = 0;
+								ABPInst.video.volume = newVolume.toFixed(3);
+								updateVolume(ABPInst.video.volume);
+								ABPInst.removePopup();
+								ABPInst.createPopup(ABP.Strings.volumeChange + ((newVolume*1e2)|0) + '%',1e3);
+							}
 							break;
 					}
 				}
@@ -2938,100 +3122,149 @@ ABP.Strings={
 		Connect WebSocket
 		*/
 		if(window.cid && window.WebSocket){
-			//var sock=new WebSocket('ws://chat.bilibili.com:88/'+window.cid),
-			//var sock=new WebSocket('wss://chat_proxy.biliplus.com/'+window.cid),
-			var sock=new WebSocket('wss://chat.bilibili.com:8443/'+window.cid),
-			message=function(d){
-				var messageType=parseInt(d.data.substr(0,4),16),
-				messageContent=d.data.substr(4);
-				switch(messageType){
-					case 1:
-						ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#viewer').innerHTML=messageContent;
-					case 8:
-
-					break;
-					case 2:
-						var danmaku=JSON.parse(messageContent);
-						danmaku=[danmaku[0].split(','),danmaku[1]];
-						danmaku={
-							border:false,
-							position:'absolute',
-							stime:danmaku[0][0]*1e3,
-							mode:danmaku[0][1]*1,
-							size:danmaku[0][2]*1,
-							color:danmaku[0][3]*1,
-							date:danmaku[0][4]*1,
-							whatTheHellIsThis:danmaku[0][5]*1,
-							pool:danmaku[0][6]*1,
-							hash:danmaku[0][7],
-							dbid:danmaku[0][8]*1,
-							text:danmaku[1]
-						};
-						if(danmaku.mode==8){
-							danmaku.code=danmaku.text;
-							delete danmaku.text;
-						}
-						var comment={
-							"date": danmaku.date,
-							"time": danmaku.stime,
-							"mode": danmaku.mode,
-							"user": danmaku.hash,
-							"pool": danmaku.pool,
-							"content": danmaku.text||danmaku.code,
-							"originalData":danmaku
-						};
-						ABPInst.cmManager.insert(danmaku);
-						shield.shield();
-						ABPInst.commentList[danmaku.dbid] = comment;
-						var commentObj = _("li", {}),
-							commentObjTime = _("span", {
-								"className": "cmt-time"
-							}, [_("text", formatTime(comment.time / 1000))]),
-							commentObjContent = _("span", {
-								"className": "cmt-content"
-							}, [_("text", comment.content)]),
-							commentObjDate = _("span", {
-								"className": "cmt-date"
-							}, [_("text", formatDate(comment.date, true))]);
-						hoverTooltip(commentObjContent, false, 36);
-						hoverTooltip(commentObjDate, false, 18);
-						commentObjContent.tooltip(comment.content);
-						commentObjDate.tooltip(formatDate(comment.date));
-						commentObj.appendChild(commentObjTime);
-						commentObj.appendChild(commentObjContent);
-						commentObj.appendChild(commentObjDate);
-						commentObj.data = comment;
-						if(danmaku.code!=undefined){
-							commentObj.style.background='#ffe100';
-						}else if(danmaku.pool!=0){
-							commentObj.style.background='#20ff20';
-						}
-						commentObj[addEventListener]("dblclick", function(e) {
-							ABPInst.video.currentTime = this.data.time / 1000;
-							updateTime(video.currentTime);
-						});
-						ABPInst.commentObjArray.push(commentObj);
-						var commentListContainer=ABPInst.commentListContainer,scroll=!1;
-						if( commentListContainer.parentNode.scrollTop+commentListContainer.parentNode.offsetHeight == commentListContainer.scrollHeight ){
-							scroll=!0;
-						}
-						ABPInst.renderCommentList();
-						if(scroll)commentListContainer.parentNode.scrollTop+=24;
-						ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').innerHTML=ABPInst.commentObjArray.length;
-					break;
-					default:
-						console.log('收到未知类型message: '+d.data);
+			var connected = false;
+			var sock = new WebSocket('ws://danmaku.acfun.cn:443/' + window.cid);
+			var open = function () {
+				connected = true;
+				var obj = {
+					client: '16bk983221049',
+					client_ck: '884509046',
+					vid: window.cid,
+					vlength: 0,
+					time: Date.now(),
+					uid: window.user.uid||null,
+					uid_ck: window.user.uid_ck||null
 				}
-			},close=function(){
-				setTimeout(function(){
-					sock=new WebSocket('wss://chat.bilibili.com:8443/'+window.cid);
-					sock[addEventListener]('message',message);
-					sock[addEventListener]('close',close);
-				},5e3);
+				obj.uid == -1 && (obj.uid = null);
+				var data = JSON.stringify({ action: 'auth', command: JSON.stringify(obj) })
+				sock.send(data);
+				sock.send(JSON.stringify({ "action": "onlanNumber", "command": "WALLE DOES NOT HAVE PENNIS" }));
+			}
+			var message = function (e) {
+				var data = JSON.parse(e.data);
+				if(data.action!=undefined){
+					switch(data.action) {
+						case 'post':
+							//收到弹幕
+							var danmaku = JSON.parse(data.command);
+							danmaku={
+								border:false,
+								position:'absolute',
+								stime:danmaku.stime*1e3,
+								mode:danmaku.mode|0,
+								size:danmaku.size|0,
+								color:danmaku.color|0,
+								date:Date.now()/1e3|0,
+								pool:0,
+								hash:danmaku.authUser.userId,
+								dbid:danmaku.commentid,
+								text:danmaku.message
+							};
+							if(danmaku.mode==8){
+								danmaku.code=danmaku.text;
+								delete danmaku.text;
+							}
+							var comment={
+								"date": danmaku.date,
+								"time": danmaku.stime,
+								"mode": danmaku.mode,
+								"user": danmaku.hash,
+								"pool": danmaku.pool,
+								"content": danmaku.text||danmaku.code,
+								"originalData":danmaku
+							};
+							ABPInst.cmManager.insert(danmaku);
+							shield.shield();
+							ABPInst.commentList[danmaku.dbid] = comment;
+							var commentObj = _("li", {}),
+								commentObjTime = _("span", {
+									"className": "cmt-time"
+								}, [_("text", formatTime(comment.time / 1000))]),
+								commentObjContent = _("span", {
+									"className": "cmt-content"
+								}, [_("text", comment.content)]),
+								commentObjDate = _("span", {
+									"className": "cmt-date"
+								}, [_("text", formatDate(comment.date, true))]);
+							hoverTooltip(commentObjContent, false, 36);
+							hoverTooltip(commentObjDate, false, 18);
+							commentObjContent.tooltip(comment.content);
+							commentObjDate.tooltip(formatDate(comment.date));
+							commentObj.appendChild(commentObjTime);
+							commentObj.appendChild(commentObjContent);
+							commentObj.appendChild(commentObjDate);
+							commentObj.data = comment;
+							if(danmaku.code!=undefined){
+								commentObj.style.background='#ffe100';
+							}else if(danmaku.pool!=0){
+								commentObj.style.background='#20ff20';
+							}
+							commentObj[addEventListener]("dblclick", function(e) {
+								ABPInst.video.currentTime = this.data.time / 1000;
+								updateTime(video.currentTime);
+							});
+							ABPInst.commentObjArray.push(commentObj);
+							var commentListContainer=ABPInst.commentListContainer,scroll=!1;
+							if( commentListContainer.parentNode.scrollTop+commentListContainer.parentNode.offsetHeight == commentListContainer.scrollHeight ){
+								scroll=!0;
+							}
+							ABPInst.renderCommentList();
+							if(scroll)commentListContainer.parentNode.scrollTop+=24;
+							ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').textContent=ABPInst.commentObjArray.length;
+							break;
+						case 'vow':
+							//公告
+							console.log(data.command);
+							break;
+						case 'close':
+							sock.close();
+							break;
+					}
+				}else if(data.status!=undefined){
+					switch(data.status) {
+						case '600':
+							//在线人数
+							ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#viewer').textContent=data.msg;
+							break;
+						case '500':
+							ABPInst.createPopup(_t('postCommentFail') + '<br>[500]服务器异常');
+							break;
+						case '403':
+							ABPInst.createPopup(_t('postCommentFail') + '<br>[403]' + data.msg);
+							break;
+						case '401':
+							ABPInst.createPopup(_t('postCommentFail') + '<br>[401]你已被封禁');
+							break;
+						case '200':
+							//发送成功，不提示，由ws返回时加入弹幕池
+							break;
+						default:
+							console.log('not implemented status', data);
+					}
+				}
 			};
-			sock[addEventListener]('message',message);
-			sock[addEventListener]('close',close);
-			setInterval(function(){sock.send("01020004")},3e4);
+			var close = function () {
+				connected = false;
+				console.warn('WebSocket closed!');
+			}
+			var error = function () {
+				connected = false;
+				console.warn('WebSocket connection error!');
+				setTimeout(function () {
+					sock = new WebSocket('ws://danmaku.acfun.cn:443/' + window.cid);
+					sock.addEventListener('open',open);
+					sock.addEventListener('message',message);
+					sock.addEventListener('close',close);
+					sock.addEventListener('error',error);
+					ABPInst.danmu_ws = sock;
+				}, 5e3);
+			}
+			ABPInst.danmu_ws = sock;
+			var sendInterval = setInterval(function () { connected && sock.send(JSON.stringify({ "action": "onlanNumber", "command": "WALLE DOES NOT HAVE PENNIS" })) }, 3e4);
+			sock.addEventListener('open',open);
+			sock.addEventListener('message',message);
+			sock.addEventListener('close',close);
+			sock.addEventListener('error',error);
 		}
 		var watchingCountMover=function(e){
 			var widescreen=ABPInst.state.widescreen,fullscreen=ABPInst.state.fullscreen,
@@ -3046,13 +3279,6 @@ ABP.Strings={
 			}
 		}
 		ABPInst.controlBar[addEventListener]('click',watchingCountMover);
-		ABPInst.reconnectSocket=function(){
-			sock.removeEventListener('close',close);
-			sock.close();
-			sock=new WebSocket('wss://chat.bilibili.com:8443/'+window.cid);
-			sock[addEventListener]('message',message);
-			sock[addEventListener]('close',close);
-		}
 		shield.init(ABPInst);
 		return ABPInst;
 	}

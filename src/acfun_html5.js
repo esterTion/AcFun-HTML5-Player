@@ -13,7 +13,7 @@ function createPopup(param) {
         value: _t('close'), type: 'button', className: 'close', event: {
             click: function () {
                 div.style.height = 0;
-                setTimeout(function () { div.remove() }, 500);
+                setTimeout(function () { div.remove(); }, 500);
             }
         }
     }));
@@ -24,7 +24,385 @@ function createPopup(param) {
     div.style.height = div.firstChild.offsetHeight + 'px';
 }
 
+const rc4_key = '8bdc7e1a';
 let pageInfo;
+let user;
+let knownTypes = {
+    'mp4sd': _t('flvhd'),
+    'flvhd': _t('flvhd'),
+    'mp4hd': _t('mp4hd'),
+    'mp4hd2': _t('mp4hd2'),
+    'mp4hd2v2': _t('mp4hd2'),
+    'mp4hd3': _t('mp4hd3'),
+    'mp4hd3v2': _t('mp4hd3')
+};
+let audioLangs = {};
+let srcUrl = {};
+let availableSrc = [];
+window.currentSrc = '';
+window.currentLang = '';
+let firstTime = true;
+let highestType;
+
+function response2url(json) {
+    if (fetchedCount) {
+        //写入备份模式
+        json.stream.forEach(function (stream) {
+            if (stream.channel_type) return;
+            let lang = stream.audio_lang,
+                type = stream.stream_type,
+                current = audioLangs[lang].src[type];
+            //忽略不记录清晰度
+            if (current === undefined) return;
+            current.playlist_url = stream.m3u8_url;
+            for (let part = 0; part < stream.segs.length; part++) {
+                current.segments[part].backup_url.push(stream.segs[part].cdn_url.replace(/http:\/\/([\d\.]+?)\//, function (s) {
+                    return s + 'youku/';
+                }));
+                if (stream.segs[part].cdn_backup) {
+                    current.segments[part].backup_url.concat(stream.segs[part].cdn_backup);
+                }
+            }
+        });
+        return;
+    }
+    let data = {};
+    let savedLang = localStorage.YHP_PreferedLang || '';
+    for (let val of json.stream) {
+        if (!data[val.audio_lang])
+            data[val.audio_lang] = {};
+        if (!val.channel_type)
+            data[val.audio_lang][val.stream_type] = val;
+        //片尾、片头独立片段暂时丢弃
+    }
+
+    audioLangs.length = 0;
+    for (let lang in data) {
+        audioLangs[lang] = {
+            src: {},
+            available: []
+        };
+        audioLangs.length++;
+        if (currentLang == '')
+            currentLang = lang;
+        if (savedLang == lang)
+            currentLang = lang;
+
+        if (data[lang].mp4hd3v2)
+            delete data[lang].mp4hd3;
+        if (data[lang].mp4hd2v2)
+            delete data[lang].mp4hd2;
+        if (data[lang].mp4sd)
+            delete data[lang].flvhd,
+                typeDropMap = {
+                    'mp4hd3v2': 'mp4hd2v2',
+                    'mp4hd2v2': 'mp4hd',
+                    'mp4hd': 'mp4sd'
+                };
+
+        for (let type in knownTypes) {
+            if (data[lang][type]) {
+                let time = 0;
+                audioLangs[lang].src[type] = {
+                    type: 'flv',
+                    segments: [],
+                    fetchM3U8: false,
+                    withCredentials: true
+                };
+                for (let part of data[lang][type].segs) {
+                    if (part.key == -1) {
+                        audioLangs[lang].src[type].partial = true;
+                        continue;
+                    }
+                    let seg = {
+                        filesize: part.size | 0,
+                        duration: part.total_milliseconds_video | 0,
+                        url: part.url || part.cdn_url
+                    };
+                    if (part.cdn_backup && part.cdn_backup.length) {
+                        seg.backup_url = part.cdn_backup;
+                    }
+                    audioLangs[lang].src[type].segments.push(seg);
+                    time += part.total_milliseconds_video | 0;
+                }
+                audioLangs[lang].src[type].duration = time;
+                audioLangs[lang].src.duration = time;
+                highestType = type;
+            }
+        }
+
+        let selected;
+        let hitPrefer = false;
+        let prefer = localStorage.YHP_PreferedType || '';
+        for (let type in knownTypes) {
+            if (audioLangs[lang].src[type]) {
+                selected = [type, knownTypes[type]];
+                audioLangs[lang].available.push(selected);
+                if (firstTime && !hitPrefer && currentLang == lang) {
+                    currentSrc = type;
+                }
+                if (prefer == type)
+                    hitPrefer = true;
+            }
+        }
+        if (firstTime && currentLang == lang && !hitPrefer)
+            currentSrc = selected[0];
+    }
+}
+
+function switchLang(lang) {
+    Array.from(abpinst.playerUnit.querySelectorAll('.BiliPlus-Scale-Menu .Video-Defination>div')).forEach(function (i) {
+        i.remove();
+    });
+
+    srcUrl = audioLangs[lang].src;
+    availableSrc = audioLangs[lang].available;
+
+    for (let i = 0; i < availableSrc.length; i++) {
+        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination').appendChild(_('div', {
+            changeto: JSON.stringify(availableSrc[i]),
+            name: availableSrc[i][0],
+            className: availableSrc[i][0] == currentSrc ? 'on' : ''
+        }, [_('text', availableSrc[i][1])]));
+    }
+    if (audioLangs.length > 1)
+        abpinst.removePopup(), abpinst.createPopup(_t('currentLang') + (knownLangs[lang] || lang), 3e3);
+}
+
+let fetchedCount = 0;
+
+function fetchSrcThen(json) {
+    if (json.error) {
+        /*
+        处理错误
+        -2002 需要密码
+        -2003 密码错误
+        */
+        dots.stopTimer();
+        let error = json.error;
+        createPopup({
+            content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', JSON.stringify(json.error))],
+            showConfirm: false
+        });
+        fetchedCount = 0;
+        return;
+    } else {
+        response2url(json);
+    }
+    switchLang(currentLang);
+    if (firstTime) {
+        abpinst.title = pageInfo.title;
+        abpinst.playerUnit.addEventListener('sendcomment', sendComment);
+        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = 'scale-menu-show';
+        setTimeout(function () {
+            abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = '';
+        }, 2e3);
+
+        /*if (pageInfo.uid == '') {
+            abpinst.txtText.disabled = true;
+            abpinst.txtText.placeholder = _t('noVisitorComment');
+            abpinst.txtText.style.textAlign = 'center';
+        }*/
+        let contextMenu = abpinst.playerUnit.querySelector('.Context-Menu-Body');
+        if (audioLangs.length > 1) {
+            let childs = [];
+            for (let lang in audioLangs) {
+                childs.push(_('div', { 'data-lang': lang }, [_('text', knownLangs[lang] || lang)]));
+            }
+            let langChange = _('div', { className: 'dm static' }, [
+                _('div', {}, [_('text', _t('audioLang'))]),
+                _('div', {
+                    className: 'dmMenu', event: {
+                        click: function (e) {
+                            let lang = e.target.getAttribute('data-lang');
+                            if (lang == currentLang)
+                                return;
+                            while (audioLangs[lang].src[currentSrc] == undefined) {
+                                if (typeDropMap[currentSrc] == undefined) {
+                                    abpinst.createPopup('切换错误，没有清晰度', 3e3);
+                                    return false;
+                                }
+                                currentSrc = typeDropMap[currentSrc];
+                            }
+                            switchLang(lang);
+                            currentLang = lang;
+                            localStorage.YHP_PreferedLang = lang;
+                            changeSrc('', currentSrc, true);
+                        }
+                    }
+                }, childs)
+            ]);
+            contextMenu.insertBefore(langChange, contextMenu.firstChild);
+        }
+
+        if (json.preview)
+            abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', {
+                detail: {
+                    code: 0, data: {
+                        img_x_len: 10,
+                        img_y_len: 10,
+                        img_x_size: 128,
+                        img_y_size: 72,
+                        image: json.preview.thumb,
+                        step: json.preview.timespan / 1e3
+                    }
+                }
+            }));
+        /*readStorage('updateNotifyVer', function (item) {
+            if (item.updateNotifyVer != '1.3.2') {
+                saveStorage({ 'updateNotifyVer': '1.3.2' });
+                chrome.runtime.sendMessage('version', function (version) {
+                    createPopup({
+                        content: [
+                            _('p', { style: { fontSize: '16px' } }, [_('text', _t('extUpdated'))]),
+                            _('div', { style: { whiteSpace: 'pre-wrap' } }, [
+                                _('text', _t('extUpdated_ver') + version + "\n\n" + _t('extUpdated_detail'))
+                            ])
+                        ],
+                        showConfirm: false
+                    });
+                });
+            }
+        });*/
+    }
+    firstTime = false;
+    fetchedCount++;
+    changeSrc('', currentSrc, true);
+}
+
+window.changeSrc = function (e, t, force) {
+    let div = abpinst.playerUnit.querySelector('#info-box');
+    if ((abpinst == undefined || (currentSrc == t)) && !force)
+        return false;
+    if (div.style.opacity == 0) {
+        div.style.opacity = 1;
+    }
+    abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination div.on').className = '';
+    abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination div[name=' + t + ']').className = 'on';
+    abpinst.video.pause();
+    if (srcUrl[t] != undefined) {
+        div.childNodes[0].childNodes[0].textContent = ABP.Strings.switching;
+        if (!dots.running)
+            dots.runTimer();
+        if (abpinst.lastTime == undefined)
+            abpinst.lastTime = abpinst.video.currentTime;
+        if (abpinst.lastSpeed == undefined)
+            abpinst.lastSpeed = abpinst.video.playbackRate;
+        abpinst.video.dispatchEvent(new CustomEvent('autoplay'));
+        if (!force) {
+            let setPrefer = t == highestType ? '' : t;
+            localStorage.YHP_PreferedType = setPrefer;
+        }
+        flvparam(t);
+    }
+};
+let self = window;
+let createPlayer = function (e) {
+    if (self.flvplayer != undefined) {
+        self.flvplayer.unload();
+        self.flvplayer.destroy();
+        delete self.flvplayer;
+    }
+    if (e.detail == null)
+        return false;
+    self.flvplayer = flvjs.createPlayer(e.detail.src, e.detail.option);
+    self.flvplayer.on('error', load_fail);
+    self.flvplayer.attachMediaElement(abpinst.video);
+    self.flvplayer.load();
+    playerIframe.playerWin.flvplayer = self.flvplayer;
+};
+let load_fail = function (type, info, detail) {
+    let div = _('div', {
+        style: {
+            width: '100%',
+            height: '100%',
+            textAlign: 'center',
+            background: 'rgba(0,0,0,0.8)',
+            position: 'absolute',
+            color: '#FFF'
+        }
+    }, [
+            _('div', {
+                style: {
+                    position: 'relative',
+                    top: '50%'
+                }
+            }, [
+                    _('div', {
+                        style: {
+                            position: 'relative',
+                            fontSize: '16px',
+                            lineHeight: '16px',
+                            top: '-8px'
+                        }
+                    }, [_('text', _t('loadErr'))])
+                ])
+        ]);
+    abpinst.playerUnit.querySelector('.ABP-Video').insertBefore(div, document.querySelector('.ABP-Video>:first-child'));
+    abpinst.playerUnit.querySelector('#ABP-info-box').remove();
+    createPopup({
+        content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('playErr'))]), _('div', { style: { whiteSpace: 'pre-wrap' } }, [_('text', JSON.stringify({ type, info, detail }, null, '  '))])],
+        showConfirm: false
+    });
+};
+let flvparam = function (select) {
+    currentSrc = select;
+    createPlayer({ detail: { src: srcUrl[select], option: { seekType: 'range', reuseRedirectedURL: true } } });
+    if (srcUrl[select].partial) {
+        setTimeout(function () { abpinst.createPopup(_t('partialAvailable'), 3e3); }, 4e3);
+    }
+    if (srcUrl[select].segments) {
+        let totalSize = 0;
+        srcUrl[select].segments.forEach(function (i) { totalSize += i.filesize; });
+        overallBitrate = totalSize / srcUrl.duration * 8;
+    } else {
+        overallBitrate = srcUrl[select].filesize / srcUrl.duration * 8;
+    }
+};
+
+function parseComment(data) {
+    let list = [];
+    data[2].forEach(function (i) {
+        let conf = i.c.split(',');
+        let message = i.m;
+        let stime = conf[0];
+        if (stime.indexOf('%') != -1) {
+            stime = abpinst.video.duration * (stime.replace('%', '') | 0);
+        }
+        stime *= 1e3;
+        list.push({
+            stime,
+            color: conf[1] | 0,
+            mode: conf[2] | 0,
+            size: conf[3] | 0,
+            hash: conf[4],
+            date: conf[5],
+            dbid: conf[6],
+            pool: 0,
+            position: 'absolute',
+            border: false,
+            text: message,
+        });
+    });
+    abpinst.cmManager.load(list);
+}
+function sendComment(e) {
+    let cmt = e.detail;
+    let obj = {
+        "action": 'post',
+        "command": JSON.stringify({
+            "mode": cmt.mode,
+            "color": cmt.color,
+            "size": cmt.fontsize,
+            "stime": cmt.playTime | 0,
+            "user": user.uid,
+            "message": cmt.message,
+            "time": (Date.now() / 1e3) | 0,
+            "islock": '2'
+        })
+    };
+    abpinst.danmu_ws.send(JSON.stringify(obj));
+}
 
 let tempEvent, tempEventType;
 function eventPasser() {
@@ -45,23 +423,102 @@ function init() {
         return;
     let container = dest.parentNode;
     dest.remove();
-    playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: chrome.extension.getURL("player.html") + '?vid=' + pageInfo.vid }));
-    window.addEventListener('message', function (e) {
-        if (e.origin == chrome.extension.getURL("player.html").slice(0,-12)) {
-            let message = JSON.parse(e.data);
-            switch (message.name) {
-                case 'AHP_log':
-                    console.log.apply(console, message.detail);
-                    break;
-                case 'AHP_createPopup':
-                    console.log(message);
-                    createPopup(message.detail);
-                    break;
-            }
-        }
-        //console.log.apply(console, e.detail);
-    })
+    playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: 'about:blank' }));
 }
+window.playerLoadedCallback = function (playerWin) {
+    if (playerIframe.playerWin != undefined) return false;
+    playerIframe.playerWin = playerWin;
+    playerWin.cid = pageInfo.vid;
+    playerWin.user = user;
+    fetch('http://www.acfun.cn/video/getVideo.aspx?id=' + pageInfo.vid, {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-cache'
+    }).then(function (r) {
+        r.json().then(function (data) {
+            if (data.success) {
+                fetch('http://danmu.aixifan.com/V4/' + pageInfo.vid + '_2/4073558400000/1000?order=-1', {
+                    method: 'GET',
+                    credentials: 'include',
+                    referrer: location.href,
+                    cache: 'no-cache'
+                }).then(function (r) {
+                    r.json().then(function (data) {
+                        parseComment(data);
+                    });
+                });
+                pageInfo.sourceId = data.sourceId;
+                switch (data.sourceType) {
+                    case 'zhuzhan':
+                        //Ac - 优酷云
+                        pageInfo.sign = data.encode;
+                        fetch('http://player.acfun.cn/flash_data?vid=' + pageInfo.sourceId + '&ct=85&ev=3&sign=' + pageInfo.sign + '&time=' + Date.now(), {
+                            method: 'GET',
+                            credentials: 'include',
+                            referrer: location.href,
+                            cache: 'no-cache'
+                        }).then(function (r) {
+                            r.json().then(function (data) {
+                                let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
+                                fetchSrcThen(decrypted);
+                            });
+                        });
+                        break;
+                    case 'youku':
+                        //优酷版权内容
+                        //设置&获取cna
+                        var h = new Headers();
+                        h.append('Range', 'bytes=0-0');
+                        fetch('http://player.youku.com/player.php/sid/' + pageInfo.sourceId + '/newPlayer/true/v.swf', {
+                            method: 'GET',
+                            headers: h,
+                            credentials: 'include',
+                            referrer: location.href,
+                            cache: 'no-cache',
+                            redirect: 'follow'
+                        }).then(function (r) {
+                            pageInfo.yk_cna = r.url.match(/cna=([^&]+)/)[1];
+                            pageInfo.yk_vext = r.url.match(/vext=([^&]+)/)[1];
+                            fetch('https://api.youku.com/players/custom.json?client_id=0edbfd2e4fc91b72&video_id=' + pageInfo.sourceId + '&refer=http://cdn.aixifan.com/player/cooperation/AcFunXYouku.swf&vext=' + pageInfo.yk_vext + '&embsig=undefined&styleid=undefined&type=flash', {
+                                method: 'GET',
+                                credentials: 'include',
+                                referrer: location.href,
+                                cache: 'no-cache'
+                            }).then(function (r) {
+                                r.json().then(function (data) {
+                                    pageInfo.yk_r = data.stealsign;
+                                    fetch('https://ups.youku.com/ups/get.json?vid=' + pageInfo.sourceId + '&ccode=0405&client_ip=192.168.1.1&utid=' + pageInfo.yk_cna + '&client_ts=' + Date.now() + '&r=' + pageInfo.yk_r, {
+                                        method: 'GET',
+                                        credentials: 'include',
+                                        referrer: location.href,
+                                        cache: 'no-cache'
+                                    }).then(function (r) {
+                                        r.json().then(function (data) {
+                                            fetchSrcThen(data.data);
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                        break;
+                }
+            } else {
+                dots.stopTimer();
+                createPopup({
+                    content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', data.result)],
+                    showConfirm: false
+                });
+            }
+        });
+    }).catch(function (e) {
+        dots.stopTimer();
+        createPopup({
+            content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', e.message)],
+            showConfirm: false
+        });
+    });
+    return true;
+};
 (function () {
     let noticeWidth = Math.min(500, innerWidth - 40);
     document.head.appendChild(_('style', {}, [_('text', `#AHP_Notice{
@@ -102,19 +559,92 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
 }
 #AHP_Notice input[type=button]:active {
 	background: #CCC;
-}`)]))
+}
+.noflash-alert{display:none}`)]));
     if ((dest = document.getElementById('ACFlashPlayer')) != null) {
-        //普通投稿
-        pageInfo = Object.assign({}, (document.getElementById('pageInfo') || { dataset: {} }).dataset);
-        document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}')]))
-        init();
-    } else if ((dest = document.getElementById('ACFlashPlayer-re')) != null) {
-        //剧集视频
-        pageInfo = {
-            vid: (document.querySelector('.active.primary') || { dataset: {} }).dataset.vid
-        };
-        document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}')]))
-        init();
+        window.addEventListener('AHP_pageInfo', function pageInfoGrabber(e) {
+            window.removeEventListener('AHP_pageInfo', pageInfoGrabber);
+            pageInfo = e.detail.pageInfo;
+            user = {
+                uid: getCookie('auth_key'),
+                uid_ck: getCookie('auth_key_ac_sha1'),
+                uname: getCookie('ac_username')
+            };
+            if (document.getElementById('pageInfo') != null) {
+                pageInfo.vid = pageInfo.videoId;
+                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}')]));
+            } else {
+                pageInfo.vid = pageInfo.video.videos[0].danmakuId;
+                pageInfo.title = pageInfo.album.title + ' ' + pageInfo.video.videos[0].episodeName;
+                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}')]));
+            }
+            init();
+        });
+        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo,user}}))')]));
+        /*
+        if (document.getElementById('pageInfo') != null) {
+            //普通投稿
+            pageInfo = Object.assign({}, (document.getElementById('pageInfo') || { dataset: {} }).dataset);
+            
+            init();
+        } else {
+            //剧集视频
+        }*/
     }
 })();
+flvjs.LoggingControl.enableVerbose = false;
+flvjs.LoggingControl.enableInfo = false;
+flvjs.LoggingControl.enableDebug = false;
 window.crc_engine = () => { return ''; };
+
+
+let webFullState = false;
+window.addEventListener('message', function (e) {
+    if (['AHP_CrossFrame_Fullscreen_Enter', 'AHP_CrossFrame_Fullscreen_Exit'].indexOf(e.data) == -1) return;
+    let srcFrame = Array.from(document.querySelectorAll('iframe')).find(function (i) {
+        return i.contentWindow == e.source;
+    });
+    if (srcFrame == undefined) return;
+    if (e.data == 'AHP_CrossFrame_Fullscreen_Enter' && !webFullState) {
+        webFullState = true;
+        let origStat = {
+            height: srcFrame.style.height || (srcFrame.offsetHeight + 'px'),
+            width: srcFrame.style.width || (srcFrame.offsetWidth + 'px'),
+            left: srcFrame.style.left,
+            top: srcFrame.style.top,
+            position: srcFrame.style.position,
+            zIndex: srcFrame.style.zIndex
+        };
+        srcFrame.style.zIndex = 0xffffffff;
+        srcFrame.style.height = '100%';
+        srcFrame.style.width = '100%';
+        srcFrame.style.position = 'fixed';
+        srcFrame.style.left = '0';
+        srcFrame.style.top = '0';
+        srcFrame.YHP_origStat = origStat;
+        let climb = srcFrame.parentNode;
+        while (climb != document.body) {
+            climb.YHP_origZIndex = climb.style.zIndex;
+            climb.style.zIndex = 0xffffffff;
+            climb = climb.parentNode;
+        }
+    } else if (e.data == 'AHP_CrossFrame_Fullscreen_Exit' && webFullState) {
+        webFullState = false;
+        let origStat = srcFrame.YHP_origStat;
+        srcFrame.style.zIndex = origStat.zIndex;
+        srcFrame.style.height = origStat.height;
+        srcFrame.style.width = origStat.width;
+        srcFrame.style.position = origStat.position;
+        srcFrame.style.left = origStat.left;
+        srcFrame.style.top = origStat.top;
+        delete srcFrame.YHP_origStat;
+        let climb = srcFrame.parentNode;
+        while (climb != document.body) {
+            if (climb.YHP_origZIndex != undefined)
+                climb.style.zIndex = climb.YHP_origZIndex;
+            climb = climb.parentNode;
+        }
+    }
+    if (parent != window)
+        parent.postMessage(e.data, '*');
+});

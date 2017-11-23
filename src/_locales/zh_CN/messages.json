@@ -47,6 +47,9 @@
     "overallBitrate": {
         "message": "总体码率："
     },
+    "reload": {
+        "message": "重新加载"
+    },
     "statsDownloadSpeed": {
         "message": "下载速度："
     },
@@ -85,6 +88,9 @@
     },
     "commentScale": {
         "message": "弹幕比例"
+    },
+    "commentDensity": {
+        "message": "弹幕密度"
     },
     "commentOpacity": {
         "message": "弹幕不透明度"
@@ -282,10 +288,10 @@
         "message": "取消跳转"
     },
     "extName": {
-        "message": "AcFun HTML5播放器"
+        "message": "更好用的优酷播放器 - YAPfY"
     },
     "extDesc": {
-        "message": "开源仓库：https://github.com/esterTion/AcFun-HTML5-Player"
+        "message": "一个装B播放器，送给缺B乐的各位（\n\n开源仓库：https://github.com/esterTion/AcFun-HTML5-Player"
     },
     "iconPending": {
         "message": "个视频等待播放"
@@ -350,6 +356,9 @@
     "playErr": {
         "message": "播放错误"
     },
+    "playErrPop": {
+        "message": " 播放出错，降级至 "
+    },
     "switchErr": {
         "message": "切换失败，该语言/清晰度暂时不能播放"
     },
@@ -365,46 +374,82 @@
     "uploader": {
         "message": "上传者："
     },
-    "outputUrl":{
-        "message":"输出视频地址"
+    "outputUrl": {
+        "message": "输出视频地址"
     },
-    "noVisitorComment":{
-        "message":"游客无法发送弹幕"
+    "noVisitorComment": {
+        "message": "游客无法发送弹幕"
     },
-    "postCommentFail":{
-        "message":"弹幕发送失败"
+    "postCommentFail": {
+        "message": "弹幕发送失败"
     },
-    "replaceEmbed":{
-        "message":"替换外链播放器"
+    "replaceEmbed": {
+        "message": "替换外链播放器"
     },
-    "autoSwitch":{
-        "message":"自动切换剧集"
+    "autoSwitch": {
+        "message": "自动切换剧集"
     },
-    "mayBlocked":{
-        "message":"您可能开启了广告屏蔽并屏蔽了必要内容，请尝试临时禁用并刷新\n正常出现播放器后可以重新启用\n\n如果这不是您第一次看见这个提示，请确认网络状态"
+    "mayBlocked": {
+        "message": "您可能开启了广告屏蔽并屏蔽了必要内容，请尝试临时禁用并刷新\n正常出现播放器后可以重新启用\n\n如果这不是您第一次看见这个提示，请确认网络状态"
     },
-    "officialHtml5":{
-        "message":"启用官方html5播放器（不稳定）"
+    "officialHtml5": {
+        "message": "使用官方html5播放器"
     },
-    "settings":{
-        "message":"设置"
+    "settings": {
+        "message": "设置"
     },
-    "settComment":{
-		"message":"弹幕偏好设置"
-	},
-	"recordPlaySpeed":{
-		"message":"将当前速度设为默认"
-	},
-	"settPlayer":{
-		"message":"播放器偏好设置"
-	},
-	"autoPlay":{
-		"message":"自动开始播放"
-	},
-	"defaultFull":{
-		"message":"自动进入全屏模式"
-	},
-    "settExtension":{
-        "message":"扩展偏好设置"
+    "settComment": {
+        "message": "弹幕偏好设置"
+    },
+    "recordPlaySpeed": {
+        "message": "将当前速度设为默认"
+    },
+    "settPlayer": {
+        "message": "播放器偏好设置"
+    },
+    "autoPlay": {
+        "message": "自动开始播放"
+    },
+    "defaultFull": {
+        "message": "自动进入全屏模式"
+    },
+    "settExtension": {
+        "message": "扩展偏好设置"
+    },
+    "statsSourceHost": {
+        "message": "视频源域名："
+    },
+    "statsRedirection": {
+        "message": "重定向："
+    },
+    "statsRedirectionNone": {
+        "message": "否"
+    },
+    "extUpdated": {
+        "message": "YAPfY 最近有更新啦！"
+    },
+    "extUpdated_ver": {
+        "message": "现在我们的版本是"
+    },
+    "extUpdated_detail": {
+        "message": "一些更新细节：\n1、项目已经更名为【Yet Another Player for Youku - 更好用的优酷播放器】\n2、播放出错时尝试播放较低清晰度"
+    },
+    "playerTheme":{
+        "message":"播放器主题"
+    },
+    "next": {
+        "message": "下一个视频："
+    },
+    "storylinePoints": {
+        "message": "视频亮点"
+    },
+    "skipHead": {
+        "message": "跳过片头片尾"
+    },
+    "volumeChange": {
+        "message": "音量改变至 "
+    },
+    "rateChange": {
+        "message": "速度改变至 "
     }
 }

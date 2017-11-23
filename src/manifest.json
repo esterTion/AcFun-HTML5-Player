@@ -6,7 +6,8 @@
   "content_scripts": [
     {
       "matches": [
-        "http://www.acfun.cn/v/*"
+        "http://www.acfun.cn/v/*",
+        "http://www.acfun.cn/bangumi/*"
       ],
       "all_frames": true,
       "js": [
@@ -14,15 +15,7 @@
         "resizeSensor.js",
         "rc4.js",
         "flv.min.js",
-        "jquery-2.1.4.min.js",
-        "google-style-loading.min.js",
-        "CommentCoreLibrary.min.js",
-        "biliplus_shield.min.js",
-        "ABPlayer.min.js",
         "acfun_html5.js"
-      ],
-      "css": [
-        "ABPlayer.css"
       ],
       "run_at": "document_end"
     }
@@ -31,12 +24,19 @@
     "*://*/*",
     "storage"
   ],
+  "background": {
+    "scripts": [
+      "script_executer.js"
+    ],
+    "persistent":true
+  },
   "icons": {
     "48": "icon.png"
   },
   "default_locale": "en",
   "web_accessible_resources": [
-    "player.html"
+    "player.html",
+    "ABPlayer.css"
   ],
   "minimum_chrome_version": "49.0"
 }
