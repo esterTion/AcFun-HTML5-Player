@@ -555,6 +555,9 @@ margin:2px;padding:2px;color:#FFFFFF;font-size:13px;font-weight:bold;background-
 .AHP_down_btn{
 margin:2px;padding:4px;color:#1E90FF;font-size:14px;font-weight:bold;border:#1E90FF 2px solid;display:inline-block;border-radius:5px
 }
+body.ABP-FullScreen{
+	overflow:hidden
+}
 @keyframes pop-iframe-in{0%{opacity:0;transform:scale(.7);}100%{opacity:1;transform:scale(1)}}
 @keyframes pop-iframe-out{0%{opacity:1;transform:scale(1);}100%{opacity:0;transform:scale(.7)}}
 #AHP_Notice>div{

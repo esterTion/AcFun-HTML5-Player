@@ -2091,6 +2091,7 @@ ABP.Strings={
 				playerIframe.style.top = '0';
 				playerIframe.style.left = '0';
 				addClass(playerUnit, "ABP-FullScreen");
+				addClass(document.body, "ABP-FullScreen");
 				ABPInst.btnFull.className = "button ABP-FullScreen icon-screen-normal";
 				ABPInst.btnFull.tooltip(ABP.Strings.exitWebFull);
 				ABPInst.state.fullscreen = true;
@@ -2154,6 +2155,7 @@ ABP.Strings={
 					playerIframe.requestFullScreen();
 				} else {
 					removeClass(playerUnit, "ABP-FullScreen");
+					removeClass(document.body, "ABP-FullScreen");
 					this.className = "button ABP-FullScreen icon-screen-full";
 					if(this.tooltipData == ABP.Strings.exitWebFull){
 						playerIframe.style.position = '';
