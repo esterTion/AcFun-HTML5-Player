@@ -1,8 +1,10 @@
-# AcFun HTML5 Player (未完成)  
+# AcFun HTML5 Player  
+作者：esterTion  
 
-基本弃坑状态  
+![](src/icon.png)
 
-- 原计划content script iframe嵌入（css样式冲突）  
-- 取源地址rc4密钥已获得  
-- flash大部分回调未找到，包括番剧页设置播放器宽高回调  
-- WebSocket实时弹幕已找到未附加  
+一个装B播放器，送给缺B乐的各位（被打  
+
+视频源目前支持`主站及优酷版权视频`，其他源请提供视频地址，我会加上支持  
+
+![](https://wx1.sinaimg.cn/large/763783e4gy1fls8d5tvghj20zk0m8ws8.jpg)
