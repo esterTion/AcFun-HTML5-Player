@@ -2658,7 +2658,7 @@ ABP.Strings={
 			ABPInst.barTimeHitArea[addEventListener]("mouseleave",function(e){
 				onTimeBar=!1;
 			});
-			document[addEventListener]("mouseup", function(e) {
+			playerIframe.contentDocument[addEventListener]("mouseup", function(e) {
 				if (dragging) {
 					var newTime = ((e.clientX - ABPInst.barTimeHitArea.getBoundingClientRect().left) / ABPInst.barTimeHitArea.offsetWidth) * ABPInst.video.duration;
 					if (newTime < 0) newTime = 0;
@@ -2674,7 +2674,7 @@ ABP.Strings={
 				ABPInst.barTime.style.width = (time / video.duration * 100) + "%";
 				ABPInst.timeLabel.textContent = formatTime(time) + " / " + formatTime(video.duration);
 			}
-			document[addEventListener]("mousemove", function(e) {
+			playerIframe.contentDocument[addEventListener]("mousemove", function(e) {
 				var newTime = ((e.clientX - ABPInst.barTimeHitArea.getBoundingClientRect().left) / ABPInst.barTimeHitArea.offsetWidth) * ABPInst.video.duration;
 				if (newTime < 0) newTime = 0;
 				if (newTime > ABPInst.video.duration) newTime = ABPInst.video.duration;
@@ -2749,7 +2749,7 @@ ABP.Strings={
 				ABPInst.barVolumeHitArea.tooltip(parseInt(volume * 100) + "%");
 				saveConfigurations();
 			}
-			document[addEventListener]("mouseup", function(e) {
+			playerIframe.contentDocument[addEventListener]("mouseup", function(e) {
 				if (draggingVolume) {
 					var newVolume = (e.clientX - ABPInst.barVolumeHitArea.getBoundingClientRect().left) / ABPInst.barVolumeHitArea.offsetWidth;
 					if (newVolume < 0) newVolume = 0;
@@ -2759,7 +2759,7 @@ ABP.Strings={
 				}
 				draggingVolume = false;
 			});
-			document[addEventListener]("mousemove", function(e) {
+			playerIframe.contentDocument[addEventListener]("mousemove", function(e) {
 				var newVolume = (e.clientX - ABPInst.barVolumeHitArea.getBoundingClientRect().left) / ABPInst.barVolumeHitArea.offsetWidth;
 				if (newVolume < 0) newVolume = 0;
 				if (newVolume > 1) newVolume = 1;
@@ -2780,7 +2780,7 @@ ABP.Strings={
 				ABPInst.barOpacity.style.width = (opacity * 100) + "%";
 				ABPInst.barOpacityHitArea.tooltip(parseInt(opacity * 100) + "%");
 			}
-			document[addEventListener]("mouseup", function(e) {
+			playerIframe.contentDocument[addEventListener]("mouseup", function(e) {
 				if (draggingOpacity) {
 					var newOpacity = (e.clientX - ABPInst.barOpacityHitArea.getBoundingClientRect().left) / ABPInst.barOpacityHitArea.offsetWidth;
 					if (newOpacity < 0) newOpacity = 0;
@@ -2791,7 +2791,7 @@ ABP.Strings={
 				}
 				draggingOpacity = false;
 			});
-			document[addEventListener]("mousemove", function(e) {
+			playerIframe.contentDocument[addEventListener]("mousemove", function(e) {
 				var newOpacity = (e.clientX - ABPInst.barOpacityHitArea.getBoundingClientRect().left) / ABPInst.barOpacityHitArea.offsetWidth;
 				if (newOpacity < 0) newOpacity = 0;
 				if (newOpacity > 1) newOpacity = 1;
@@ -2813,7 +2813,7 @@ ABP.Strings={
 				ABPInst.barScaleHitArea.tooltip(parseInt(scale * 100) + "%");
 				ABPInst.cmManager.setBounds();
 			}
-			document[addEventListener]("mouseup", function(e) {
+			playerIframe.contentDocument[addEventListener]("mouseup", function(e) {
 				if (draggingScale) {
 					var newScale = 0.2 + 1.8 * (e.clientX - ABPInst.barScaleHitArea.getBoundingClientRect().left) / ABPInst.barScaleHitArea.offsetWidth;
 					if (newScale < 0.2) newScale = 0.2;
@@ -2824,7 +2824,7 @@ ABP.Strings={
 				}
 				draggingScale = false;
 			});
-			document[addEventListener]("mousemove", function(e) {
+			playerIframe.contentDocument[addEventListener]("mousemove", function(e) {
 				var newScale = 0.2 + 1.8 * (e.clientX - ABPInst.barScaleHitArea.getBoundingClientRect().left) / ABPInst.barScaleHitArea.offsetWidth;
 				if (newScale < 0.2) newScale = 0.2;
 				if (newScale > 2) newScale = 2;
@@ -2860,7 +2860,7 @@ ABP.Strings={
 				ABPInst.barDensity.style.width = width + '%';
 				ABPInst.barDensityHitArea.tooltip(density||'无限制');
 			}
-			document[addEventListener]("mouseup", function(e) {
+			playerIframe.contentDocument[addEventListener]("mouseup", function(e) {
 				if (draggingDensity) {
 					var perc = (e.clientX - ABPInst.barScaleHitArea.getBoundingClientRect().left) / ABPInst.barScaleHitArea.offsetWidth, newDensity = 0;
 					if (perc >=0 && perc < .8){
@@ -2874,7 +2874,7 @@ ABP.Strings={
 				}
 				draggingDensity = false;
 			});
-			document[addEventListener]("mousemove", function(e) {
+			playerIframe.contentDocument[addEventListener]("mousemove", function(e) {
 				var perc = (e.clientX - ABPInst.barScaleHitArea.getBoundingClientRect().left) / ABPInst.barScaleHitArea.offsetWidth, newDensity = 0;
 				if (perc >=0 && perc < .8){
 					newDensity = Math.round(perc/.8*19)*5+5;
@@ -2902,7 +2902,7 @@ ABP.Strings={
 				ABPInst.cmManager.setBounds();
 				saveConfigurations();
 			}
-			document[addEventListener]("mouseup", function(e) {
+			playerIframe.contentDocument[addEventListener]("mouseup", function(e) {
 				if (draggingSpeed) {
 					var newSpeed = 0.5 + 1.5 * (e.clientX - ABPInst.barSpeedHitArea.getBoundingClientRect().left) / ABPInst.barSpeedHitArea.offsetWidth;
 					if (newSpeed < 0.5) newSpeed = 0.5;
@@ -2913,7 +2913,7 @@ ABP.Strings={
 				}
 				draggingSpeed = false;
 			});
-			document[addEventListener]("mousemove", function(e) {
+			playerIframe.contentDocument[addEventListener]("mousemove", function(e) {
 				var newSpeed = 0.5 + 1.5 * (e.clientX - ABPInst.barSpeedHitArea.getBoundingClientRect().left) / ABPInst.barSpeedHitArea.offsetWidth;
 				if (newSpeed < 0.5) newSpeed = 0.5;
 				if (newSpeed > 2) newSpeed = 2;
@@ -2936,7 +2936,7 @@ ABP.Strings={
 				ABPInst.barPlaySpeed.style.width = (playSpeed - 0.5) / 1.5 * 100 + "%";
 				ABPInst.barPlaySpeedHitArea.tooltip(playSpeed.toFixed(2) + "x");
 			}
-			document[addEventListener]("mouseup", function(e) {
+			playerIframe.contentDocument[addEventListener]("mouseup", function(e) {
 				if (draggingPlaySpeed) {
 					var newPlaySpeed = 0.5 + 1.5 * (e.clientX - ABPInst.barPlaySpeedHitArea.getBoundingClientRect().left) / ABPInst.barPlaySpeedHitArea.offsetWidth;
 					if (newPlaySpeed < 0.5) newPlaySpeed = 0.5;
@@ -2945,7 +2945,7 @@ ABP.Strings={
 				}
 				draggingPlaySpeed = false;
 			});
-			document[addEventListener]("mousemove", function(e) {
+			playerIframe.contentDocument[addEventListener]("mousemove", function(e) {
 				var newPlaySpeed = 0.5 + 1.5 * (e.clientX - ABPInst.barPlaySpeedHitArea.getBoundingClientRect().left) / ABPInst.barPlaySpeedHitArea.offsetWidth;
 				if (newPlaySpeed < 0.5) newPlaySpeed = 0.5;
 				if (newPlaySpeed > 2) newPlaySpeed = 2;

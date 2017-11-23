@@ -106,7 +106,7 @@ mainLoopCaller:function(){
 	dots.mainLoop();
 },
 runTimer:function(){
-	var container=document.getElementById(dots.config.id);
+	var container=dots.config.container;
 	if(container==null || this.running)
 		return;
 	var canvas=container.querySelector('canvas');

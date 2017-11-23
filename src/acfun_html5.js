@@ -434,7 +434,7 @@ function init() {
             mobile: isMobile()
         });
         dots.init({
-            id: 'dots',
+            container: abpinst.playerUnit.querySelector('#dots'),
             width: '100%',
             height: '100%',
             r: 16,
