@@ -309,7 +309,6 @@ let createPlayer = function (e) {
     self.flvplayer.on('error', load_fail);
     self.flvplayer.attachMediaElement(abpinst.video);
     self.flvplayer.load();
-    playerIframe.playerWin.flvplayer = self.flvplayer;
 };
 let load_fail = function (type, info, detail) {
     let div = _('div', {
@@ -404,121 +403,147 @@ function sendComment(e) {
     abpinst.danmu_ws.send(JSON.stringify(obj));
 }
 
-let tempEvent, tempEventType;
-function eventPasser() {
-    switch (tempEventType) {
-        case 'keydown':
-            if (tempEvent.initKeyboardEvent) {
-                tempEvent.initKeyboardEvent('keydown', true, true, tempEvent.view, tempEvent.char, tempEvent.key, tempEvent.location, null, tempEvent.repeat);
-            }
-            break;
-    }
-    playerIframe.contentWindow.dispatchEvent(tempEvent);
-    tempEvent = null;
-    tempEventType = '';
-}
 let dest = null;
+let ABPConfig;
+function chkInit() {
+    readStorage('PlayerSettings', function (item) {
+        ABPConfig = item.PlayerSettings || {};
+        init();
+    });
+}
 function init() {
     if (!pageInfo.vid || dest == null)
         return;
     let container = dest.parentNode;
     dest.remove();
-    playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: 'about:blank' }));
-}
-window.playerLoadedCallback = function (playerWin) {
-    if (playerIframe.playerWin != undefined) return false;
-    playerIframe.playerWin = playerWin;
-    playerWin.cid = pageInfo.vid;
-    playerWin.user = user;
-    fetch('http://www.acfun.cn/video/getVideo.aspx?id=' + pageInfo.vid, {
-        method: 'GET',
-        credentials: 'include',
-        cache: 'no-cache'
-    }).then(function (r) {
-        r.json().then(function (data) {
-            if (data.success) {
-                fetch('http://danmu.aixifan.com/V4/' + pageInfo.vid + '_2/4073558400000/1000?order=-1', {
-                    method: 'GET',
-                    credentials: 'include',
-                    referrer: location.href,
-                    cache: 'no-cache'
-                }).then(function (r) {
-                    r.json().then(function (data) {
-                        parseComment(data);
-                    });
-                });
-                pageInfo.sourceId = data.sourceId;
-                switch (data.sourceType) {
-                    case 'zhuzhan':
-                        //Ac - 优酷云
-                        pageInfo.sign = data.encode;
-                        fetch('http://player.acfun.cn/flash_data?vid=' + pageInfo.sourceId + '&ct=85&ev=3&sign=' + pageInfo.sign + '&time=' + Date.now(), {
-                            method: 'GET',
-                            credentials: 'include',
-                            referrer: location.href,
-                            cache: 'no-cache'
-                        }).then(function (r) {
-                            r.json().then(function (data) {
-                                let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
-                                fetchSrcThen(decrypted);
-                            });
+    let blob = new Blob(['<!DOCTYPE HTML><html><head><meta charset="UTF-8"><style>html,body{height:100%;width:100%;margin:0;padding:0}</style><link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL('ABPlayer.css') + '"></head><body></body></html>'], { type: 'text/html' });
+    let bloburl = URL.createObjectURL(blob);
+    window.playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl }));
+    playerIframe.onload = function () {
+        let video = playerIframe.contentDocument.body.appendChild(_('video'));
+        window.flvplayer = { unload: function () { }, destroy: function () { } };
+        abpinst = ABP.create(video.parentNode, {
+            src: {
+                playlist: [{
+                    video: video
+                }]
+            },
+            width: '100%',
+            height: '100%',
+            config: ABPConfig,
+            mobile: isMobile()
+        });
+        dots.init({
+            id: 'dots',
+            width: '100%',
+            height: '100%',
+            r: 16,
+            thick: 4
+        });
+        dots.runTimer();
+
+        fetch('http://www.acfun.cn/video/getVideo.aspx?id=' + pageInfo.vid, {
+            method: 'GET',
+            credentials: 'include',
+            cache: 'no-cache'
+        }).then(function (r) {
+            r.json().then(function (data) {
+                if (data.success) {
+                    fetch('http://danmu.aixifan.com/V4/' + pageInfo.vid + '_2/4073558400000/1000?order=-1', {
+                        method: 'GET',
+                        credentials: 'include',
+                        referrer: location.href,
+                        cache: 'no-cache'
+                    }).then(function (r) {
+                        r.json().then(function (data) {
+                            parseComment(data);
                         });
-                        break;
-                    case 'youku':
-                        //优酷版权内容
-                        //设置&获取cna
-                        var h = new Headers();
-                        h.append('Range', 'bytes=0-0');
-                        fetch('http://player.youku.com/player.php/sid/' + pageInfo.sourceId + '/newPlayer/true/v.swf', {
-                            method: 'GET',
-                            headers: h,
-                            credentials: 'include',
-                            referrer: location.href,
-                            cache: 'no-cache',
-                            redirect: 'follow'
-                        }).then(function (r) {
-                            pageInfo.yk_cna = r.url.match(/cna=([^&]+)/)[1];
-                            pageInfo.yk_vext = r.url.match(/vext=([^&]+)/)[1];
-                            fetch('https://api.youku.com/players/custom.json?client_id=0edbfd2e4fc91b72&video_id=' + pageInfo.sourceId + '&refer=http://cdn.aixifan.com/player/cooperation/AcFunXYouku.swf&vext=' + pageInfo.yk_vext + '&embsig=undefined&styleid=undefined&type=flash', {
+                    });
+                    pageInfo.sourceId = data.sourceId;
+                    switch (data.sourceType) {
+                        case 'zhuzhan':
+                            //Ac - 优酷云
+                            pageInfo.sign = data.encode;
+                            fetch('http://player.acfun.cn/flash_data?vid=' + pageInfo.sourceId + '&ct=85&ev=3&sign=' + pageInfo.sign + '&time=' + Date.now(), {
                                 method: 'GET',
                                 credentials: 'include',
                                 referrer: location.href,
                                 cache: 'no-cache'
                             }).then(function (r) {
                                 r.json().then(function (data) {
-                                    pageInfo.yk_r = data.stealsign;
-                                    fetch('https://ups.youku.com/ups/get.json?vid=' + pageInfo.sourceId + '&ccode=0405&client_ip=192.168.1.1&utid=' + pageInfo.yk_cna + '&client_ts=' + Date.now() + '&r=' + pageInfo.yk_r, {
-                                        method: 'GET',
-                                        credentials: 'include',
-                                        referrer: location.href,
-                                        cache: 'no-cache'
-                                    }).then(function (r) {
-                                        r.json().then(function (data) {
-                                            fetchSrcThen(data.data);
+                                    let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
+                                    fetchSrcThen(decrypted);
+                                });
+                            });
+                            break;
+                        case 'youku':
+                            //优酷版权内容
+                            //设置&获取cna
+                            var h = new Headers();
+                            h.append('Range', 'bytes=0-0');
+                            fetch('http://player.youku.com/player.php/sid/' + pageInfo.sourceId + '/newPlayer/true/v.swf', {
+                                method: 'GET',
+                                headers: h,
+                                credentials: 'include',
+                                referrer: location.href,
+                                cache: 'no-cache',
+                                redirect: 'follow'
+                            }).then(function (r) {
+                                pageInfo.yk_cna = r.url.match(/cna=([^&]+)/)[1];
+                                pageInfo.yk_vext = r.url.match(/vext=([^&]+)/)[1];
+                                fetch('https://api.youku.com/players/custom.json?client_id=0edbfd2e4fc91b72&video_id=' + pageInfo.sourceId + '&refer=http://cdn.aixifan.com/player/cooperation/AcFunXYouku.swf&vext=' + pageInfo.yk_vext + '&embsig=undefined&styleid=undefined&type=flash', {
+                                    method: 'GET',
+                                    credentials: 'include',
+                                    referrer: location.href,
+                                    cache: 'no-cache'
+                                }).then(function (r) {
+                                    r.json().then(function (data) {
+                                        pageInfo.yk_r = data.stealsign;
+                                        fetch('https://ups.youku.com/ups/get.json?vid=' + pageInfo.sourceId + '&ccode=0405&client_ip=192.168.1.1&utid=' + pageInfo.yk_cna + '&client_ts=' + Date.now() + '&r=' + pageInfo.yk_r, {
+                                            method: 'GET',
+                                            credentials: 'include',
+                                            referrer: location.href,
+                                            cache: 'no-cache'
+                                        }).then(function (r) {
+                                            r.json().then(function (data) {
+                                                fetchSrcThen(data.data);
+                                            });
                                         });
                                     });
                                 });
                             });
-                        });
-                        break;
+                            break;
+                        default:
+                            dots.stopTimer();
+                            createPopup({
+                                content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', '暂不支持的视频源：' + data.sourceType + '\n请于 '), _('a', { target: '_blank', href: 'https://github.com/esterTion/AcFun-HTML5-Player/issues' }, [_('text', 'GitHub')]), _('text', ' 留言')]), _('text', location.href)],
+                                showConfirm: false
+                            });
+                            return;
+                    }
+                } else {
+                    dots.stopTimer();
+                    createPopup({
+                        content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', data.result)],
+                        showConfirm: false
+                    });
                 }
-            } else {
-                dots.stopTimer();
-                createPopup({
-                    content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', data.result)],
-                    showConfirm: false
-                });
-            }
+            });
+        }).catch(function (e) {
+            dots.stopTimer();
+            createPopup({
+                content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', e.message)],
+                showConfirm: false
+            });
         });
-    }).catch(function (e) {
-        dots.stopTimer();
-        createPopup({
-            content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', e.message)],
-            showConfirm: false
-        });
+    }
+    window.addEventListener('unload', function () {
+        URL.revokeObjectURL(bloburl);
     });
-    return true;
-};
+    resizeSensor(playerIframe.parentNode, function () {
+        window.dispatchEvent(new Event('resize'));
+    });
+}
 (function () {
     let noticeWidth = Math.min(500, innerWidth - 40);
     document.head.appendChild(_('style', {}, [_('text', `#AHP_Notice{
@@ -572,15 +597,15 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
             };
             if (document.getElementById('pageInfo') != null) {
                 pageInfo.vid = pageInfo.videoId;
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}')]));
+                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:260px;height:147px;margin-top:26px}')]));
             } else {
                 pageInfo.vid = pageInfo.video.videos[0].danmakuId;
                 pageInfo.title = pageInfo.album.title + ' ' + pageInfo.video.videos[0].episodeName;
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}')]));
+                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}.small .AHP-Player-Container{width:260px;height:147px;margin-top:26px}')]));
             }
-            init();
+            chkInit();
         });
-        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo,user}}))')]));
+        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo,user}}));f.ready()')])).remove();
         /*
         if (document.getElementById('pageInfo') != null) {
             //普通投稿
@@ -647,4 +672,35 @@ window.addEventListener('message', function (e) {
     }
     if (parent != window)
         parent.postMessage(e.data, '*');
+});
+
+let tempEvent, tempEventType;
+function eventPasser() {
+    switch (tempEventType) {
+        case 'keydown':
+            if (tempEvent.initKeyboardEvent) {
+                tempEvent.initKeyboardEvent('keydown', true, true, tempEvent.view, tempEvent.char, tempEvent.key, tempEvent.location, null, tempEvent.repeat);
+            }
+            break;
+    }
+    abpinst.playerUnit.dispatchEvent(tempEvent);
+    tempEvent = null;
+    tempEventType = '';
+}
+window.addEventListener('keydown', function (e) {
+    if (typeof abpinst != 'undefined' && ['input', 'textarea'].indexOf(e.target.nodeName.toLowerCase()) == -1) {
+        switch (e.keyCode) {
+            case 32:
+            case 37:
+            case 39:
+            case 38:
+            case 40:
+                e.preventDefault();
+                e.stopPropagation();
+                tempEvent = e;
+                tempEventType = 'keydown';
+                setTimeout(eventPasser, 0);
+                break;
+        }
+    }
 });

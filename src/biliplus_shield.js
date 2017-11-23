@@ -13,7 +13,7 @@
 	重复屏蔽
 */
 var shield=(function(){
-	var danmakuMatcher=/[\x00-\x2f\x3a-\x40\x5b-\x5e\x60\x7b-\x7f]/g,firstTime=!0,hidden=!0,list=null,activeTab=0,useReg=!1,$$=function(a){return document.querySelector(a)},limit,playerInstance=null,
+	var danmakuMatcher=/[\x00-\x2f\x3a-\x40\x5b-\x5e\x60\x7b-\x7f]/g,firstTime=!0,hidden=!0,list=null,activeTab=0,useReg=!1,$$=function(a){return playerInstance.playerUnit.querySelector(a)},limit,playerInstance=null,
 	isVisitor = function(hash){
 		if(hash.length==14&&hash[3]=='k'){
 			return true;

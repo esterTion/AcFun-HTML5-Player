@@ -134,6 +134,7 @@ ABP.Strings={
 	recordPlaySpeed:_t('recordPlaySpeed'),
 	settPlayer:_t('settPlayer'),
 	autoPlay:_t('autoPlay'),
+	defaultWide:_t('defaultWide'),
 	defaultFull:_t('defaultFull'),
 	playerTheme:_t('playerTheme'),
 
@@ -145,8 +146,6 @@ ABP.Strings={
 	"use strict";
 	if (!ABP) return;
 	var $$ = jQuery,
-	setTimeout=window.setTimeout,
-	clearTimeout=window.clearTimeout,
 	addEventListener='addEventListener',
 	versionString='HTML5 Player ver.170912 based on ABPlayer-bilibili-ver',
 	mousePrevPos=[0,0],
@@ -157,37 +156,7 @@ ABP.Strings={
 		&& oldPos[1] == mousePrevPos[1]);
 	},
 	$ = function(e) {
-		return document.getElementById(e);
-	};
-	var _ = function (type, props, children) {
-		var elem = null;
-		if (type === "text") {
-			return document.createTextNode(props);
-		} else {
-			elem = document.createElement(type);
-		}
-		for (var n in props) {
-			if (n === "style") {
-				for (var x in props.style) {
-					elem.style[x] = props.style[x];
-				}
-			} else if (n === "className") {
-				elem.className = props[n];
-			} else if (n === "event") {
-				for (var x in props.event) {
-					elem.addEventListener(x, props.event[x]);
-				}
-			} else {
-				elem.setAttribute(n, props[n]);
-			}
-		}
-		if (children) {
-			for (var i = 0; i < children.length; i++) {
-				if (children[i] != null)
-					elem.appendChild(children[i]);
-			}
-		}
-		return elem;
+		return playerIframe.contentDocument.getElementById(e);
 	};
 
 	var findRow = function(node) {
@@ -401,6 +370,7 @@ ABP.Strings={
 
 
 	ABP.create = function(element, params) {
+		playerIframe.contentWindow.HTMLElement.prototype.tooltip = HTMLElement.prototype.tooltip;
 		var elem = element;
 		if (!params) {
 			params = {};
@@ -1145,7 +1115,7 @@ ABP.Strings={
 						commentObj.appendChild(commentObjContent);
 						commentObj.appendChild(commentObjDate);
 						commentObj.data = comment;
-						commentObj.originalData=danmaku;
+						commentObj.originalData=comment.originalData;
 						if(comment.mode==8){
 							commentObj.style.background='#ffe100';
 						}else if(comment.pool!=0){
@@ -1260,7 +1230,7 @@ ABP.Strings={
 				}
 			},
 			buffering=function(){
-				var rs=video.readyState,div=document.getElementById('info-box');
+				var rs=video.readyState,div=playerUnit.querySelector('#'+'info-box');
 				if(video.ended)
 					return;
 				switch(rs){
@@ -1634,22 +1604,22 @@ ABP.Strings={
 		};
 		ABPInst.btnSetting[addEventListener]('click',settingClick);
 		playerUnit.getElementsByClassName('ABP-Settings-Close')[0][addEventListener]('click',settingClick);
-		document.getElementById('setting-autoPlay')[addEventListener]('click',function(){
+		playerUnit.querySelector('#'+'setting-autoPlay')[addEventListener]('click',function(){
 			ABPInst.autoPlay=!ABPInst.autoPlay;
 			ABPInst.autoPlay?addClass(this,'on'):removeClass(this,'on')
 			saveConfigurations();
 		});
-		document.getElementById('setting-defaultWide')[addEventListener]('click',function(){
+		playerUnit.querySelector('#'+'setting-defaultWide')[addEventListener]('click',function(){
 			ABPInst.defaultWide=!ABPInst.defaultWide;
 			ABPInst.defaultWide?addClass(this,'on'):removeClass(this,'on')
 			saveConfigurations();
 		});
-		document.getElementById('setting-defaultFull')[addEventListener]('click',function(){
+		playerUnit.querySelector('#'+'setting-defaultFull')[addEventListener]('click',function(){
 			ABPInst.defaultFull=!ABPInst.defaultFull;
 			ABPInst.defaultFull?addClass(this,'on'):removeClass(this,'on')
 			saveConfigurations();
 		});
-		document.getElementById('setting-recordPlaySpeed')[addEventListener]('click',function(){
+		playerUnit.querySelector('#'+'setting-recordPlaySpeed')[addEventListener]('click',function(){
 			ABPInst.recordPlaySpeed=!ABPInst.recordPlaySpeed;
 			ABPInst.recordPlaySpeed?addClass(this,'on'):removeClass(this,'on')
 			saveConfigurations();
@@ -1661,8 +1631,8 @@ ABP.Strings={
 			webkit:true,
 			videoQuality:true,
 			flvjs:true
-		},document_querySelector=function(a){return document.querySelector(a)},
-		gEle=function(a){return document.getElementById(a)},
+		},document_querySelector=function(a){return playerIframe.contentDocument.querySelector(a)},
+		gEle=function(a){return playerIframe.contentDocument.getElementById(a)},
 		to2digitFloat=function(a){return (a*1).toFixed(2)},
 		lastChild='>:last-child',
 		playerDimension=gEle('player-dimension').lastChild,
@@ -1676,7 +1646,7 @@ ABP.Strings={
 		downloadSpeedArr=[],
 		bufferNum=gEle('buffer-health').lastChild,
 		svgStats='<svg style="width:180px;height:21px"><polyline style="fill:transparent;stroke:#ccc"></polyline><polyline points="1,21 180,21 180,1" style="fill:transparent;stroke:#fff"></polyline></svg>',
-		addStyle='',style=_('style'),flvjsStyle=_('style'),flvjsStats=document.querySelectorAll('.flvjs>:last-child'),i=0,
+		addStyle='',style=_('style'),flvjsStyle=_('style'),flvjsStats=playerUnit.querySelectorAll('.flvjs>:last-child'),i=0,
 		renderColumn=function(column,arr){
 			var max=0,i,points=[];
 			arr.forEach(function(i){max=(i>max)?i:max});
@@ -1728,9 +1698,9 @@ ABP.Strings={
 			addStyle+='.videoQuality{display:none}'
 		}
 		style.textContent=addStyle,
-		document.head.appendChild(style);
+		playerIframe.contentDocument.head.appendChild(style);
 		flvjsStyle.textContent='.flvjs{display:none}';
-		document.head.appendChild(flvjsStyle);
+		playerIframe.contentDocument.head.appendChild(flvjsStyle);
 		if(window.flvplayer==undefined){
 			enabledStats.flvjs=false;
 		}
@@ -1926,14 +1896,14 @@ ABP.Strings={
 		if (typeof ABP.playerConfig == "object") {
 			if (ABP.playerConfig.volume) ABPInst.video.volume = ABP.playerConfig.volume;
 			if (ABP.playerConfig.opacity) ABPInst.cmManager.options.global.opacity = ABP.playerConfig.opacity;
-			if (ABP.playerConfig.autoPlay) {ABPInst.autoPlay=true; addClass(document.getElementById('setting-autoPlay'),'on');}
-			if (ABP.playerConfig.defaultWide) {ABPInst.defaultWide=true; addClass(document.getElementById('setting-defaultWide'),'on');}
-			if (ABP.playerConfig.defaultFull) {ABPInst.defaultFull=true; addClass(document.getElementById('setting-defaultFull'),'on');}
+			if (ABP.playerConfig.autoPlay) {ABPInst.autoPlay=true; addClass(playerUnit.querySelector('#'+'setting-autoPlay'),'on');}
+			if (ABP.playerConfig.defaultWide) {ABPInst.defaultWide=true; addClass(playerUnit.querySelector('#'+'setting-defaultWide'),'on');}
+			if (ABP.playerConfig.defaultFull) {ABPInst.defaultFull=true; addClass(playerUnit.querySelector('#'+'setting-defaultFull'),'on');}
 			if (ABP.playerConfig.commentVisible===false) {addClass(ABPInst.playerUnit, 'hide-comment');removeClass(ABPInst.btnDm,'on');ABPInst.cmManager.display = false;ABPInst.cmManager.stopTimer();ABPInst.btnDm.tooltip(ABP.Strings.showComment);}
 			if (ABP.playerConfig.autoOpacity) {addClass(ABPInst.btnAutoOpacity,'on');ABPInst.cmManager.autoOpacity(true);ABPInst.btnAutoOpacity.tooltip(ABP.Strings.autoOpacityOn);}
 			if (ABP.playerConfig.recordPlaySpeed) {
 				ABPInst.recordPlaySpeed=true;
-				addClass(document.getElementById('setting-recordPlaySpeed'),'on');
+				addClass(playerUnit.querySelector('#'+'setting-recordPlaySpeed'),'on');
 				ABPInst.lastSpeed=ABP.playerConfig.playSpeed;
 			}
 			var density = ABP.playerConfig.density||0;
@@ -1941,7 +1911,7 @@ ABP.Strings={
 			var theme = ABP.playerConfig.theme||'YouTube'
 			playerUnit.setAttribute('theme', theme);
 			(document_querySelector('#setting-playerTheme [value='+theme+']') ||{}).selected=true;
-			document.getElementById('setting-playerTheme')[addEventListener]('change',function(){
+			playerUnit.querySelector('#'+'setting-playerTheme')[addEventListener]('change',function(){
 				playerUnit.setAttribute('theme',this.value);
 				saveConfigurations();
 				playerUnit.dispatchEvent(new Event('themeChange'));
@@ -2109,7 +2079,17 @@ ABP.Strings={
 			});
 			ABPInst.btnWebFull[addEventListener]("click", function() {
 				ABPInst.state.fullscreen = hasClass(playerUnit, "ABP-FullScreen");
-				parent.postMessage('YHP_CrossFrame_Fullscreen_Enter', '*');
+				var climb = playerIframe;
+				while (climb != document.body) {
+					climb.ABP_origZIndex = climb.style.zIndex;
+					climb.style.zIndex = 0xffffff;
+					climb = climb.parentNode;
+				}
+				playerIframe.style.position = 'fixed';
+				playerIframe.style.width = '100%';
+				playerIframe.style.height = '100%';
+				playerIframe.style.top = '0';
+				playerIframe.style.left = '0';
 				addClass(playerUnit, "ABP-FullScreen");
 				ABPInst.btnFull.className = "button ABP-FullScreen icon-screen-normal";
 				ABPInst.btnFull.tooltip(ABP.Strings.exitWebFull);
@@ -2171,12 +2151,22 @@ ABP.Strings={
 					addClass(playerUnit, "ABP-FullScreen");
 					this.className = "button ABP-FullScreen icon-screen-normal";
 					this.tooltip(ABP.Strings.exitFullScreen);
-					playerUnit.requestFullScreen();
+					playerIframe.requestFullScreen();
 				} else {
 					removeClass(playerUnit, "ABP-FullScreen");
 					this.className = "button ABP-FullScreen icon-screen-full";
 					if(this.tooltipData == ABP.Strings.exitWebFull){
-						parent.postMessage('YHP_CrossFrame_Fullscreen_Exit', '*');
+						playerIframe.style.position = '';
+						playerIframe.style.width = '';
+						playerIframe.style.height = '';
+						playerIframe.style.top = '';
+						playerIframe.style.left = '';
+						var climb = playerIframe;
+						while (climb != document.body) {
+								if (climb.ABP_origZIndex != undefined)
+										climb.style.zIndex = climb.ABP_origZIndex;
+								climb = climb.parentNode;
+						}
 					}
 					this.tooltip(ABP.Strings.fullScreen);
 					document.exitFullscreen();
@@ -2333,7 +2323,7 @@ ABP.Strings={
 							prevDisabled && (ABPInst.txtText.disabled=false);
 							ABPInst.txtText.value=this.dataset.content;
 							ABPInst.txtText.select();
-							var success=document.execCommand('copy');
+							var success=playerIframe.contentDocument.execCommand('copy');
 							ABPInst.txtText.blur();
 							ABPInst.txtText.value=oldVal;
 							prevDisabled && (ABPInst.txtText.disabled=true);
@@ -2356,9 +2346,9 @@ ABP.Strings={
 						clearTimeout(senderInfoTimeout);
 						currentSender=0;
 						currentSenderDiv=null;
-						if(document.getElementById('Sender-Info')!=null){
+						if(playerUnit.querySelector('#'+'Sender-Info')!=null){
 							clearTimeout(senderInfoDivTimeout);
-							senderInfoDivTimeout=setTimeout(function(){document.body.removeChild(document.getElementById('Sender-Info'))},500);
+							senderInfoDivTimeout=setTimeout(function(){playerIframe.contentDocument.body.removeChild(playerUnit.querySelector('#'+'Sender-Info'))},500);
 						}
 					})
 				};
@@ -2428,7 +2418,7 @@ ABP.Strings={
 				})
 				infoDiv[addEventListener]('mouseleave',function(){
 					clearTimeout(senderInfoDivTimeout);
-					senderInfoDivTimeout=setTimeout(function(){document.body.removeChild(document.getElementById('Sender-Info'))},500);
+					senderInfoDivTimeout=setTimeout(function(){document.body.removeChild(playerUnit.querySelector('#'+'Sender-Info'))},500);
 				})
 			});
 			window.getSenderInfo=function(json){
@@ -2504,17 +2494,17 @@ ABP.Strings={
 					draggingTimeBase = draggingTimeBase<0 ? 0 : (draggingTimeBase>duration ? duration : draggingTimeBase)
 					draggingStartX += dx;
 					if(draggingStartX-playerBox.left<50 || playerBox.right-draggingStartX<50){
-						document.querySelector('.Drag-Icon').className = 'Drag-Icon cancel';
+						document_querySelector('.Drag-Icon').className = 'Drag-Icon cancel';
 						document_querySelector('.Drag-Speed').textContent = ABP.Strings.dragControlCancel;
 						document_querySelector('.Drag-Time').textContent = '　';
 						cancelingDragging = true;
 					}else{
-						document.querySelector('.Drag-Icon').className = 'Drag-Icon '+ (increasing?'forward':'rewind');
+						document_querySelector('.Drag-Icon').className = 'Drag-Icon '+ (increasing?'forward':'rewind');
 						document_querySelector('.Drag-Speed').textContent = ABP.Strings['dragControl' + speedStringMap[draggingSpeed] + (increasing?'Inc':'Dec')];
 						document_querySelector('.Drag-Time').textContent = formatTime(draggingTimeBase) +'╱'+ formatTime(duration);
 						cancelingDragging = false;
 						if(duration>0)
-							document.querySelector('.Drag-Time-Bar .fill').style.width = draggingTimeBase/duration*100 +'%'
+							document_.querySelector('.Drag-Time-Bar .fill').style.width = draggingTimeBase/duration*100 +'%'
 					}
 				}else if(!ignoreDragging){
 					if(dx<-10 || dx>10){
@@ -2562,7 +2552,7 @@ ABP.Strings={
 					defaultFull: ABPInst.defaultFull,
 					playSpeed: ABPInst.video.playbackRate,
 					recordPlaySpeed: ABPInst.recordPlaySpeed,
-					theme: document.getElementById('setting-playerTheme').value,
+					theme: playerUnit.querySelector('#'+'setting-playerTheme').value,
 					density: ABPInst.cmManager.options.global.density
 				}});
 			}
@@ -2975,7 +2965,7 @@ ABP.Strings={
 				}
 			});
 			playerUnit[addEventListener]("keydown", function(e) {
-				if (e && document.activeElement.tagName != "INPUT") {
+				if (e && playerIframe.contentDocument.activeElement.tagName != "INPUT") {
 					if([27,32,37,38,39,40].indexOf(e.keyCode)!=-1)
 						e.preventDefault();
 					switch (e.keyCode) {
@@ -3084,7 +3074,7 @@ ABP.Strings={
 				}
 			});
 			playerUnit[addEventListener]("mouseup", function() {
-				if (document.activeElement.tagName != "INPUT") {
+				if (playerIframe.contentDocument.activeElement.tagName != "INPUT") {
 					var oSY = window.scrollY;
 					ABPInst.videoDiv.focus();
 					window.scrollTo(window.scrollX, oSY);
@@ -3540,10 +3530,10 @@ For usage and examples: colpick.com/plugin
 				$('html').off('mousedown', hide);
 			},
 			getViewport = function () {
-				var m = document.compatMode == 'CSS1Compat';
+				var m = playerIframe.contentDocument.compatMode == 'CSS1Compat';
 				return {
-					l : window.pageXOffset || (m ? document.documentElement.scrollLeft : document.body.scrollLeft),
-					w : window.innerWidth || (m ? document.documentElement.clientWidth : document.body.clientWidth)
+					l : window.pageXOffset || (m ? playerIframe.contentDocument.documentElement.scrollLeft : playerIframe.contentDocument.body.scrollLeft),
+					w : window.innerWidth || (m ? playerIframe.contentDocument.documentElement.clientWidth : playerIframe.contentDocument.body.clientWidth)
 				};
 			},
 			//Fix the values if the user enters a negative or high value
@@ -3663,7 +3653,7 @@ For usage and examples: colpick.com/plugin
 								display: 'block'
 							});
 						} else {
-							cal.appendTo(document.body);
+							cal.appendTo(playerIframe.contentDocument.body);
 							$(this).on(options.showEvent, show);
 							cal.css({
 								position:'absolute'
