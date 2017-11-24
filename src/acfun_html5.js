@@ -26,7 +26,6 @@ function createPopup(param) {
 
 const rc4_key = '8bdc7e1a';
 let pageInfo;
-let user;
 let knownTypes = {
     'mp4sd': _t('flvhd'),
     'flvhd': _t('flvhd'),
@@ -414,6 +413,7 @@ function chkInit() {
 function init() {
     if (!pageInfo.vid || dest == null)
         return;
+    window.cid = pageInfo.vid;
     let container = dest.parentNode;
     dest.remove();
     let blob = new Blob(['<!DOCTYPE HTML><html><head><meta charset="UTF-8"><style>html,body{height:100%;width:100%;margin:0;padding:0}</style><link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL('ABPlayer.css') + '"></head><body></body></html>'], { type: 'text/html' });
@@ -460,6 +460,7 @@ function init() {
                         });
                     });
                     pageInfo.sourceId = data.sourceId;
+                    console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId);
                     switch (data.sourceType) {
                         case 'zhuzhan':
                             //Ac - 优酷云
@@ -536,7 +537,7 @@ function init() {
                 showConfirm: false
             });
         });
-    }
+    };
     window.addEventListener('unload', function () {
         URL.revokeObjectURL(bloburl);
     });
@@ -593,7 +594,7 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
         window.addEventListener('AHP_pageInfo', function pageInfoGrabber(e) {
             window.removeEventListener('AHP_pageInfo', pageInfoGrabber);
             pageInfo = e.detail.pageInfo;
-            user = {
+            window.user = {
                 uid: getCookie('auth_key'),
                 uid_ck: getCookie('auth_key_ac_sha1'),
                 uname: getCookie('ac_username')
