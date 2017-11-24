@@ -420,6 +420,7 @@ function init() {
     let bloburl = URL.createObjectURL(blob);
     window.playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl }));
     playerIframe.onload = function () {
+        URL.revokeObjectURL(bloburl);
         let video = playerIframe.contentDocument.body.appendChild(_('video'));
         window.flvplayer = { unload: function () { }, destroy: function () { } };
         abpinst = ABP.create(video.parentNode, {
@@ -538,9 +539,6 @@ function init() {
             });
         });
     };
-    window.addEventListener('unload', function () {
-        URL.revokeObjectURL(bloburl);
-    });
     resizeSensor(playerIframe.parentNode, function () {
         window.dispatchEvent(new Event('resize'));
     });
