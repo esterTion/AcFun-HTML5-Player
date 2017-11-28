@@ -197,11 +197,11 @@ function fetchSrcThen(json) {
             abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = '';
         }, 2e3);
 
-        /*if (pageInfo.uid == '') {
+        if (user.uid == -1) {
             abpinst.txtText.disabled = true;
             abpinst.txtText.placeholder = _t('noVisitorComment');
             abpinst.txtText.style.textAlign = 'center';
-        }*/
+        }
         let contextMenu = abpinst.playerUnit.querySelector('.Context-Menu-Body');
         if (audioLangs.length > 1) {
             let childs = [];
