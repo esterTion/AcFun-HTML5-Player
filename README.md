@@ -4,6 +4,7 @@
 ![](src/icon.png)
 
 一个装B播放器，送给缺B乐的各位（被打  
+[更新记录](update_note.md)  
 
 ## 安装
 - [Firefox](https://addons.mozilla.org/zh-CN/firefox/addon/acfun-html5-player-estertion/)([xpi直接安装](https://estertion.github.io/AcFun-HTML5-Player/signed.xpi)) (firefox 50.0+)
