@@ -682,6 +682,20 @@
 .ABP-Unit.ABP-FullScreen .ABP-Control .time-jump{
 	right:188px
 }
+@keyframes scale-menu-show{
+	0%{
+		opacity:0
+	}
+	30%{
+		opacity:1
+	}
+	70%{
+		opacity:1
+	}
+	100%{
+		opacity:0
+	}
+}
 .ABP-Unit .BiliPlus-Scale-Menu {
 	position: absolute;
 	bottom: 49px;
@@ -694,6 +708,7 @@
 	padding: 5px;
 	opacity: 0;
 	transition: opacity .5s;
+	animation-duration:1.5s
 }
 .ABP-Unit .BiliPlus-Scale-Menu:hover {
 	opacity: 1;
