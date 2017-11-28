@@ -1901,6 +1901,7 @@ ABP.Strings={
 			if (ABP.playerConfig.defaultFull) {ABPInst.defaultFull=true; addClass(playerUnit.querySelector('#'+'setting-defaultFull'),'on');}
 			if (ABP.playerConfig.commentVisible===false) {addClass(ABPInst.playerUnit, 'hide-comment');removeClass(ABPInst.btnDm,'on');ABPInst.cmManager.display = false;ABPInst.cmManager.stopTimer();ABPInst.btnDm.tooltip(ABP.Strings.showComment);}
 			if (ABP.playerConfig.autoOpacity) {addClass(ABPInst.btnAutoOpacity,'on');ABPInst.cmManager.autoOpacity(true);ABPInst.btnAutoOpacity.tooltip(ABP.Strings.autoOpacityOn);}
+			if (ABP.playerConfig.useCSS) {addClass(ABPInst.btnProp,'on');ABPInst.cmManager.useCSS(true);ABPInst.btnProp.tooltip(ABP.Strings.usingCSS);}
 			if (ABP.playerConfig.recordPlaySpeed) {
 				ABPInst.recordPlaySpeed=true;
 				addClass(playerUnit.querySelector('#'+'setting-recordPlaySpeed'),'on');
@@ -2300,9 +2301,9 @@ ABP.Strings={
 						_('div',{className:'dmMenu'},[
 							_('div',{'data-content':originalData.text},[_('text',ABP.Strings.copyComment)]),
 							_('div',{'data-dmid':originalData.dbid},[_('text',ABP.Strings.findComment)]),
-							_('div',{onclick:'shield.addText("'+originalData.text+'")'},[_('text',ABP.Strings.blockContent+'“'+originalData.text+'”')]),
-							_('div',{'data-mid':crc_engine(originalData.hash),onclick:'shield.addUser("'+originalData.hash+'")'},[_('text',ABP.Strings.blockUser+''+originalData.hash+'(mid:'+crc_engine(originalData.hash)+')')]),
-							_('div',(isWhite)?{}:{onclick:'shield.addColor("'+color+'")'},[_('text',isWhite?ABP.Strings.blockColorWhite:ABP.Strings.blockColor+''),_('div',{className:'color',style:{background:'#'+color}})])
+							_('div',{event:{click:shield.addText.bind(shield, originalData.text)}},[_('text',ABP.Strings.blockContent+'“'+originalData.text+'”')]),
+							_('div',{'data-mid':crc_engine(originalData.hash),event:{click:shield.addUser.bind(shield,originalData.hash)}},[_('text',ABP.Strings.blockUser+''+originalData.hash+'(mid:'+crc_engine(originalData.hash)+')')]),
+							_('div',(isWhite)?{}:{event:{click:shield.addColor.bind(shield,color)}},[_('text',isWhite?ABP.Strings.blockColorWhite:ABP.Strings.blockColor+''),_('div',{className:'color',style:{background:'#'+color}})])
 						])
 					])
 					if(originalData.mode>6){
