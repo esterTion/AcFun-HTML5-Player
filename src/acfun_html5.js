@@ -190,7 +190,11 @@ function fetchSrcThen(json) {
     }
     switchLang(currentLang);
     if (firstTime) {
-        abpinst.title = pageInfo.title;
+        console.log('[AHP] Got source url', srcUrl);
+        if (pageInfo.videoList.length > 1)
+            abpinst.title = '[P' + (pageInfo.P + 1) + '] ' + pageInfo.videoList[pageInfo.P].title + ' || ' + pageInfo.title + ' - AC' + pageInfo.id;
+        else
+            abpinst.title = pageInfo.title + ' - AC' + pageInfo.id;
         abpinst.playerUnit.addEventListener('sendcomment', sendComment);
         abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = 'scale-menu-show';
         setTimeout(function () {
@@ -415,6 +419,11 @@ function init() {
         return;
     window.cid = pageInfo.vid;
     let container = dest.parentNode;
+    if (container == null) {
+        dest = document.getElementById('ACFlashPlayer');
+        init();
+        return;
+    }
     dest.remove();
     let blob = new Blob(['<!DOCTYPE HTML><html><head><meta charset="UTF-8"><style>html,body{height:100%;width:100%;margin:0;padding:0}</style><link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL('ABPlayer.css') + '"></head><body></body></html>'], { type: 'text/html' });
     let bloburl = URL.createObjectURL(blob);
@@ -463,6 +472,15 @@ function init() {
                     pageInfo.sourceId = data.sourceId;
                     console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId);
                     switch (data.sourceType) {
+                        case 'sina':
+                        case 'letv':
+                            //新浪 大部分为隐藏，不进行支持；乐视云已没救，勿念
+                            dots.stopTimer();
+                            createPopup({
+                                content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', data.sourceType + ' 源大部分视频已经失效，不计划添加支持\ndetail: ' + JSON.stringify({ sourceType: data.sourceType, sourceId: data.sourceId }, null, '  '))]), _('text', location.href)],
+                                showConfirm: false
+                            });
+                            break;
                         case 'zhuzhan':
                             //Ac - 优酷云
                             pageInfo.sign = data.encode;
@@ -607,7 +625,7 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
             }
             chkInit();
         });
-        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo,user}}));f.ready()')])).remove();
+        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo}}));f.ready();')])).remove();
         /*
         if (document.getElementById('pageInfo') != null) {
             //普通投稿

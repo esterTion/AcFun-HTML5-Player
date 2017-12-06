@@ -214,6 +214,9 @@
 	-webkit-transform: translateY(-35px);
 	transform: translateY(-35px);
 }
+.ABP-Video.ABP-HideCursor ~ .ABP-Bottom:hover .ABP-Title {
+	transform: translateY(0);
+}
 @keyframes ABP-Tooltip{
 	from{
 		transform:translateY(-5px);

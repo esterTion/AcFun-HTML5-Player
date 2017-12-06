@@ -1816,8 +1816,10 @@ ABP.Strings={
 						flvjsStats[i++].textContent='N/A'
 					}
 					if(odd){
-						downloadSpeedArr.push(statisticsInfo.speed);
-						downloadSpeedArr.shift();
+						if (typeof statisticsInfo.speed == 'number'){
+							downloadSpeedArr.push(statisticsInfo.speed);
+							downloadSpeedArr.shift();
+						}
 						if(playerStatsOn)
 							renderColumn(downloadSpeedColumn,downloadSpeedArr);
 						flvjsStats[i++].textContent=to2digitFloat(statisticsInfo.speed)+' KB/s'
@@ -1825,7 +1827,7 @@ ABP.Strings={
 					}else{
 						i++;
 					}
-					var srcHostMatch = currentSeg.url.match(/(http[s]?:)?\/\/([a-zA-Z0-9\.\-]+)/),srcHost,srcProtocol;
+					var srcHostMatch = (currentSeg.url||'').match(/(http[s]?:)?\/\/([a-zA-Z0-9\.\-]+)/),srcHost,srcProtocol;
 					if(srcHostMatch==null){
 						srcProtocol=location.protocol;
 						srcHost=location.hostname;
