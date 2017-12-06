@@ -299,6 +299,13 @@ window.changeSrc = function (e, t, force) {
         flvparam(t);
     }
 };
+function reloadSegment() {
+    let io = this._transmuxer._controller._ioctl;
+    clearInterval(this._progressChecker);
+    this._progressChecker = null;
+    io.pause();
+    io.resume();
+}
 let self = window;
 let createPlayer = function (e) {
     if (self.flvplayer != undefined) {
@@ -312,6 +319,7 @@ let createPlayer = function (e) {
     self.flvplayer.on('error', load_fail);
     self.flvplayer.attachMediaElement(abpinst.video);
     self.flvplayer.load();
+    self.flvplayer.reloadSegment = reloadSegment;
 };
 let load_fail = function (type, info, detail) {
     let div = _('div', {
