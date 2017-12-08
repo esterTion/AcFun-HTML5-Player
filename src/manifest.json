@@ -6,14 +6,16 @@
   "content_scripts": [
     {
       "matches": [
-        "http://www.acfun.cn/v/*",
-        "http://www.acfun.cn/bangumi/*"
+        "http://*.acfun.cn/v/*",
+        "http://*.acfun.cn/bangumi/*"
       ],
       "all_frames": true,
       "js": [
         "dom_gen.js",
         "resizeSensor.js",
         "rc4.js",
+        "md5.js",
+        "x2js.min.js",
         "flv.min.js",
         "jquery-2.1.4.min.js",
         "google-style-loading.min.js",
@@ -27,7 +29,8 @@
   ],
   "permissions": [
     "*://*/*",
-    "storage"
+    "storage",
+    "clipboardWrite"
   ],
   "icons": {
     "48": "icon.png"

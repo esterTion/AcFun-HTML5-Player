@@ -191,7 +191,9 @@ function fetchSrcThen(json) {
     switchLang(currentLang);
     if (firstTime) {
         console.log('[AHP] Got source url', srcUrl);
-        if (pageInfo.videoList.length > 1)
+        if (pageInfo.album)
+            abpinst.title = pageInfo.title + ' - AB' + pageInfo.video.part;
+        else if (pageInfo.videoList.length > 1)
             abpinst.title = '[P' + (pageInfo.P + 1) + '] ' + pageInfo.videoList[pageInfo.P].title + ' || ' + pageInfo.title + ' - AC' + pageInfo.id;
         else
             abpinst.title = pageInfo.title + ' - AC' + pageInfo.id;
@@ -364,9 +366,9 @@ let flvparam = function (select) {
     if (srcUrl[select].segments) {
         let totalSize = 0;
         srcUrl[select].segments.forEach(function (i) { totalSize += i.filesize; });
-        overallBitrate = totalSize / srcUrl.duration * 8;
+        window.overallBitrate = totalSize / srcUrl.duration * 8;
     } else {
-        overallBitrate = srcUrl[select].filesize / srcUrl.duration * 8;
+        window.overallBitrate = srcUrl[select].filesize / srcUrl.duration * 8;
     }
 };
 
@@ -481,8 +483,40 @@ function init() {
                     console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId);
                     switch (data.sourceType) {
                         case 'sina':
+                            //新浪
+                            var time = parseInt((Date.now() / 1e3 | 0).toString(2).slice(0, -6), 2);
+                            fetch('http://ask.ivideo.sina.com.cn/v_play.php?vid=' + data.sourceId + '&ran=0&r=ent.sina.com.cn&p=i&k=' + hex_md5(data.sourceId + 'Z6prk18aWxP278cVAH' + time + '0').substr(0, 16) + time,
+                                { method: 'GET', cache: 'no-cache', referrer: 'no-referrer' })
+                                .then(r => r.text())
+                                .then(r => (new X2JS({ arrayAccessFormPaths: ["video.durl"] })).xml_str2json(r))
+                                .then(data => {
+                                    if (data.video.result == 'error') {
+                                        dots.stopTimer();
+                                        createPopup({
+                                            content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', _t('fetchSourceErr')), _('text', JSON.stringify(data.video, null, '  '))]), _('text', location.href)],
+                                            showConfirm: false
+                                        });
+                                    } else
+                                        fetchSrcThen({
+                                            stream: [{
+                                                audio_lang: 'default',
+                                                milliseconds_audio: data.video.timelength | 0,
+                                                milliseconds_video: data.video.timelength | 0,
+                                                stream_type: 'mp4hd3',
+                                                segs: data.video.durl.map(function (i) {
+                                                    return {
+                                                        url: i.url,
+                                                        size: i.filesize | 0,
+                                                        total_milliseconds_audio: i.length | 0,
+                                                        total_milliseconds_video: i.length | 0
+                                                    };
+                                                })
+                                            }]
+                                        });
+                                });
+                            break;
                         case 'letv':
-                            //新浪 大部分为隐藏，不进行支持；乐视云已没救，勿念
+                            //乐视云已没救，勿念
                             dots.stopTimer();
                             createPopup({
                                 content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', data.sourceType + ' 源大部分视频已经失效，不计划添加支持\ndetail: ' + JSON.stringify({ sourceType: data.sourceType, sourceId: data.sourceId }, null, '  '))]), _('text', location.href)],
@@ -509,7 +543,7 @@ function init() {
                             //设置&获取cna
                             var h = new Headers();
                             h.append('Range', 'bytes=0-0');
-                            fetch('http://player.youku.com/player.php/sid/' + pageInfo.sourceId + '/newPlayer/true/v.swf', {
+                            fetch('https://player.youku.com/player.php/sid/' + pageInfo.sourceId + '/newPlayer/true/v.swf', {
                                 method: 'GET',
                                 headers: h,
                                 credentials: 'include',
@@ -519,27 +553,21 @@ function init() {
                             }).then(function (r) {
                                 pageInfo.yk_cna = r.url.match(/cna=([^&]+)/)[1];
                                 pageInfo.yk_vext = r.url.match(/vext=([^&]+)/)[1];
-                                fetch('https://api.youku.com/players/custom.json?client_id=0edbfd2e4fc91b72&video_id=' + pageInfo.sourceId + '&refer=http://cdn.aixifan.com/player/cooperation/AcFunXYouku.swf&vext=' + pageInfo.yk_vext + '&embsig=undefined&styleid=undefined&type=flash', {
+                                return fetch('https://api.youku.com/players/custom.json?client_id=0edbfd2e4fc91b72&video_id=' + pageInfo.sourceId + '&refer=http://cdn.aixifan.com/player/cooperation/AcFunXYouku.swf&vext=' + pageInfo.yk_vext + '&embsig=undefined&styleid=undefined&type=flash', {
                                     method: 'GET',
                                     credentials: 'include',
                                     referrer: location.href,
                                     cache: 'no-cache'
-                                }).then(function (r) {
-                                    r.json().then(function (data) {
-                                        pageInfo.yk_r = data.stealsign;
-                                        fetch('https://ups.youku.com/ups/get.json?vid=' + pageInfo.sourceId + '&ccode=0405&client_ip=192.168.1.1&utid=' + pageInfo.yk_cna + '&client_ts=' + Date.now() + '&r=' + pageInfo.yk_r, {
-                                            method: 'GET',
-                                            credentials: 'include',
-                                            referrer: location.href,
-                                            cache: 'no-cache'
-                                        }).then(function (r) {
-                                            r.json().then(function (data) {
-                                                fetchSrcThen(data.data);
-                                            });
-                                        });
-                                    });
-                                });
-                            });
+                                }).then(function (r) { return r.json(); });
+                            }).then(function (data) {
+                                pageInfo.yk_r = data.stealsign;
+                                return fetch('https://ups.youku.com/ups/get.json?vid=' + pageInfo.sourceId + '&ccode=0405&client_ip=192.168.1.1&utid=' + pageInfo.yk_cna + '&client_ts=' + Date.now() + '&r=' + pageInfo.yk_r, {
+                                    method: 'GET',
+                                    credentials: 'include',
+                                    referrer: location.href,
+                                    cache: 'no-cache'
+                                }).then(function (r) { return r.json(); });
+                            }).then(function (data) { fetchSrcThen(data.data); });
                             break;
                         default:
                             dots.stopTimer();
