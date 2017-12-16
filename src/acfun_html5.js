@@ -486,7 +486,7 @@ function init() {
                             //新浪
                             var time = parseInt((Date.now() / 1e3 | 0).toString(2).slice(0, -6), 2);
                             fetch('http://ask.ivideo.sina.com.cn/v_play.php?vid=' + data.sourceId + '&ran=0&r=ent.sina.com.cn&p=i&k=' + hex_md5(data.sourceId + 'Z6prk18aWxP278cVAH' + time + '0').substr(0, 16) + time,
-                                { method: 'GET', cache: 'no-cache', referrer: 'no-referrer' })
+                                { method: 'GET', cache: 'no-cache', referrerPolicy: 'no-referrer' })
                                 .then(r => r.text())
                                 .then(r => (new X2JS({ arrayAccessFormPaths: ["video.durl"] })).xml_str2json(r))
                                 .then(data => {
