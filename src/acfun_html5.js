@@ -116,7 +116,8 @@ function response2url(json) {
                     let seg = {
                         filesize: part.size | 0,
                         duration: part.total_milliseconds_video | 0,
-                        url: part.url || part.cdn_url
+                        url: part.url || part.cdn_url,
+                        withCredentials: true
                     };
                     if (part.cdn_backup && part.cdn_backup.length) {
                         seg.backup_url = part.cdn_backup;
@@ -351,7 +352,7 @@ let load_fail = function (type, info, detail) {
                 ])
         ]);
     abpinst.playerUnit.querySelector('.ABP-Video').insertBefore(div, document.querySelector('.ABP-Video>:first-child'));
-    abpinst.playerUnit.querySelector('#ABP-info-box').remove();
+    abpinst.playerUnit.querySelector('#info-box').remove();
     createPopup({
         content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('playErr'))]), _('div', { style: { whiteSpace: 'pre-wrap' } }, [_('text', JSON.stringify({ type, info, detail }, null, '  '))])],
         showConfirm: false
@@ -744,7 +745,7 @@ function eventPasser() {
     tempEventType = '';
 }
 window.addEventListener('keydown', function (e) {
-    if (typeof abpinst != 'undefined' && ['input', 'textarea'].indexOf(e.target.nodeName.toLowerCase()) == -1) {
+    if (typeof abpinst != 'undefined' && ['input', 'textarea'].indexOf(e.target.nodeName.toLowerCase()) == -1 && e.target.getAttribute('contenteditable') != 'true') {
         switch (e.keyCode) {
             case 32:
             case 37:
