@@ -1939,14 +1939,14 @@ ABP.Strings={
 			});
 			playerUnit.querySelector('#setting-cmStyle').dispatchEvent(new Event('change'));
 		}
-		$$('.ABP-Comment-List-Title *').click(function() {
+		$$(playerUnit).find('.ABP-Comment-List-Title *').click(function() {
 			var item = $$(this).attr('item'),
 				order = $$(this).hasClass('asc') ? 'desc' : 'asc';
-			$$('.ABP-Comment-List-Title *').removeClass('asc').removeClass('desc');
+			$$(playerUnit).find('.ABP-Comment-List-Title *').removeClass('asc').removeClass('desc');
 			$$(this).addClass(order);
 			ABPInst.loadCommentList(item, order);
 		});
-		$$('.ABP-Unit .ABP-CommentStyle .ABP-Comment-FontOption .style-option').click(function() {
+		$$(playerUnit).find('.ABP-Unit .ABP-CommentStyle .ABP-Comment-FontOption .style-option').click(function() {
 			$$(this).closest('.style-select').find('.style-option').removeClass('on');
 			$$(this).addClass('on');
 			ABPInst[$$(this).closest('.style-select').attr('name')] = parseInt($$(this).attr('value'));
