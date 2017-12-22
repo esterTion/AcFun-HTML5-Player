@@ -1,0 +1,49 @@
+{
+  "manifest_version": 2,
+  "name": "__MSG_extName__",
+  "version": "1.0.0.0pre",
+  "description": "__MSG_extDesc__",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*.acfun.cn/v/*",
+        "http://*.acfun.cn/bangumi/*",
+        "http://*.hapame.com/video/*"
+      ],
+      "all_frames": true,
+      "js": [
+        "dom_gen.js",
+        "resizeSensor.js",
+        "rc4.js",
+        "md5.js",
+        "x2js.min.js",
+        "flv.min.js",
+        "jquery-2.1.4.min.js",
+        "google-style-loading.min.js",
+        "CommentCoreLibrary.min.js",
+        "biliplus_shield.min.js",
+        "ABPlayer.min.js",
+        "acfun_html5.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": [
+    "*://*/*",
+    "storage",
+    "clipboardWrite"
+  ],
+  "applications": {
+    "gecko": {
+      "id": "acfun-player-store@estertion",
+      "strict_min_version": "50.0"
+    }
+  },
+  "icons": {
+    "48": "icon.png"
+  },
+  "default_locale": "en",
+  "web_accessible_resources": [
+    "ABPlayer.css"
+  ]
+}
