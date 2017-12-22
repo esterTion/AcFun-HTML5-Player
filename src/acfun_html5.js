@@ -360,7 +360,7 @@ let load_fail = function (type, info, detail) {
 };
 let flvparam = function (select) {
     currentSrc = select;
-    createPlayer({ detail: { src: srcUrl[select], option: { seekType: 'range', reuseRedirectedURL: true } } });
+    createPlayer({ detail: { src: srcUrl[select], option: { seekType: 'range', reuseRedirectedURL: false } } });
     if (srcUrl[select].partial) {
         setTimeout(function () { abpinst.createPopup(_t('partialAvailable'), 3e3); }, 4e3);
     }
@@ -373,30 +373,15 @@ let flvparam = function (select) {
     }
 };
 
+let danmuParse = new AcfunFormat.JSONParser;
 function parseComment(data) {
     let list = [];
-    data[2].forEach(function (i) {
-        let conf = i.c.split(',');
-        let message = i.m;
-        let stime = conf[0];
-        if (stime.indexOf('%') != -1) {
-            stime = abpinst.video.duration * (stime.replace('%', '') | 0);
-        }
-        stime *= 1e3;
-        list.push({
-            stime,
-            color: conf[1] | 0,
-            mode: conf[2] | 0,
-            size: conf[3] | 0,
-            hash: conf[4],
-            date: conf[5],
-            dbid: conf[6],
-            pool: 0,
-            position: 'absolute',
-            border: false,
-            text: message,
-        });
-    });
+    let itemParse = function (i) {
+        let cmt = danmuParse.parseOne(i);
+        list.push(cmt);
+    };
+    data[1].forEach(itemParse);
+    data[2].forEach(itemParse);
     abpinst.cmManager.load(list);
 }
 function sendComment(e) {
@@ -441,7 +426,7 @@ function init() {
     window.playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl }));
     playerIframe.onload = function () {
         URL.revokeObjectURL(bloburl);
-        let video = playerIframe.contentDocument.body.appendChild(_('video'));
+        let video = playerIframe.contentDocument.body.appendChild(_('video', {poster: pageInfo.coverImage}));
         window.flvplayer = { unload: function () { }, destroy: function () { } };
         abpinst = ABP.create(video.parentNode, {
             src: {
@@ -470,7 +455,7 @@ function init() {
         }).then(function (r) {
             r.json().then(function (data) {
                 if (data.success) {
-                    fetch('http://danmu.aixifan.com/V4/' + pageInfo.vid + '_2/4073558400000/1000?order=-1', {
+                    fetch('http://danmu.aixifan.com/V2/' + pageInfo.vid, {
                         method: 'GET',
                         credentials: 'include',
                         referrer: location.href,
@@ -657,6 +642,7 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
                 document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:260px;height:147px;margin-top:26px}')]));
             } else {
                 pageInfo.vid = pageInfo.video.videos[0].danmakuId;
+                pageInfo.coverImage = pageInfo.video.videos[0].image;
                 pageInfo.title = pageInfo.album.title + ' ' + pageInfo.video.videos[0].episodeName;
                 document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}.small .AHP-Player-Container{width:260px;height:147px;margin-top:26px}')]));
             }
