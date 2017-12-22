@@ -31,8 +31,15 @@
   "permissions": [
     "*://*/*",
     "storage",
-    "clipboardWrite"
+    "clipboardWrite",
+    "webRequest",
+    "webRequestBlocking"
   ],
+  "background": {
+    "scripts": [
+      "ff_fix.js"
+    ]
+  },
   "applications": {
     "gecko": {
       "id": "acfun-player-store@estertion",
