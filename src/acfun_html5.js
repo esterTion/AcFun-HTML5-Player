@@ -308,6 +308,7 @@ function reloadSegment() {
     this._progressChecker = null;
     io.pause();
     io.resume();
+    this._transmuxer._controller._enableStatisticsReporter();
 }
 let self = window;
 let createPlayer = function (e) {

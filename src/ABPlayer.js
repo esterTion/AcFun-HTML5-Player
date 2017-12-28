@@ -21,10 +21,6 @@ ABP.Strings={
 	statsVideo:_t('statsVideo'),
 	statsBuffer:_t('statsBuffer'),
 	statsBufferClip:_t('statsBufferClip'),
-	statsMozParse:_t('statsMozParse'),
-	statsMozDecode:_t('statsMozDecode'),
-	statsMozPaint:_t('statsMozPaint'),
-	statsWebkitDecode:_t('statsWebkitDecode'),
 	statsPresent:_t('statsPresent'),
 	statsDrop:_t('statsDrop'),
 	statsMimetype:_t('statsMimetype'),
@@ -195,6 +191,17 @@ ABP.Strings={
 			} else if (this.msRequestFullscreen) {
 				this.msRequestFullscreen();
 			}
+		}
+	}
+
+	var videoProto = Object.keys(HTMLVideoElement.prototype);
+	if (videoProto.indexOf("webkitDecodedFrameCount") != -1 && videoProto.indexOf("getVideoPlaybackQuality") == -1) {
+		//Workaround for a fake videoPlaybackQuality
+		HTMLVideoElement.prototype.getVideoPlaybackQuality = function () {
+			return {
+				totalVideoFrames: this.webkitDecodedFrameCount,
+				droppedVideoFrames: this.webkitDroppedFrameCount
+			};
 		}
 	}
 
@@ -507,17 +514,9 @@ ABP.Strings={
 				_('br'),
 
 				_('div',{id:'canvas-fps'},[_('span',{className:'stats_name'},[_('text','Canvas fps：')]),_('span')]),
-				_('div',{className:'gecko'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsMozParse)]), _('span',{id:'mozParsedFrames'})]),
-				_('div',{className:'gecko'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsMozDecode)]), _('span',{id:'mozDecodedFrames'})]),
-				_('div',{className:'gecko'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsMozPaint)]), _('span',{id:'mozPaintedFrames'})]),
-				//_('div',{className:'gecko'},[_('text',ABP.Strings.statsMozPresent), _('span',{id:'mozPresentedFrames'})]),
-				//_('div',{className:'gecko'},[_('text',ABP.Strings.statsMozDrop), _('span',{id:'mozDroppedFrames'})]),
-
-				_('div',{className:'webkit'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsWebkitDecode)]), _('span',{id:'webkitDecodedFrameCount'})]),
-				_('div',{className:'webkit'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsDrop)]), _('span',{id:'webkitDroppedFrameCount'})]),
 				
-				_('div',{className:'videoQuality'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsPresent)]), _('span',{id:'totalVideoFrames'})]),
-				_('div',{className:'videoQuality'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsDrop)]), _('span',{id:'droppedVideoFrames'})]),
+				_('div',{className:'videoQuality'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsPresent)]), ,_('span',{className:'stats-column',id:'playback-fps-column'}),_('span')]),
+				_('div',{className:'videoQuality'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsDrop)]), ,_('span',{className:'stats-column',id:'drop-fps-column'}),_('span')]),
 				
 				_('br'),
 				_('div',{style:{fontSize:'11px'}},[_('text',versionString)]),
@@ -1637,8 +1636,6 @@ ABP.Strings={
 		
 		var enabledStats={
 			videoDimension:true,
-			gecko:true,
-			webkit:true,
 			videoQuality:true,
 			flvjs:true
 		},document_querySelector=function(a){return playerIframe.contentDocument.querySelector(a)},
@@ -1651,12 +1648,20 @@ ABP.Strings={
 		bufferColumn=gEle('buffer-health-column'),
 		realtimeBitrateColumn=gEle('realtime-bitrate-column'),
 		downloadSpeedColumn=gEle('download-speed-column'),
+		playFpsColumn=gEle('playback-fps-column'),
+		playFpsNum = playFpsColumn.parentNode.lastChild,
+		dropFpsColumn=gEle('drop-fps-column'),
+		dropFpsNum = dropFpsColumn.parentNode.lastChild,
 		bufferArr=[],
 		realtimeBitrateArr=[],
 		downloadSpeedArr=[],
+		playFpsArr=[],
+		dropFpsArr=[],
+		prevPlayedFrames=0,
+		prevDroppedFrames=0,
 		bufferNum=gEle('buffer-health').lastChild,
 		svgStats='<svg style="width:180px;height:21px"><polyline style="fill:transparent;stroke:#ccc"></polyline><polyline points="1,21 180,21 180,1" style="fill:transparent;stroke:#fff"></polyline></svg>',
-		addStyle='',style=_('style'),flvjsStyle=_('style'),flvjsStats=playerUnit.querySelectorAll('.flvjs>:last-child'),i=0,
+		addStyle='',style=_('style'),flvjsStyle=_('style'),flvjsStats=playerIframe.contentDocument.querySelectorAll('.flvjs>:last-child'),i=0,
 		renderColumn=function(column,arr){
 			var max=0,i,points=[];
 			arr.forEach(function(i){max=(i>max)?i:max});
@@ -1682,6 +1687,8 @@ ABP.Strings={
 			bufferArr.push(0);
 			realtimeBitrateArr.push(0);
 			downloadSpeedArr.push(0);
+			playFpsArr.push(0);
+			dropFpsArr.push(0);
 		}
 		//bufferColumn=document.querySelectorAll('#buffer-health-column>span');
 		bufferColumn.innerHTML=svgStats;
@@ -1690,18 +1697,14 @@ ABP.Strings={
 		realtimeBitrateColumn=realtimeBitrateColumn.firstChild.firstChild;
 		downloadSpeedColumn.innerHTML=svgStats;
 		downloadSpeedColumn=downloadSpeedColumn.firstChild.firstChild;
+		playFpsColumn.innerHTML=svgStats;
+		playFpsColumn=playFpsColumn.firstChild.firstChild;
+		dropFpsColumn.innerHTML=svgStats;
+		dropFpsColumn=dropFpsColumn.firstChild.firstChild;
 		//realtimeBitrateColumn=document.querySelectorAll('#realtime-bitrate-column>span');
 		if(video.videoWidth==undefined){
 			enabledStats.videoDimension=false;
 			addStyle+='#video-dimension{display:none}';
-		}
-		if(video.mozDecodedFrames==undefined){
-			enabledStats.gecko=false;
-			addStyle+='.gecko{display:none}';
-		}
-		if(video.webkitDecodedFrameCount==undefined){
-			enabledStats.webkit=false;
-			addStyle+='.webkit{display:none}';
 		}
 		if(video.getVideoPlaybackQuality==undefined){
 			enabledStats.videoQuality=false;
@@ -1872,23 +1875,22 @@ ABP.Strings={
 			if(odd)
 				canvasFPS.textContent = ABPInst.cmManager.canvasFPS;
 			
-			if(enabledStats.gecko){
-				['mozParsedFrames','mozDecodedFrames','mozPaintedFrames'].forEach(function(name){
-					gEle(name).textContent=video[name];
-				})
-			}
-			
-			if(enabledStats.webkit){
-				['webkitDecodedFrameCount','webkitDroppedFrameCount'].forEach(function(name){
-					gEle(name).textContent=video[name];
-				})
-			}
-			
-			if(enabledStats.videoQuality){
-				var quality=video.getVideoPlaybackQuality();
-				gEle('totalVideoFrames').textContent=quality.totalVideoFrames;
-				gEle('droppedVideoFrames').textContent=quality.droppedVideoFrames;
-			}
+				if(odd && enabledStats.videoQuality){
+					var quality=video.getVideoPlaybackQuality();
+					if (prevPlayedFrames > quality.totalVideoFrames) prevPlayedFrames = 0;
+					if (prevDroppedFrames > quality.droppedVideoFrames) prevDroppedFrames = 0;
+					var playedFrames=quality.totalVideoFrames - prevPlayedFrames;
+					var droppedFrames=quality.droppedVideoFrames - prevDroppedFrames;
+					prevPlayedFrames = quality.totalVideoFrames;
+					prevDroppedFrames = quality.droppedVideoFrames;
+					playFpsArr.push(playedFrames); playFpsArr.shift();
+					dropFpsArr.push(droppedFrames); dropFpsArr.shift();
+					if(playerStatsOn)
+						renderColumn(playFpsColumn, playFpsArr),
+						renderColumn(dropFpsColumn, dropFpsArr);
+					playFpsNum.textContent = playedFrames + ' fps';
+					dropFpsNum.textContent = droppedFrames + ' fps ' + (droppedFrames/playedFrames*100).toFixed(2)+'%';
+				}
 		},500)
 		
 		/** Create a commentManager if possible **/
@@ -2294,14 +2296,6 @@ ABP.Strings={
 			senderInfoTimeout=null,senderInfoDivTimeout=null,currentSender=0,currentSenderDiv=null,
 			senderInfoCache={},
 			getSenderInfo=function(){
-				if(currentSender==0)
-					return;
-				if(senderInfoCache[currentSender]!=undefined){
-					contextMenuBody.dispatchEvent(new CustomEvent('senderInfoFetched',{detail:senderInfoCache[currentSender]}))
-					return;
-				}
-				var s=_('script',{className:'info_jsonp',src:'//account.bilibili.com/api/member/getCardByMid?type=jsonp&callback=getSenderInfo&mid='+currentSender});
-				document.body.appendChild(s);
 			},
 			showContextMenu=function(x,y,dmList){
 				contextMenu.style.display='block';
@@ -2408,49 +2402,6 @@ ABP.Strings={
 				if(speed!=undefined)
 					ABPInst.video.playbackRate = speed;
 			});
-			contextMenuBody[addEventListener]('senderInfoFetched',function(e){
-				var card=e.detail;
-				if(card.mid!=currentSender || currentSenderDiv==null){
-					return;
-				}
-				var box=currentSenderDiv.parentNode.getBoundingClientRect(),x=box.left-150,y=innerHeight-box.bottom,
-				infoDiv=_('div',{className:'Context-Menu-Body',id:'Sender-Info',style:{
-					left:x+'px',
-					bottom:y+'px',
-					position:'fixed',
-					fontFamily:"-apple-system,Arial,'PingFang SC','STHeiti Light','Hiragino Kaku Gothic ProN','Microsoft YaHei'",
-					textAlign:'center'
-				}},[
-					_('div',{},[
-						_('img',{style:{height:'130px',width:'130px'},src:card.face})
-					]),
-					_('div',{},[_('text',card.name)]),
-					_('div',{},[_('text',card.mid)]),
-					_('div',{},[_('text','LV'+card.level_info.current_level)])
-				]);
-				document.body.appendChild(infoDiv);
-				if((y+infoDiv.offsetHeight)>innerHeight){
-					infoDiv.style.bottom='';
-					infoDiv.style.top=(box.top)+'px';
-				}
-				infoDiv[addEventListener]('click',function(){
-					window.open('/space/'+card.mid+'/');
-					document.body.removeChild(infoDiv);
-				})
-				infoDiv[addEventListener]('mouseenter',function(){
-					clearTimeout(senderInfoDivTimeout);
-				})
-				infoDiv[addEventListener]('mouseleave',function(){
-					clearTimeout(senderInfoDivTimeout);
-					senderInfoDivTimeout=setTimeout(function(){document.body.removeChild(playerUnit.querySelector('#'+'Sender-Info'))},500);
-				})
-			});
-			window.getSenderInfo=function(json){
-				if(json.code==0){
-					senderInfoCache[currentSender]=json.card;
-					contextMenuBody.dispatchEvent(new CustomEvent('senderInfoFetched',{detail:json.card}))
-				}
-			}
 			contextMenu[addEventListener]('click',dismissListener);
 			contextMenuBackground[addEventListener]('contextmenu',dismissListener);
 			ABPInst.videoDiv.parentNode[addEventListener]('contextmenu',function(e){
@@ -2468,98 +2419,6 @@ ABP.Strings={
 				e.stopPropagation();
 				showContextMenu(e.clientX,e.clientY,[dmData]);
 			});
-			ABPInst.videoDiv.parentNode[addEventListener]('touchstart',function(e){
-				timeDraggingMode = false;
-				ignoreDragging = false;
-				draggingTimeBase = ABPInst.video.currentTime;
-				activingContext=!1;
-				if(e.touches.length>1 && touchContextTimer!=null){
-					clearTimeout(touchContextTimer);
-					touchContextTimer=null;
-					return;
-				}
-				var box=ABPInst.divComment.getBoundingClientRect(),
-				x=e.touches[0].clientX,
-				y=e.touches[0].clientY,
-				dmList=ABPInst.cmManager.getCommentFromPoint(x-box.left,y-box.top);
-				draggingStartX = x;
-				draggingStartY = y;
-				touchContextTimer=setTimeout(function(){
-					ignoreDragging = true;
-					touchContextTimer=null;
-					activingContext=!0;
-					showContextMenu(x,y,dmList);
-				},300);
-			});
-			ABPInst.playerUnit.querySelector('.shield')[addEventListener]('touchstart touchmove touchend',function(e){e.stopPropagation()})
-			ABPInst.videoDiv.parentNode[addEventListener]('touchmove',function(e){
-				if(touchContextTimer!=null){
-					clearTimeout(touchContextTimer);
-					touchContextTimer=null;
-				}
-				var x=e.touches[0].clientX,
-				y=e.touches[0].clientY,
-				dx=x-draggingStartX,
-				dy=y-draggingStartY,
-				playerBox = ABPInst.videoDiv.getBoundingClientRect(),
-				playerWidth = playerBox.width,
-				playerHeight = playerBox.height;
-				if(timeDraggingMode){
-					var draggingSpeed = 0, increasing = dx>0 ? 1 : 0, speedStringMap = ['Low','Med','High'], duration = ABPInst.video.duration;
-					if( y < playerHeight/3){
-						draggingTimeBase += dx*.2;
-					}else if( y < playerHeight*2/3 ){
-						draggingTimeBase += dx*.6;
-						draggingSpeed = 1;
-					}else{
-						draggingTimeBase += dx*1.5;
-						draggingSpeed = 2;
-					}
-					draggingTimeBase = draggingTimeBase<0 ? 0 : (draggingTimeBase>duration ? duration : draggingTimeBase)
-					draggingStartX += dx;
-					if(draggingStartX-playerBox.left<50 || playerBox.right-draggingStartX<50){
-						document_querySelector('.Drag-Icon').className = 'Drag-Icon cancel';
-						document_querySelector('.Drag-Speed').textContent = ABP.Strings.dragControlCancel;
-						document_querySelector('.Drag-Time').textContent = '　';
-						cancelingDragging = true;
-					}else{
-						document_querySelector('.Drag-Icon').className = 'Drag-Icon '+ (increasing?'forward':'rewind');
-						document_querySelector('.Drag-Speed').textContent = ABP.Strings['dragControl' + speedStringMap[draggingSpeed] + (increasing?'Inc':'Dec')];
-						document_querySelector('.Drag-Time').textContent = formatTime(draggingTimeBase) +'╱'+ formatTime(duration);
-						cancelingDragging = false;
-						if(duration>0)
-							document_.querySelector('.Drag-Time-Bar .fill').style.width = draggingTimeBase/duration*100 +'%'
-					}
-				}else if(!ignoreDragging){
-					if(dx<-10 || dx>10){
-						timeDraggingMode = true;
-						if(draggingDismissTimeout!=null){
-							clearTimeout(draggingDismissTimeout);
-							draggingDismissTimeout=null;
-						}
-						document_querySelector('.Drag-Control').style.display = 'block';
-					}else if( dy<-10 || dy>10 ){
-						ignoreDragging = true;
-					}
-				}
-			});
-			ABPInst.videoDiv.parentNode[addEventListener]('touchend',function(){
-				if(touchContextTimer!=null){
-					clearTimeout(touchContextTimer);
-					touchContextTimer=null;
-				}
-				if(timeDraggingMode&& !cancelingDragging){
-					ABPInst.video.currentTime = draggingTimeBase;
-				}
-				draggingDismissTimeout = setTimeout(function(){
-					document_querySelector('.Drag-Control').style.display = 'none';
-				},1e3);
-			});
-			contextMenuBody[addEventListener]('touchstart',function(e){
-				var box=contextMenuBody.getBoundingClientRect();
-				if(e.touches[0].clientX-box.left<=box.width && e.touches[0].clientY-box.top<=box.height)
-					activingContext=!0;
-			})
 
 			var saveConfigurations = function() {
 				if (ABPInst.inited)
@@ -3053,9 +2912,6 @@ ABP.Strings={
 							break;
 					}
 				}
-			});
-			playerUnit.firstChild[addEventListener]("touchmove", function(e) {
-				e.preventDefault();
 			});
 			var _touch = null;
 			playerUnit[addEventListener]("touchstart", function(e) {
