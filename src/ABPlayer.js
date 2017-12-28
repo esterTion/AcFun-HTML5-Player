@@ -147,7 +147,7 @@ ABP.Strings={
 	if (!ABP) return;
 	var $$ = jQuery,
 	addEventListener='addEventListener',
-	versionString='HTML5 Player ver.170912 based on ABPlayer-bilibili-ver',
+	versionString='HTML5 Player ver.171228 based on ABPlayer-bilibili-ver',
 	mousePrevPos=[0,0],
 	mouseMoved=function(e){
 		var oldPos=mousePrevPos;
