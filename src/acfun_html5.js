@@ -44,27 +44,6 @@ let firstTime = true;
 let highestType;
 
 function response2url(json) {
-    if (fetchedCount) {
-        //写入备份模式
-        json.stream.forEach(function (stream) {
-            if (stream.channel_type) return;
-            let lang = stream.audio_lang,
-                type = stream.stream_type,
-                current = audioLangs[lang].src[type];
-            //忽略不记录清晰度
-            if (current === undefined) return;
-            current.playlist_url = stream.m3u8_url;
-            for (let part = 0; part < stream.segs.length; part++) {
-                current.segments[part].backup_url.push(stream.segs[part].cdn_url.replace(/http:\/\/([\d\.]+?)\//, function (s) {
-                    return s + 'youku/';
-                }));
-                if (stream.segs[part].cdn_backup) {
-                    current.segments[part].backup_url.concat(stream.segs[part].cdn_backup);
-                }
-            }
-        });
-        return;
-    }
     let data = {};
     let savedLang = localStorage.YHP_PreferedLang || '';
     for (let val of json.stream) {
@@ -169,7 +148,6 @@ function switchLang(lang) {
         abpinst.removePopup(), abpinst.createPopup(_t('currentLang') + (knownLangs[lang] || lang), 3e3);
 }
 
-let fetchedCount = 0;
 
 function fetchSrcThen(json) {
     if (json.error) {
@@ -184,7 +162,6 @@ function fetchSrcThen(json) {
             content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', JSON.stringify(json.error))],
             showConfirm: false
         });
-        fetchedCount = 0;
         return;
     } else {
         response2url(json);
@@ -272,7 +249,6 @@ function fetchSrcThen(json) {
         });*/
     }
     firstTime = false;
-    fetchedCount++;
     changeSrc('', currentSrc, true);
 }
 
@@ -326,6 +302,10 @@ let createPlayer = function (e) {
     self.flvplayer.reloadSegment = reloadSegment;
 };
 let load_fail = function (type, info, detail) {
+    if (['youku', 'youku2'].indexOf(pageInfo.sourceType) != -1 && detail.code == 403) {
+        sourceTypeRoute();
+        return;
+    }
     let div = _('div', {
         style: {
             width: '100%',
@@ -427,7 +407,16 @@ function init() {
     window.playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl }));
     playerIframe.onload = function () {
         URL.revokeObjectURL(bloburl);
-        let video = playerIframe.contentDocument.body.appendChild(_('video', {poster: pageInfo.coverImage}));
+        try {
+            if (playerIframe.contentDocument.head.getElementsByTagName('link').length == 0) {
+                location.reload();
+                return;
+            }
+        } catch (e) {
+            location.reload();
+            return;
+        }
+        let video = playerIframe.contentDocument.body.appendChild(_('video', { poster: pageInfo.coverImage }));
         window.flvplayer = { unload: function () { }, destroy: function () { } };
         abpinst = ABP.create(video.parentNode, {
             src: {
@@ -467,103 +456,16 @@ function init() {
                         });
                     });
                     pageInfo.sourceId = data.sourceId;
+                    pageInfo.sourceType = data.sourceType;
                     console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId);
-                    switch (data.sourceType) {
-                        case 'sina':
-                            //新浪
-                            var time = parseInt((Date.now() / 1e3 | 0).toString(2).slice(0, -6), 2);
-                            fetch('http://ask.ivideo.sina.com.cn/v_play.php?vid=' + data.sourceId + '&ran=0&r=ent.sina.com.cn&p=i&k=' + hex_md5(data.sourceId + 'Z6prk18aWxP278cVAH' + time + '0').substr(0, 16) + time,
-                                { method: 'GET', cache: 'no-cache', referrerPolicy: 'no-referrer' })
-                                .then(r => r.text())
-                                .then(r => (new X2JS({ arrayAccessFormPaths: ["video.durl"] })).xml_str2json(r))
-                                .then(data => {
-                                    if (data.video.result == 'error') {
-                                        dots.stopTimer();
-                                        createPopup({
-                                            content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', _t('fetchSourceErr')), _('text', JSON.stringify(data.video, null, '  '))]), _('text', location.href)],
-                                            showConfirm: false
-                                        });
-                                    } else
-                                        fetchSrcThen({
-                                            stream: [{
-                                                audio_lang: 'default',
-                                                milliseconds_audio: data.video.timelength | 0,
-                                                milliseconds_video: data.video.timelength | 0,
-                                                stream_type: 'mp4hd3',
-                                                segs: data.video.durl.map(function (i) {
-                                                    return {
-                                                        url: i.url,
-                                                        size: i.filesize | 0,
-                                                        total_milliseconds_audio: i.length | 0,
-                                                        total_milliseconds_video: i.length | 0
-                                                    };
-                                                })
-                                            }]
-                                        });
-                                });
-                            break;
-                        case 'letv':
-                            //乐视云已没救，勿念
-                            dots.stopTimer();
-                            createPopup({
-                                content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', data.sourceType + ' 源大部分视频已经失效，不计划添加支持\ndetail: ' + JSON.stringify({ sourceType: data.sourceType, sourceId: data.sourceId }, null, '  '))]), _('text', location.href)],
-                                showConfirm: false
-                            });
-                            break;
-                        case 'zhuzhan':
-                            //Ac - 优酷云
-                            pageInfo.sign = data.encode;
-                            fetch('http://player.acfun.cn/flash_data?vid=' + pageInfo.sourceId + '&ct=85&ev=3&sign=' + pageInfo.sign + '&time=' + Date.now(), {
-                                method: 'GET',
-                                credentials: 'include',
-                                referrer: location.href,
-                                cache: 'no-cache'
-                            }).then(function (r) {
-                                r.json().then(function (data) {
-                                    let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
-                                    fetchSrcThen(decrypted);
-                                });
-                            });
-                            break;
-                        case 'youku':
-                            //优酷版权内容
-                            //设置&获取cna
-                            var h = new Headers();
-                            h.append('Range', 'bytes=0-0');
-                            fetch('https://player.youku.com/player.php/sid/' + pageInfo.sourceId + '/newPlayer/true/v.swf', {
-                                method: 'GET',
-                                headers: h,
-                                credentials: 'include',
-                                referrer: location.href,
-                                cache: 'no-cache',
-                                redirect: 'follow'
-                            }).then(function (r) {
-                                pageInfo.yk_cna = r.url.match(/cna=([^&]+)/)[1];
-                                pageInfo.yk_vext = r.url.match(/vext=([^&]+)/)[1];
-                                return fetch('https://api.youku.com/players/custom.json?client_id=0edbfd2e4fc91b72&video_id=' + pageInfo.sourceId + '&refer=http://cdn.aixifan.com/player/cooperation/AcFunXYouku.swf&vext=' + pageInfo.yk_vext + '&embsig=undefined&styleid=undefined&type=flash', {
-                                    method: 'GET',
-                                    credentials: 'include',
-                                    referrer: location.href,
-                                    cache: 'no-cache'
-                                }).then(function (r) { return r.json(); });
-                            }).then(function (data) {
-                                pageInfo.yk_r = data.stealsign;
-                                return fetch('https://ups.youku.com/ups/get.json?vid=' + pageInfo.sourceId + '&ccode=0405&client_ip=192.168.1.1&utid=' + pageInfo.yk_cna + '&client_ts=' + Date.now() + '&r=' + pageInfo.yk_r, {
-                                    method: 'GET',
-                                    credentials: 'include',
-                                    referrer: location.href,
-                                    cache: 'no-cache'
-                                }).then(function (r) { return r.json(); });
-                            }).then(function (data) { fetchSrcThen(data.data); });
-                            break;
-                        default:
-                            dots.stopTimer();
-                            createPopup({
-                                content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', '暂不支持的视频源：' + data.sourceType + '\n请于 '), _('a', { target: '_blank', href: 'https://github.com/esterTion/AcFun-HTML5-Player/issues' }, [_('text', 'GitHub')]), _('text', ' 留言')]), _('text', location.href)],
-                                showConfirm: false
-                            });
-                            return;
+                    let backupSina;
+                    // 提取sourceUrl新浪源
+                    if (['zhuzhan', 'sina', 'youku', 'youku2'].indexOf(data.sourceType) == -1 && (backupSina = (data.sourceUrl || '').match(/video\.sina\.com\.cn\/v\/b\/(\d+)-/))) {
+                        pageInfo.sourceType = 'sina';
+                        pageInfo.sourceId = backupSina[1];
+                        console.log('[AHP] Using backup sina vid: ' + pageInfo.sourceId);
                     }
+                    sourceTypeRoute();
                 } else {
                     dots.stopTimer();
                     createPopup({
@@ -583,6 +485,106 @@ function init() {
     resizeSensor(playerIframe.parentNode, function () {
         window.dispatchEvent(new Event('resize'));
     });
+}
+function sourceTypeRoute() {
+    switch (pageInfo.sourceType) {
+        case 'sina':
+            //新浪
+            var time = parseInt((Date.now() / 1e3 | 0).toString(2).slice(0, -6), 2);
+            fetch('http://ask.ivideo.sina.com.cn/v_play.php?vid=' + pageInfo.sourceId + '&ran=0&r=ent.sina.com.cn&p=i&k=' + hex_md5(pageInfo.sourceId + 'Z6prk18aWxP278cVAH' + time + '0').substr(0, 16) + time,
+                { method: 'GET', cache: 'no-cache', referrerPolicy: 'no-referrer' })
+                .then(r => r.text())
+                .then(r => (new X2JS({ arrayAccessFormPaths: ["video.durl"] })).xml_str2json(r))
+                .then(data => {
+                    if (data.video.result == 'error') {
+                        dots.stopTimer();
+                        createPopup({
+                            content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', _t('fetchSourceErr')), _('text', JSON.stringify(data.video, null, '  '))]), _('text', location.href)],
+                            showConfirm: false
+                        });
+                    } else
+                        fetchSrcThen({
+                            stream: [{
+                                audio_lang: 'default',
+                                milliseconds_audio: data.video.timelength | 0,
+                                milliseconds_video: data.video.timelength | 0,
+                                stream_type: 'mp4hd3',
+                                segs: data.video.durl.map(function (i) {
+                                    return {
+                                        url: i.url,
+                                        size: i.filesize | 0,
+                                        total_milliseconds_audio: i.length | 0,
+                                        total_milliseconds_video: i.length | 0
+                                    };
+                                })
+                            }]
+                        });
+                });
+            break;
+        case 'letv':
+            //乐视云已没救，勿念
+            dots.stopTimer();
+            createPopup({
+                content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', data.sourceType + ' 源大部分视频已经失效，不计划添加支持\ndetail: ' + JSON.stringify({ sourceType: data.sourceType, sourceId: pageInfo.sourceId }, null, '  '))]), _('text', location.href)],
+                showConfirm: false
+            });
+            break;
+        case 'zhuzhan':
+            //Ac - 优酷云
+            pageInfo.sign = data.encode;
+            fetch('http://player.acfun.cn/flash_data?vid=' + pageInfo.sourceId + '&ct=85&ev=3&sign=' + pageInfo.sign + '&time=' + Date.now(), {
+                method: 'GET',
+                credentials: 'include',
+                referrer: location.href,
+                cache: 'no-cache'
+            }).then(function (r) {
+                r.json().then(function (data) {
+                    let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
+                    fetchSrcThen(decrypted);
+                });
+            });
+            break;
+        case 'youku':
+        case 'youku2':
+            //优酷版权内容
+            //设置&获取cna
+            pageInfo.sourceId = pageInfo.sourceId.match(/([a-zA-Z0-9+=]+)/)[1];
+            var h = new Headers();
+            h.append('Range', 'bytes=0-0');
+            fetch('https://player.youku.com/player.php/sid/' + pageInfo.sourceId + '/newPlayer/true/v.swf', {
+                method: 'GET',
+                headers: h,
+                credentials: 'include',
+                referrer: location.href,
+                cache: 'no-cache',
+                redirect: 'follow'
+            }).then(function (r) {
+                pageInfo.yk_cna = r.url.match(/cna=([^&]+)/)[1];
+                pageInfo.yk_vext = r.url.match(/vext=([^&]+)/)[1];
+                return fetch('https://api.youku.com/players/custom.json?client_id=0edbfd2e4fc91b72&video_id=' + pageInfo.sourceId + '&refer=http://cdn.aixifan.com/player/cooperation/AcFunXYouku.swf&vext=' + pageInfo.yk_vext + '&embsig=undefined&styleid=undefined&type=flash', {
+                    method: 'GET',
+                    credentials: 'include',
+                    referrer: location.href,
+                    cache: 'no-cache'
+                }).then(function (r) { return r.json(); });
+            }).then(function (data) {
+                pageInfo.yk_r = data.stealsign;
+                return fetch('https://ups.youku.com/ups/get.json?vid=' + pageInfo.sourceId + '&ccode=0405&client_ip=192.168.1.1&utid=' + pageInfo.yk_cna + '&client_ts=' + Date.now() + '&r=' + pageInfo.yk_r, {
+                    method: 'GET',
+                    credentials: 'include',
+                    referrer: location.href,
+                    cache: 'no-cache'
+                }).then(function (r) { return r.json(); });
+            }).then(function (data) { fetchSrcThen(data.data); });
+            break;
+        default:
+            dots.stopTimer();
+            createPopup({
+                content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', '暂不支持的视频源：' + data.sourceType + '\n请于 '), _('a', { target: '_blank', href: 'https://github.com/esterTion/AcFun-HTML5-Player/issues' }, [_('text', 'GitHub')]), _('text', ' 留言')]), _('text', location.href)],
+                showConfirm: false
+            });
+            return;
+    }
 }
 (function () {
     let noticeWidth = Math.min(500, innerWidth - 40);
