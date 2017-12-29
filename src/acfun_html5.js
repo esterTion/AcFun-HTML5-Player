@@ -465,7 +465,7 @@ function init() {
                         pageInfo.sourceId = backupSina[1];
                         console.log('[AHP] Using backup sina vid: ' + pageInfo.sourceId);
                     }
-                    sourceTypeRoute();
+                    sourceTypeRoute(data);
                 } else {
                     dots.stopTimer();
                     createPopup({
@@ -486,7 +486,7 @@ function init() {
         window.dispatchEvent(new Event('resize'));
     });
 }
-function sourceTypeRoute() {
+function sourceTypeRoute(data) {
     switch (pageInfo.sourceType) {
         case 'sina':
             //新浪
