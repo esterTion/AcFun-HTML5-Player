@@ -389,7 +389,30 @@ function chkInit() {
     readStorage('PlayerSettings', function (item) {
         ABPConfig = item.PlayerSettings || {};
         init();
+        let observer = new MutationObserver(bangumiEpisodeChange);
+        observer.observe(document.body, { childList: true, subtree: true });
     });
+}
+function bangumiEpisodeChange() {
+    let flash;
+    if ((flash = document.getElementById('ACFlashPlayer')) != null) {
+        dest = flash;
+        window.addEventListener('AHP_bgmEpisodeInfo', function episodeInfo(e) {
+            window.removeEventListener('AHP_bgmEpisodeInfo', episodeInfo);
+            pageInfo.video = e.detail;
+            pageInfo.vid = pageInfo.video.videos[0].danmakuId;
+            pageInfo.coverImage = pageInfo.video.videos[0].image;
+            pageInfo.title = pageInfo.album.title + ' ' + pageInfo.video.videos[0].episodeName;
+            flvplayer.unload();
+            flvplayer.detachMediaElement();
+            flvplayer.destroy();
+            flvplayer = {};
+            abpinst.danmu_ws.close();
+            playerIframe.remove();
+            init();
+        });
+        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_bgmEpisodeInfo", {detail:bgmInfo.list[' + document.querySelector('.list-area .videoes .play').dataset.index + ']}));f.ready();')])).remove();
+    }
 }
 function init() {
     if (!pageInfo.vid || dest == null)
