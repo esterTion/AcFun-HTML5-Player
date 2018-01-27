@@ -454,7 +454,7 @@ function init() {
         }).then(function (r) {
             r.json().then(function (data) {
                 if (data.success) {
-                    fetch('http://danmu.aixifan.com/V2/' + pageInfo.vid, {
+                    fetch('http://danmu.aixifan.com/V2/' + pageInfo.vid + '?pageSize=1000&pageNo=1', {
                         method: 'GET',
                         credentials: 'include',
                         referrer: location.href,
