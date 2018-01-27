@@ -356,7 +356,7 @@ let flvparam = function (select) {
 
 let danmuParse = new AcfunFormat.JSONParser;
 function parseComment(data) {
-    let list = [];
+    let list = abpinst.cmManager.timeline;
     let itemParse = function (i) {
         let cmt = danmuParse.parseOne(i);
         list.push(cmt);
@@ -364,6 +364,20 @@ function parseComment(data) {
     data[1].forEach(itemParse);
     data[2].forEach(itemParse);
     abpinst.cmManager.load(list);
+}
+function loadCommentBySize(data) {
+    for (let i = 1, page = Math.ceil((data[1] + data[2]) / 1e3); i <= page; i++) {
+        fetch('http://danmu.aixifan.com/V2/' + pageInfo.vid + '?pageSize=1000&pageNo=' + i, {
+            method: 'GET',
+            credentials: 'include',
+            referrer: location.href,
+            cache: 'no-cache'
+        }).then(function (r) {
+            r.json().then(function (data) {
+                parseComment(data);
+            });
+        });
+    }
 }
 function sendComment(e) {
     let cmt = e.detail;
@@ -454,16 +468,14 @@ function init() {
         }).then(function (r) {
             r.json().then(function (data) {
                 if (data.success) {
-                    fetch('http://danmu.aixifan.com/V2/' + pageInfo.vid + '?pageSize=1000&pageNo=1', {
+                    fetch('http://danmu.aixifan.com/size/' + pageInfo.vid, {
                         method: 'GET',
                         credentials: 'include',
                         referrer: location.href,
                         cache: 'no-cache'
-                    }).then(function (r) {
-                        r.json().then(function (data) {
-                            parseComment(data);
-                        });
-                    });
+                    })
+                        .then(r => r.json())
+                        .then(loadCommentBySize);
                     pageInfo.sourceId = data.sourceId;
                     pageInfo.sourceType = data.sourceType;
                     console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId);
