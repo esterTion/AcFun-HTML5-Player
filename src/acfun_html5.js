@@ -366,7 +366,7 @@ function parseComment(data) {
     abpinst.cmManager.load(list);
 }
 function loadCommentBySize(data) {
-    for (let i = 1, page = Math.ceil((data[1] + data[2]) / 1e3); i <= page; i++) {
+    for (let i = 1, page = Math.ceil((data[1] + data[2]) / 1e3); i <= page && i <= 12; i++) {
         fetch('http://danmu.aixifan.com/V2/' + pageInfo.vid + '?pageSize=1000&pageNo=' + i, {
             method: 'GET',
             credentials: 'include',
