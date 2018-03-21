@@ -1818,10 +1818,10 @@ ABP.Strings={
 						if(playerStatsOn){
 							var realtimeBitrateArr=[];
 							var displaySegOffset = off, time = timeOffset - 20;
-							while (time < 20) {
+							while (time < 0) {
 								displaySegOffset--;
-								if (displaySegOffset == -1) {
-									displaySegOffset = 0;
+								if (!bitrateMap[displaySegOffset]) {
+									displaySegOffset++;
 									break;
 								}
 								time += bitrateMap[displaySegOffset].length;

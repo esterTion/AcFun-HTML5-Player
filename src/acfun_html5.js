@@ -505,6 +505,9 @@ function init() {
     };
     resizeSensor(playerIframe.parentNode, function () {
         window.dispatchEvent(new Event('resize'));
+        if (!playerIframe.parentNode.classList.contains('small')) {
+            playerIframe.parentNode.style.left = '';
+        }
     });
 }
 function sourceTypeRoute(data) {
