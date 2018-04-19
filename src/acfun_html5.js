@@ -104,6 +104,13 @@ function response2url(json) {
                     audioLangs[lang].src[type].segments.push(seg);
                     time += part.total_milliseconds_video | 0;
                 }
+                if ((pageInfo.sourceType == 'youku' || pageInfo.sourceType == 'youku2') && time < json.video.seconds * 1e3 - 30e3) {
+                    //差距30s以上，视为限制视频
+                    console.log('[AHP] Restricted video, trying hack');
+                    pageInfo.sourceType = 'youku_hack';
+                    sourceTypeRoute();
+                    throw 'break out';
+                }
                 audioLangs[lang].src[type].duration = time;
                 audioLangs[lang].src.duration = time;
                 highestType = type;
@@ -599,7 +606,10 @@ function sourceTypeRoute(data) {
                     referrer: location.href,
                     cache: 'no-cache'
                 }).then(function (r) { return r.json(); });
-            }).then(function (data) { fetchSrcThen(data.data); });
+            }).then(function (data) { fetchSrcThen(data.data); }).catch(e => { });
+            break;
+        case 'youku_hack':
+            getYkStream(pageInfo.sourceId).then(function (data) { fetchSrcThen(data.data); });
             break;
         default:
             dots.stopTimer();
@@ -610,6 +620,32 @@ function sourceTypeRoute(data) {
             return;
     }
 }
+
+function getYkStream(vid) {
+    return new Promise(resolve => {
+        window.addEventListener('message', function message(e) {
+            try {
+                let data = JSON.parse(e.data);
+                if (data.cmd == 'stream') {
+                    this.removeEventListener('message', message);
+                    ifr.remove();
+                    resolve(data.data);
+                }
+            } catch (e) { }
+        })
+        let ifr = document.body.appendChild(_('iframe', {
+            src: '//v.youku.com/v_show/id_' + vid + '.html', style: { height: 0, width: 0, display: 'none' }, muted: 'muted',
+            event: {
+                load: function load() {
+                    console.log('[AHP] Subpage loaded, requesting stream');
+                    this.removeEventListener('load', load);
+                    ifr.contentWindow.postMessage('AHP_get_stream', '*');
+                }
+            }
+        }));
+    });
+}
+
 (function () {
     let noticeWidth = Math.min(500, innerWidth - 40);
     document.head.appendChild(_('style', {}, [_('text', `#AHP_Notice{

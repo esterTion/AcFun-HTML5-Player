@@ -26,6 +26,17 @@
         "acfun_html5.js"
       ],
       "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "*://v.youku.com/*"
+      ],
+      "all_frames": true,
+      "js": [
+        "dom_gen.js",
+        "yk_ckey_getter.js"
+      ],
+      "run_at": "document_end"
     }
   ],
   "permissions": [
