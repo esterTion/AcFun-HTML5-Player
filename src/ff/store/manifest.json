@@ -18,7 +18,7 @@
         "md5.js",
         "x2js.min.js",
         "flv.min.js",
-        "jquery-2.1.4.min.js",
+        "jquery-3.3.1.min.js",
         "google-style-loading.min.js",
         "CommentCoreLibrary.min.js",
         "biliplus_shield.min.js",
@@ -43,7 +43,7 @@
   "applications": {
     "gecko": {
       "id": "acfun-player-store@estertion",
-      "strict_min_version": "50.0"
+      "strict_min_version": "57.0"
     }
   },
   "icons": {

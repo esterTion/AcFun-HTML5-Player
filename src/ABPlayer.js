@@ -1042,7 +1042,7 @@ ABP.Strings={
 			commentList: null,
 			commentListContainer: null,
 			lastSelectedComment: null,
-			commentCoolDown: 10000,
+			commentCoolDown: 2000,
 			commentScale: ABP.playerConfig.scale ? ABP.playerConfig.scale : 1,
 			commentSpeed: ABP.playerConfig.speed ? ABP.playerConfig.speed : 1,
 			proportionalScale: ABP.playerConfig.prop,
