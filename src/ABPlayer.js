@@ -1953,19 +1953,19 @@ ABP.Strings={
 			});
 			playerUnit.querySelector('#setting-cmStyle').dispatchEvent(new Event('change'));
 		}
-		$$(playerUnit).find('.ABP-Comment-List-Title *').click(function() {
+		$$(playerUnit.querySelectorAll('.ABP-Comment-List-Title *')).click(function() {
 			var item = $$(this).attr('item'),
 				order = $$(this).hasClass('asc') ? 'desc' : 'asc';
-			$$(playerUnit).find('.ABP-Comment-List-Title *').removeClass('asc').removeClass('desc');
+			$$(playerUnit.querySelectorAll('.ABP-Comment-List-Title *')).removeClass('asc').removeClass('desc');
 			$$(this).addClass(order);
 			ABPInst.loadCommentList(item, order);
 		});
-		$$(playerUnit).find('.ABP-Unit .ABP-CommentStyle .ABP-Comment-FontOption .style-option').click(function() {
+		$$(playerUnit.querySelectorAll('.ABP-Unit .ABP-CommentStyle .ABP-Comment-FontOption .style-option')).click(function() {
 			$$(this).closest('.style-select').find('.style-option').removeClass('on');
 			$$(this).addClass('on');
 			ABPInst[$$(this).closest('.style-select').attr('name')] = parseInt($$(this).attr('value'));
 		});
-		$$(playerUnit).find('.ABP-Comment-ColorPicker').colpick({
+		$$(playerUnit.querySelectorAll('.ABP-Comment-ColorPicker')).colpick({
 			flat: true,
 			submit: 0,
 			color: 'ffffff',
@@ -3277,8 +3277,8 @@ For usage and examples: colpick.com/plugin
 					val: parseInt(field.val(), 10),
 					preview: $(this).parent().parent().data('colpick').livePreview
 				};
-				$(document).mouseup(current, upIncrement);
-				$(document).mousemove(current, moveIncrement);
+				$(playerIframe.contentDocument).mouseup(current, upIncrement);
+				$(playerIframe.contentDocument).mousemove(current, moveIncrement);
 			},
 			moveIncrement = function (ev) {
 				ev.data.field.val(Math.max(0, Math.min(ev.data.max, parseInt(ev.data.val - ev.pageY + ev.data.y, 10))));
@@ -3290,8 +3290,8 @@ For usage and examples: colpick.com/plugin
 			upIncrement = function (ev) {
 				change.apply(ev.data.field.get(0), [true]);
 				ev.data.el.removeClass('colpick_slider').find('input').focus();
-				$(document).off('mouseup', upIncrement);
-				$(document).off('mousemove', moveIncrement);
+				$(playerIframe.contentDocument).off('mouseup', upIncrement);
+				$(playerIframe.contentDocument).off('mousemove', moveIncrement);
 				return false;
 			},
 			//Hue slider functions
@@ -3301,8 +3301,8 @@ For usage and examples: colpick.com/plugin
 					cal: $(this).parent(),
 					y: $(this).offset().top
 				};
-				$(document).on('mouseup touchend',current,upHue);
-				$(document).on('mousemove touchmove',current,moveHue);
+				$(playerIframe.contentDocument).on('mouseup touchend',current,upHue);
+				$(playerIframe.contentDocument).on('mousemove touchmove',current,moveHue);
 
 				var pageY = ((ev.type == 'touchstart') ? ev.originalEvent.changedTouches[0].pageY : ev.pageY );
 				change.apply(
@@ -3326,8 +3326,8 @@ For usage and examples: colpick.com/plugin
 			upHue = function (ev) {
 				fillRGBFields(ev.data.cal.data('colpick').color, ev.data.cal.get(0));
 				fillHexFields(ev.data.cal.data('colpick').color, ev.data.cal.get(0));
-				$(document).off('mouseup touchend',upHue);
-				$(document).off('mousemove touchmove',moveHue);
+				$(playerIframe.contentDocument).off('mouseup touchend',upHue);
+				$(playerIframe.contentDocument).off('mousemove touchmove',moveHue);
 				return false;
 			},
 			//Color selector functions
@@ -3339,8 +3339,8 @@ For usage and examples: colpick.com/plugin
 				};
 				current.preview = current.cal.data('colpick').livePreview;
 
-				$(document).on('mouseup touchend',current,upSelector);
-				$(document).on('mousemove touchmove',current,moveSelector);
+				$(playerIframe.contentDocument).on('mouseup touchend',current,upSelector);
+				$(playerIframe.contentDocument).on('mousemove touchmove',current,moveSelector);
 
 				var pageX,pageY;
 				if(ev.type == 'touchstart') {
@@ -3382,8 +3382,8 @@ For usage and examples: colpick.com/plugin
 			upSelector = function (ev) {
 				fillRGBFields(ev.data.cal.data('colpick').color, ev.data.cal.get(0));
 				fillHexFields(ev.data.cal.data('colpick').color, ev.data.cal.get(0));
-				$(document).off('mouseup touchend',upSelector);
-				$(document).off('mousemove touchmove',moveSelector);
+				$(playerIframe.contentDocument).off('mouseup touchend',upSelector);
+				$(playerIframe.contentDocument).off('mousemove touchmove',moveSelector);
 				return false;
 			},
 			//Submit button
@@ -3499,16 +3499,16 @@ For usage and examples: colpick.com/plugin
 							cal.addClass('colpick_'+options.colorScheme);
 						}
 						//Setup submit button
-						cal.find('div.colpick_submit').html(options.submitText).click(clickSubmit);
+						$(cal[0].querySelectorAll('div.colpick_submit')).html(options.submitText).click(clickSubmit);
 						//Setup input fields
-						options.fields = cal.find('input').change(change).blur(blur).focus(focus);
-						cal.find('div.colpick_field_arrs').mousedown(downIncrement).end().find('div.colpick_current_color').click(restoreOriginal);
+						options.fields = $(cal[0].querySelectorAll('input')).change(change).blur(blur).focus(focus);
+						$(cal[0].querySelectorAll('div.colpick_field_arrs')).mousedown(downIncrement).end().find('div.colpick_current_color').click(restoreOriginal);
 						//Setup hue selector
-						options.selector = cal.find('div.colpick_color').on('mousedown touchstart',downSelector);
-						options.selectorIndic = options.selector.find('div.colpick_selector_outer');
+						options.selector = $(cal[0].querySelectorAll('div.colpick_color')).on('mousedown touchstart',downSelector);
+						options.selectorIndic = $(options.selector[0].querySelectorAll('div.colpick_selector_outer'));
 						//Store parts of the plugin
 						options.el = this;
-						options.hue = cal.find('div.colpick_hue_arrs');
+						options.hue = $(cal[0].querySelectorAll('div.colpick_hue_arrs'));
 						huebar = options.hue.parent();
 						//Paint the hue bar
 						var UA = navigator.userAgent.toLowerCase();
@@ -3526,9 +3526,9 @@ For usage and examples: colpick.com/plugin
 							stopList = stops.join(',');
 							huebar.attr('style','background:-webkit-linear-gradient(top,'+stopList+'); background: -o-linear-gradient(top,'+stopList+'); background: -ms-linear-gradient(top,'+stopList+'); background:-moz-linear-gradient(top,'+stopList+'); -webkit-linear-gradient(top,'+stopList+'); background:linear-gradient(to bottom,'+stopList+'); ');
 						}
-						cal.find('div.colpick_hue').on('mousedown touchstart',downHue);
-						options.newColor = cal.find('div.colpick_new_color');
-						options.currentColor = cal.find('div.colpick_current_color');
+						$(cal[0].querySelectorAll('div.colpick_hue')).on('mousedown touchstart',downHue);
+						options.newColor = $(cal[0].querySelectorAll('div.colpick_new_color'));
+						options.currentColor = $(cal[0].querySelectorAll('div.colpick_current_color'));
 						//Store options and fill with default color
 						cal.data('colpick', options);
 						fillRGBFields(options.color, cal.get(0));
