@@ -11,23 +11,11 @@
     "statsBufferClip": {
         "message": "Buffer clips："
     },
-    "statsMozParse": {
-        "message": "Parsed frames："
-    },
-    "statsMozDecode": {
-        "message": "Decoded frames："
-    },
-    "statsMozPaint": {
-        "message": "Painted frames："
-    },
-    "statsWebkitDecode": {
-        "message": "Decoded frames："
-    },
     "statsPresent": {
-        "message": "Presented frames："
+        "message": "Expected fps："
     },
     "statsDrop": {
-        "message": "Dropped frames："
+        "message": "Drop rate："
     },
     "statsMimetype": {
         "message": "MIME type："
@@ -410,6 +398,9 @@
     "autoPlay": {
         "message": "Start playback automatically"
     },
+    "defaultWide": {
+        "message": "Enter widescreen mode automatically"
+    },
     "defaultFull": {
         "message": "Enter fullscreen mode automatically"
     },
@@ -437,6 +428,18 @@
     "playerTheme": {
         "message": "Player theme"
     },
+	"cmStyle":{
+        "message": "Comment style: "
+    },
+	"cmStyle_st":{
+        "message": "Stroke"
+    },
+	"cmStyle_sh":{
+        "message": "Shadow"
+    },
+	"cmStyle_stsh":{
+        "message": "Stroke & Shadow"
+    },
     "next": {
         "message": "Next video: "
     },
@@ -451,5 +454,11 @@
     },
     "rateChange": {
         "message": "Speed changed to "
+    },
+    "copySegUrl": {
+        "message": "Copy URL"
+    },
+    "copied": {
+        "message": "Copied! "
     }
 }

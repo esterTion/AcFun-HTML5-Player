@@ -434,7 +434,7 @@ function init() {
     dest.remove();
     let blob = new Blob(['<!DOCTYPE HTML><html><head><meta charset="UTF-8"><style>html,body{height:100%;width:100%;margin:0;padding:0}</style><link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL('ABPlayer.css') + '"></head><body></body></html>'], { type: 'text/html' });
     let bloburl = URL.createObjectURL(blob);
-    window.playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl }));
+    window.playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl, allow: 'fullscreen; autoplay' }));
     playerIframe.onload = function () {
         URL.revokeObjectURL(bloburl);
         try {
@@ -510,10 +510,27 @@ function init() {
             });
         });
     };
+    container.style.position = 'relative';
     resizeSensor(playerIframe.parentNode, function () {
         window.dispatchEvent(new Event('resize'));
         if (!playerIframe.parentNode.classList.contains('small')) {
             playerIframe.parentNode.style.left = '';
+        }
+    });
+    readStorage('updateNotifyVer', function (item) {
+        let notVer = '1.2.2';
+        console.log(item);
+        if (item.updateNotifyVer != notVer) {
+            saveStorage({ 'updateNotifyVer': notVer });
+            createPopup({
+                content: [
+                    _('p', { style: { fontSize: '16px' } }, [_('text', 'AHP 最近有更新啦！')]),
+                    _('div', { style: { whiteSpace: 'pre-wrap' } }, [
+                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\nchrome用户现在可以放大音量到400%（通过键盘↑↓调节）")
+                    ])
+                ],
+                showConfirm: false
+            });
         }
     });
 }

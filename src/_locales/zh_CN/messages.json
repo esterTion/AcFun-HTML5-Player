@@ -11,23 +11,11 @@
     "statsBufferClip": {
         "message": "缓冲片段："
     },
-    "statsMozParse": {
-        "message": "已解析帧："
-    },
-    "statsMozDecode": {
-        "message": "已解码帧："
-    },
-    "statsMozPaint": {
-        "message": "已绘制帧："
-    },
-    "statsWebkitDecode": {
-        "message": "已解码帧："
-    },
     "statsPresent": {
-        "message": "已显示帧："
+        "message": "期望帧率："
     },
     "statsDrop": {
-        "message": "已丢弃帧："
+        "message": "丢弃帧率："
     },
     "statsMimetype": {
         "message": "文件格式："
@@ -288,7 +276,7 @@
         "message": "取消跳转"
     },
     "extName": {
-        "message": "更好用的优酷播放器 - YAPfY"
+        "message": "AcFun HTML5 Player"
     },
     "extDesc": {
         "message": "一个装B播放器，送给缺B乐的各位（\n\n开源仓库：https://github.com/esterTion/AcFun-HTML5-Player"
@@ -410,6 +398,9 @@
     "autoPlay": {
         "message": "自动开始播放"
     },
+    "defaultWide": {
+        "message": "自动进入宽屏模式"
+    },
     "defaultFull": {
         "message": "自动进入全屏模式"
     },
@@ -437,6 +428,18 @@
     "playerTheme":{
         "message":"播放器主题"
     },
+	"cmStyle":{
+        "message": "弹幕样式："
+    },
+	"cmStyle_st":{
+        "message": "描边"
+    },
+	"cmStyle_sh":{
+        "message": "阴影"
+    },
+	"cmStyle_stsh":{
+        "message": "描边 + 阴影"
+    },
     "next": {
         "message": "下一个视频："
     },
@@ -451,5 +454,11 @@
     },
     "rateChange": {
         "message": "速度改变至 "
+    },
+    "copySegUrl": {
+        "message": "复制地址"
+    },
+    "copied": {
+        "message": "已复制"
     }
 }

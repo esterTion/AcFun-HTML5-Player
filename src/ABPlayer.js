@@ -34,6 +34,7 @@ ABP.Strings={
 	statsSourceHost:_t('statsSourceHost'),
 	statsRedirection:_t('statsRedirection'),
 	statsRedirectionNone:_t('statsRedirectionNone'),
+	copySegUrl:_t('copySegUrl'),
 	
 	sendSmall:_t('sendSmall'),
 	sendMid:_t('sendMid'),
@@ -111,6 +112,7 @@ ABP.Strings={
 	blockUser:_t('blockUser'),
 	blockColor:_t('blockColor'),
 	blockColorWhite:_t('blockColorWhite'),
+	copied:_t('copied'),
 	copyFail:_t('copyFail'),
 	
 	blockUserEmpty:_t('blockUserEmpty'),
@@ -147,7 +149,7 @@ ABP.Strings={
 	if (!ABP) return;
 	var $$ = jQuery,
 	addEventListener='addEventListener',
-	versionString='HTML5 Player ver.171228 based on ABPlayer-bilibili-ver',
+	versionString='HTML5 Player ver.180625 based on ABPlayer-bilibili-ver',
 	mousePrevPos=[0,0],
 	mouseMoved=function(e){
 		var oldPos=mousePrevPos;
@@ -509,8 +511,8 @@ ABP.Strings={
 				_('div',{className:'flvjs',style:{position:'relative'}},[_('div',{style:{position:'absolute',left:'240px',bottom:'100%',cursor:'pointer'},event:{click:function(e){e.stopPropagation(),flvplayer&&flvplayer.reloadSegment&&flvplayer.reloadSegment()}}},[_('text','[ '+ABP.Strings.reload+' ]')])]),
 				_('div',{className:'flvjs',title:'1 kbps = 1000 bps'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsRealtimeBitrate)]),_('span',{className:'stats-column',id:'realtime-bitrate-column',style:{verticalAlign:'top'}}),_('span')]),
 				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsDownloadSpeed)]),_('span',{className:'stats-column',id:'download-speed-column',style:{verticalAlign:'top'}}),_('span')]),
-				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsSourceHost)]),_('span')]),
-				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsRedirection)]),_('span')]),
+				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsSourceHost)]),_('span',{className:'srcUrl'})]),
+				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsRedirection)]),_('span',{className:'redirUrl'})]),
 				_('br'),
 
 				_('div',{id:'canvas-fps'},[_('span',{className:'stats_name'},[_('text','Canvas fps：')]),_('span')]),
@@ -520,14 +522,9 @@ ABP.Strings={
 				
 				_('br'),
 				_('div',{style:{fontSize:'11px'}},[_('text',versionString)]),
-				_('div',{style:{fontSize:'11px'}},[_('text','2017©esterTion')]),
+				_('div',{style:{fontSize:'11px'}},[_('text','2018©esterTion')]),
 				_('div',{id:'stats-close'},[_('text','×')])
-			]),_('div',{className:'Drag-Control'},[
-			_('div',{className:'Drag-Icon'}),
-			_('div',{className:'Drag-Speed'},[_('text','')]),
-			_('div',{className:'Drag-Time'},[_('text','00:00╱00:00')]),
-			_('div',{className:'Drag-Time-Bar'},[_('div',{className:'fill'})])
-		])
+			])
 		]), _("div", {
 			"className": "ABP-Bottom",
 		}, [_("div", {
@@ -869,17 +866,18 @@ ABP.Strings={
 		container.appendChild(_('div',{className:'Context-Menu'},[
 			_('div',{className:'Context-Menu-Background'}),
 			_('div',{className:'Context-Menu-Body'},[
-				_('div',{id:'Player-Stats-Toggle'},[_('text',ABP.Strings.showStats)]),
-				_('div',{id:'Player-Speed-Control',className:'dm'},[_('div',{className:'content'},[_('text',ABP.Strings.playSpeed)]),_('div',{className:'dmMenu',style:{top:'-37px'}},[
+				_('div',{id:'Player-Stats-Toggle', className:'preserve'},[_('text',ABP.Strings.showStats)]),
+				_('div',{id:'Player-Speed-Control',className:'dm preserve'},[_('div',{className:'content'},[_('text',ABP.Strings.playSpeed)]),_('div',{className:'dmMenu',style:{top:'-37px'}},[
 					_('div',{'data-speed':0.5},[_('text',0.5)]),
 					_('div',{'data-speed':1},[_('text',1)]),
 					_('div',{'data-speed':1.25},[_('text',1.25)]),
 					_('div',{'data-speed':1.5},[_('text',1.5)]),
 					_('div',{'data-speed':2},[_('text',2)])
 				])]),
-				_('div',{className:'about'},[_('text',versionString)])
+				_('div',{className:'about preserve'},[_('text',versionString)])
 			])
 		]));
+		container.appendChild(_('input', {class: 'Copy-Text-Input', type:'text', style:{height:'1px',width:'1px',padding:0,border:0,pointerEvents:'none',opacity:0}}));
 		container.getElementsByClassName('ABP-Next')[0].innerHTML='<svg xmlns="http://www.w3.org/2000/svg" height="19" version="1.1" viewBox="0 0 12 12" width="19"><path d="M 0,12 8.5,6 0,0 V 24 z M 10,0 v 0 h 2 V 12 h -2 z"/></svg>';
 		var bind = ABP.bind(container);
 		return bind;
@@ -1187,6 +1185,24 @@ ABP.Strings={
 			},
 			swapVideo: null
 		};
+		ABPInst.copyText = function (txt) {
+			try{
+				/*
+				chrome需要已有input中才能复制，新生成input无效
+				*/
+				var copier = ABPInst.playerUnit.querySelector('.Copy-Text-Input');
+				copier.value=txt;
+				copier.select();
+				var success=playerIframe.contentDocument.execCommand('copy');
+				copier.blur();
+				if(!success)
+					throw '';
+				ABPInst.createPopup(ABP.Strings.copied,1e3);
+			}catch(e){
+				console.error(e)
+				ABPInst.createPopup(ABP.Strings.copyFail,3e3);
+			}
+		}
 		Object.defineProperty(ABPInst,'title',{
 			get:function(){
 				return ABPInst.playerUnit.getElementsByClassName('ABP-Title')[0].textContent;
@@ -1715,6 +1731,13 @@ ABP.Strings={
 		if(window.flvplayer==undefined){
 			enabledStats.flvjs=false;
 		}
+
+		var copySegUrl = function () {
+			ABPInst.copyText(this.title);
+		}
+		ABPInst.playerUnit.querySelector('.srcUrl').contextActionName = ABP.Strings.copySegUrl;
+		ABPInst.playerUnit.querySelector('.srcUrl').contextMenuAction = copySegUrl;
+		ABPInst.playerUnit.querySelector('.redirUrl').contextActionName = ABP.Strings.copySegUrl;
 		
 		setInterval(function(){
 			odd^=1;
@@ -1863,8 +1886,10 @@ ABP.Strings={
 					flvjsStats[i].title=currentSeg.url;
 					flvjsStats[i++].textContent=srcProtocol+'//'+srcHost;
 					if(!statisticsInfo.hasRedirect){
+						flvjsStats[i].contextMenuAction = undefined;
 						flvjsStats[i++].textContent=ABP.Strings.statsRedirectionNone;
 					}else{
+						flvjsStats[i].contextMenuAction = copySegUrl;
 						flvjsStats[i].title=currentSeg.redirectedURL;
 						flvjsStats[i++].textContent=currentSeg.redirectedURL.match(/(http[s]?:)?\/\/([a-zA-Z0-9\.\-]+)/)[0];
 					}
@@ -1919,6 +1944,54 @@ ABP.Strings={
 				});
 			}
 		}
+
+		// bind custom volume control
+		if (isChrome)
+		(function () {
+			try {
+				var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+				// 移动设备处理
+				if (audioCtx.state == 'suspended') 
+				window.addEventListener('touchstart', function temp() {
+					audioCtx.resume();
+					window.removeEventListener('touchstart', temp);
+				}), window.addEventListener('mousemove', function temp() {
+					audioCtx.resume();
+					window.removeEventListener('mousemove', temp);
+				});
+				var gainNode = audioCtx.createGain();4
+				var source = audioCtx.createMediaElementSource(ABPInst.video);
+				source.connect(gainNode);
+				gainNode.connect(audioCtx.destination);
+				
+				var currentVolume = 1;
+				var muted = false;
+				Object.defineProperty(ABPInst.video, 'volume', {
+					get: function() {
+						return currentVolume;
+					},
+					set: function(v) {
+						v = parseFloat(v);
+						if (isNaN(v)) return null;
+						currentVolume = v;
+						!muted && (gainNode.gain.value = v);
+						return currentVolume;
+					}
+				});
+				Object.defineProperty(ABPInst.video, 'muted', {
+					get: function() {
+						return muted;
+					},
+					set: function(v) {
+						if ( v !== true && v !== false) return null;
+						muted = v;
+						gainNode.gain.value = muted ? 0 : currentVolume;
+						return muted;
+					}
+				});
+			} catch (e) { }
+		})();
+		
 		if (typeof ABP.playerConfig == "object") {
 			if (ABP.playerConfig.volume) ABPInst.video.volume = ABP.playerConfig.volume;
 			if (ABP.playerConfig.opacity) ABPInst.cmManager.options.global.opacity = ABP.playerConfig.opacity;
@@ -2309,12 +2382,12 @@ ABP.Strings={
 			senderInfoCache={},
 			getSenderInfo=function(){
 			},
-			showContextMenu=function(x,y,dmList){
+			showContextMenu=function(x,y,dmList,elementAction){
 				contextMenu.style.display='block';
-				var aboutDiv,remove=contextMenuBody.getElementsByClassName('dm'),originalData,color,isWhite,containerBox=ABPInst.playerUnit.getBoundingClientRect(),
+				var aboutDiv,remove = contextMenuBody.children,originalData,color,isWhite,containerBox=ABPInst.playerUnit.getBoundingClientRect(),
 				dmitem;
 				for(i=remove.length-2;i>=0;i--){
-					remove[i].remove();
+					!remove[i].classList.contains('preserve') && remove[i].remove();
 				}
 				aboutDiv=contextMenuBody.firstChild;
 				for(i=0;i<dmList.length;i++){
@@ -2329,7 +2402,7 @@ ABP.Strings={
 							_('div',{'data-content':originalData.text},[_('text',ABP.Strings.copyComment)]),
 							_('div',{'data-dmid':originalData.dbid},[_('text',ABP.Strings.findComment)]),
 							_('div',{event:{click:shield.addText.bind(shield, originalData.text)}},[_('text',ABP.Strings.blockContent+'“'+originalData.text+'”')]),
-							_('div',{'data-mid':crc_engine(originalData.hash),event:{click:shield.addUser.bind(shield,originalData.hash)}},[_('text',ABP.Strings.blockUser+''+originalData.hash+'(mid:'+crc_engine(originalData.hash)+')')]),
+							_('div',{event:{click:shield.addUser.bind(shield,originalData.hash)}},[_('text',ABP.Strings.blockUser+''+originalData.hash)]),
 							_('div',(isWhite)?{}:{event:{click:shield.addColor.bind(shield,color)}},[_('text',isWhite?ABP.Strings.blockColorWhite:ABP.Strings.blockColor+''),_('div',{className:'color',style:{background:'#'+color}})])
 						])
 					])
@@ -2342,27 +2415,15 @@ ABP.Strings={
 					}
 					contextMenuBody.insertBefore(dmitem,aboutDiv);
 				}
+				if (elementAction != undefined) {
+					contextMenuBody.insertBefore(_('div', {event:{click: function(){elementAction.contextMenuAction();}}},[
+						_('div',{className:'content'},[_('text',elementAction.contextActionName)])
+					]),aboutDiv);
+				}
 				var itemMenu=contextMenuBody.getElementsByClassName('dmMenu');
 				for(i=0;i<itemMenu.length-1;i++){
 					itemMenu[i].childNodes[0][addEventListener]('click',function(){
-						try{
-							/*
-							chrome需要已有input中才能复制，新生成input无效
-							*/
-							var oldVal=ABPInst.txtText.value, prevDisabled = ABPInst.txtText.disabled;
-							prevDisabled && (ABPInst.txtText.disabled=false);
-							ABPInst.txtText.value=this.dataset.content;
-							ABPInst.txtText.select();
-							var success=playerIframe.contentDocument.execCommand('copy');
-							ABPInst.txtText.blur();
-							ABPInst.txtText.value=oldVal;
-							prevDisabled && (ABPInst.txtText.disabled=true);
-							if(!success)
-								throw '';
-						}catch(e){
-							console.error(e)
-							ABPInst.createPopup(ABP.Strings.copyFail,3e3)
-						}
+						ABPInst.copyText(this.dataset.content);
 					});
 					itemMenu[i].childNodes[1][addEventListener]('click',function(){
 						commentLocating(this.getAttribute('data-dmid'));
@@ -2399,16 +2460,7 @@ ABP.Strings={
 				contextMenuBody.style.left=x+'px';
 				contextMenuBody.style.top=y+'px';
 			},
-			touchContextTimer=null,activingContext=!1,
-			/*
-			触屏拖动进度控制
-			
-			左右超过10px进入拖动状态
-			上下超过10px忽略本次拖动
-			
-			屏幕两侧50px取消拖动
-			*/
-			timeDraggingMode = false, ignoreDragging = false, cancelingDragging = false, draggingStartX,draggingStartY,draggingTimeBase,draggingDismissTimeout=null;
+			touchContextTimer=null,activingContext=!1;
 			contextMenuBody.querySelector('#Player-Speed-Control .dmMenu')[addEventListener]('click',function(e){
 				var speed=e.target.getAttribute('data-speed');
 				if(speed!=undefined)
@@ -2419,9 +2471,16 @@ ABP.Strings={
 			ABPInst.videoDiv.parentNode[addEventListener]('contextmenu',function(e){
 				e.preventDefault();
 				e.stopPropagation();
-				var box=ABPInst.divComment.getBoundingClientRect(),x=e.clientX,
-				y=e.clientY;
-				showContextMenu(x,y,ABPInst.cmManager.getCommentFromPoint(x-box.left,y-box.top));
+				var box=ABPInst.divComment.getBoundingClientRect(),x=e.clientX,y=e.clientY,elementAction;
+				var element = e.target;
+				while (this.contains(element)) {
+					if (element.contextMenuAction!=undefined) {
+						elementAction = element;
+						break;
+					}
+					element = element.parentNode;
+				}
+				showContextMenu(x,y,ABPInst.cmManager.getCommentFromPoint(x-box.left,y-box.top),elementAction);
 			})
 			ABPInst.commentListContainer[addEventListener]('contextmenu',function(e){
 				var dmData=e.target.parentNode.data
@@ -2634,7 +2693,7 @@ ABP.Strings={
 			ABPInst.btnVolume[addEventListener]('mouseleave',hideVolume);
 			ABPInst.barVolume.style.width = (ABPInst.video.volume * 100) + "%";
 			var updateVolume = function(volume) {
-				ABPInst.barVolume.style.width = (volume * 100) + "%";
+				ABPInst.barVolume.style.width = Math.min((volume * 100), 100) + "%";
 				ABPInst.video.muted = false;
 				ABPInst.btnVolume.className = "button ABP-Volume icon-volume-";
 				if (volume < .10) ABPInst.btnVolume.className += "mute";
@@ -2898,8 +2957,10 @@ ABP.Strings={
 								ABPInst.removePopup();
 								ABPInst.createPopup(ABP.Strings.rateChange + ((newSpeed*1e2)|0) + '%',1e3);
 							}else{
-								var newVolume = ABPInst.video.volume + .1;
-								if (newVolume > 1) newVolume = 1;
+								var volume = ABPInst.video.volume;
+								var newVolume = volume + (volume >= 1 ? .25 : .1);
+								var max = isChrome ? 4 : 1;
+								if (newVolume > max) newVolume = max;
 								ABPInst.video.volume = newVolume.toFixed(3);
 								updateVolume(ABPInst.video.volume);
 								ABPInst.removePopup();
@@ -2914,7 +2975,8 @@ ABP.Strings={
 								ABPInst.removePopup();
 								ABPInst.createPopup(ABP.Strings.rateChange + ((newSpeed*1e2)|0) + '%',1e3);
 							}else{
-								var newVolume = ABPInst.video.volume - .1;
+								var volume = ABPInst.video.volume;
+								var newVolume = volume - (volume > 1 ? .25 : .1);
 								if (newVolume < 0) newVolume = 0;
 								ABPInst.video.volume = newVolume.toFixed(3);
 								updateVolume(ABPInst.video.volume);
