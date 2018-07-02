@@ -1037,7 +1037,7 @@ var CommentManager = (function() {
 		ctx = this.canvas.getContext('2d'),
 		canvasWidth = this.width, canvasHeight = this.height,
 		x, y;
-		//ctx.clearRect(0, 0, canvasWidth * devicePixelRatio, canvasHeight * devicePixelRatio);
+		ctx.clearRect(0, 0, canvasWidth * devicePixelRatio, canvasHeight * devicePixelRatio);
 		ctx.globalAlpha=this.options.global.autoOpacity ? this.options.global.autoOpacityVal : this.options.global.opacity;
 		ctx.imageSmoothingEnabled = false;
 		
@@ -1057,7 +1057,8 @@ var CommentManager = (function() {
 			this.pausedTime = 0;
 		}
 		
-		var devicePixelRatio = window.devicePixelRatio,
+		var devicePixelRatio = window.devicePixelRatio;
+		/*
 		maxBottomLine=[0];
 		maxBottomMaxWidth=[0],
 		maxBottomHeight=[0],
@@ -1065,8 +1066,6 @@ var CommentManager = (function() {
 		maxTopHeight=[0];
 		this.runline.forEach(function(cmt){
 			if(cmt.mode==1){
-				cmt.rx += cmt.speed * ( now - cmt.prev ) / 1e3;
-				cmt.prev = now;
 				maxBottomLine.push(cmt._y+cmt._height);
 			} else if(cmt.mode == 4){
 				maxBottomMaxWidth.push(cmt._width);
@@ -1080,7 +1079,7 @@ var CommentManager = (function() {
 		maxBottomMaxWidth=Math.max.apply(Math,maxBottomMaxWidth);
 		maxBottomHeight=Math.max.apply(Math,maxBottomHeight);
 		maxTopMaxWidth=Math.max.apply(Math,maxTopMaxWidth);
-		maxTopHeight=Math.max.apply(Math,maxTopHeight);
+		maxTopHeight=Math.max.apply(Math,maxTopHeight);*/
 		
 		//canvasDraw(this);
 		/**
@@ -1092,7 +1091,7 @@ var CommentManager = (function() {
 		 * 顶宽左,滚动高 到 顶宽右,顶高 （范围内不擦除）
 		 * 底宽左,高-底高 到 底宽右,高 （范围按滚动高改动）
 		 */
-		
+		/*
 		if(cachedMaxBottomLine > 0){
 			ctx.clearRect(0, 0, round(canvasWidth * devicePixelRatio), round(cachedMaxBottomLine * devicePixelRatio));
 		}
@@ -1115,6 +1114,7 @@ var CommentManager = (function() {
 		cachedFixedBottomHeight=maxBottomHeight;
 		cachedFixedTopMaxWidth=maxTopMaxWidth;
 		cachedFixedTopHeight=maxTopHeight;
+		*/
 
 		//ctx.globalAlpha = 1;
 		//ctx.drawImage(window.abpinst.video, 0, 0);
@@ -1127,6 +1127,8 @@ var CommentManager = (function() {
 			switch(cmt.mode){
 				case 1:
 					//scroll
+					cmt.rx += cmt.speed * ( now - cmt.prev ) / 1e3;
+					cmt.prev = now;
 					cmt.x = canvasWidth - cmt.rx;
 					x = (canvasWidth - cmt.rx);
 					y = cmt.y;
