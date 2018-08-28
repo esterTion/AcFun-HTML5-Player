@@ -185,11 +185,11 @@
     "exitWebFull": {
         "message": "退出網頁全屏"
     },
-    "wideScreen": {
-        "message": "寬屏模式"
+    "cmtListShow": {
+        "message": "顯示彈幕清單"
     },
-    "exitWideScreen": {
-        "message": "退出寬屏"
+    "cmtListHide": {
+        "message": "隱藏彈幕清單"
     },
     "sendTooltip": {
         "message": "毀滅地噴射白光!da!"
@@ -397,9 +397,6 @@
     },
     "autoPlay": {
         "message": "自動開始播放"
-    },
-    "defaultWide": {
-        "message": "自動進入宽屏模式"
     },
     "defaultFull": {
         "message": "自動進入全屏模式"

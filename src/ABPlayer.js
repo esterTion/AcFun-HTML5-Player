@@ -92,8 +92,8 @@ ABP.Strings={
 	exitFullScreen:_t('exitFullScreen'),
 	webFull:_t('webFull'),
 	exitWebFull:_t('exitWebFull'),
-	wideScreen:_t('wideScreen'),
-	exitWideScreen:_t('exitWideScreen'),
+	cmtListShow:_t('cmtListShow'),
+	cmtListHide:_t('cmtListHide'),
 	sendTooltip:_t('sendTooltip'),
 	showComment:_t('showComment'),
 	hideComment:_t('hideComment'),
@@ -132,7 +132,6 @@ ABP.Strings={
 	recordPlaySpeed:_t('recordPlaySpeed'),
 	settPlayer:_t('settPlayer'),
 	autoPlay:_t('autoPlay'),
-	defaultWide:_t('defaultWide'),
 	defaultFull:_t('defaultFull'),
 	playerTheme:_t('playerTheme'),
 	cmStyle:_t('cmStyle'),
@@ -620,7 +619,7 @@ ABP.Strings={
 			}),
 			_("div", {
 				"className": "button ABP-Next icon-next"
-			}),
+			}, '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 12 12"><path d="M 2,12 8.5,7 2,2 z M 10,2 h 1.5 V 12 h -1.5 z"/></svg>'),
 			_("div", {
 				"className": "progress-bar"
 			}, [
@@ -663,8 +662,8 @@ ABP.Strings={
 			})]), _("div", {
 				"className": "button ABP-Setting icon-gear"
 			}),_("div", {
-				"className": "button ABP-WideScreen icon-tv"
-			}),
+				"className": "button ABP-CommentListShow icon-list"
+			}, '<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 15 12"><path d="M 1,1 h 3 v 2 h -3 v -2 z M 6,1 h 8 v 2 h -8 z M1,5 h 3 v 2 h -3 v -2 z M 6,5 h 8 v 2 h -8 z M 1,9 h 3 v 2 h -3 v -2 z M 6,9 h 8 v 2 h -8 z"/></svg>'),
 			_("div", {
 				"className": "button-group ABP-FullScreenGroup"
 			}, [_("div", {
@@ -854,7 +853,6 @@ ABP.Strings={
 			//PlayerOption
 			_('p',{className:'label big'},[_('text',ABP.Strings.settPlayer)]),
 			_('p',{className:'label prop'},[_('text',ABP.Strings.autoPlay),_("div",{id:'setting-autoPlay',className:"prop-checkbox"})]),
-			_('p',{className:'label prop'},[_('text',ABP.Strings.defaultWide),_("div",{id:'setting-defaultWide',className:"prop-checkbox"})]),
 			_('p',{className:'label prop'},[_('text',ABP.Strings.defaultFull),_("div",{id:'setting-defaultFull',className:"prop-checkbox"})]),
 			_('p',{className:'label prop'},[_('text',ABP.Strings.playerTheme +'：'),_("select",{id:'setting-playerTheme',event:{mouseup:function(e){e.stopPropagation();}}},[
 				_('option',{value:'bilibili'},[_('text','BiliBili')]),
@@ -878,7 +876,6 @@ ABP.Strings={
 			])
 		]));
 		container.appendChild(_('input', {class: 'Copy-Text-Input', type:'text', style:{height:'1px',width:'1px',padding:0,border:0,pointerEvents:'none',opacity:0}}));
-		container.getElementsByClassName('ABP-Next')[0].innerHTML='<svg xmlns="http://www.w3.org/2000/svg" height="19" version="1.1" viewBox="0 0 12 12" width="19"><path d="M 0,12 8.5,6 0,0 V 24 z M 10,0 v 0 h 2 V 12 h -2 z"/></svg>';
 		var bind = ABP.bind(container);
 		return bind;
 	}
@@ -1045,7 +1042,6 @@ ABP.Strings={
 			commentSpeed: ABP.playerConfig.speed ? ABP.playerConfig.speed : 1,
 			proportionalScale: ABP.playerConfig.prop,
 			autoPlay: false,
-			defaultWide: false,
 			defaultFull: false,
 			recordPlaySpeed: false,
 			defaults: {
@@ -1058,7 +1054,9 @@ ABP.Strings={
 				commentVisible: true,
 				allowRescale: false,
 				autosize: false,
-				widescreen: false
+				widescreen: false,
+				commentListShow: false,
+				settingsShow: false
 			}),
 			createPopup: function(text, delay) {
 				if (playerUnit.hasPopup === true)
@@ -1247,9 +1245,6 @@ ABP.Strings={
 				if(!isFirst)
 					return;
 				isFirst=!1;
-				if(!ABPInst.state.widescreen && !ABPInst.state.fullscreen && ABPInst.defaultWide){
-					ABPInst.btnWide.click();
-				}
 				if(!ABPInst.state.fullscreen && ABPInst.defaultFull){
 					ABPInst.btnWebFull.click();
 				}
@@ -1564,11 +1559,11 @@ ABP.Strings={
 		ABPInst.btnWebFull.tooltip(ABP.Strings.webFull);
 		hoverTooltip(ABPInst.btnWebFull);
 		/** Bind the WideScreen button **/
-		var wsbtn = playerUnit.getElementsByClassName("ABP-WideScreen");
+		var wsbtn = playerUnit.getElementsByClassName("ABP-CommentListShow");
 		if (wsbtn.length <= 0) return;
-		ABPInst.btnWide = wsbtn[0];
-		ABPInst.btnWide.tooltip(ABP.Strings.wideScreen);
-		hoverTooltip(ABPInst.btnWide);
+		ABPInst.btnCmtListShow = wsbtn[0];
+		ABPInst.btnCmtListShow.tooltip(ABP.Strings.cmtListShow);
+		hoverTooltip(ABPInst.btnCmtListShow);
 		/** Bind the Comment Font button **/
 		var cfbtn = playerUnit.getElementsByClassName("ABP-Comment-Font");
 		if (cfbtn.length <= 0) return;
@@ -1625,18 +1620,15 @@ ABP.Strings={
 		settingClick = function(){
 			settingsOn ? removeClass(settingPanel, 'expand') : addClass(settingPanel, 'expand');
 			settingsOn ? removeClass(settBtn, 'on') : addClass(settBtn, 'on');
+			if (!settingsOn && ABPInst.state.commentListShow) ABPInst.btnCmtListShow.click();
 			settingsOn = !settingsOn;
+			ABPInst.state.settingsShow = settingsOn;
 		};
 		ABPInst.btnSetting[addEventListener]('click',settingClick);
 		playerUnit.getElementsByClassName('ABP-Settings-Close')[0][addEventListener]('click',settingClick);
 		playerUnit.querySelector('#'+'setting-autoPlay')[addEventListener]('click',function(){
 			ABPInst.autoPlay=!ABPInst.autoPlay;
 			ABPInst.autoPlay?addClass(this,'on'):removeClass(this,'on')
-			saveConfigurations();
-		});
-		playerUnit.querySelector('#'+'setting-defaultWide')[addEventListener]('click',function(){
-			ABPInst.defaultWide=!ABPInst.defaultWide;
-			ABPInst.defaultWide?addClass(this,'on'):removeClass(this,'on')
 			saveConfigurations();
 		});
 		playerUnit.querySelector('#'+'setting-defaultFull')[addEventListener]('click',function(){
@@ -1996,7 +1988,6 @@ ABP.Strings={
 			if (ABP.playerConfig.volume) ABPInst.video.volume = ABP.playerConfig.volume;
 			if (ABP.playerConfig.opacity) ABPInst.cmManager.options.global.opacity = ABP.playerConfig.opacity;
 			if (ABP.playerConfig.autoPlay) {ABPInst.autoPlay=true; addClass(playerUnit.querySelector('#'+'setting-autoPlay'),'on');}
-			if (ABP.playerConfig.defaultWide) {ABPInst.defaultWide=true; addClass(playerUnit.querySelector('#'+'setting-defaultWide'),'on');}
 			if (ABP.playerConfig.defaultFull) {ABPInst.defaultFull=true; addClass(playerUnit.querySelector('#'+'setting-defaultFull'),'on');}
 			if (ABP.playerConfig.commentVisible===false) {addClass(ABPInst.playerUnit, 'hide-comment');removeClass(ABPInst.btnDm,'on');ABPInst.cmManager.display = false;ABPInst.cmManager.stopTimer();ABPInst.btnDm.tooltip(ABP.Strings.showComment);}
 			if (ABP.playerConfig.autoOpacity) {addClass(ABPInst.btnAutoOpacity,'on');ABPInst.cmManager.autoOpacity(true);ABPInst.btnAutoOpacity.tooltip(ABP.Strings.autoOpacityOn);}
@@ -2295,30 +2286,20 @@ ABP.Strings={
 				}
 			});
 
-			ABPInst.btnWide[addEventListener]("click", function() {
-				ABPInst.state.widescreen = hasClass(playerUnit, "ABP-WideScreen");
-				if (!ABPInst.state.widescreen) {
-					addClass(playerUnit, "ABP-WideScreen");
-					this.className = "button ABP-WideScreen icon-tv on";
-					playerUnit.dispatchEvent(new Event("wide"));
-					this.tooltip(ABP.Strings.exitWideScreen);
+			ABPInst.btnCmtListShow[addEventListener]("click", function() {
+				var container = ABPInst.commentListContainer.parentNode.parentNode;
+				ABPInst.state.commentListShow = hasClass(container, "expand");
+				if (!ABPInst.state.commentListShow) {
+					addClass(container, "expand");
+					this.classList.add('on');
+					this.tooltip(ABP.Strings.cmtListHide);
+					if (ABPInst.state.settingsShow) ABPInst.btnSetting.click();
 				} else {
-					removeClass(playerUnit, "ABP-WideScreen");
-					this.className = "button ABP-WideScreen icon-tv";
-					playerUnit.dispatchEvent(new Event("normal"));
-					this.tooltip(ABP.Strings.wideScreen);
+					removeClass(container, "expand");
+					this.classList.remove('on');
+					this.tooltip(ABP.Strings.cmtListShow);
 				}
-				ABPInst.state.widescreen = !ABPInst.state.widescreen;
-				if (ABPInst.cmManager)
-					ABPInst.cmManager.setBounds();
-				if (!ABPInst.state.allowRescale) return;
-				if (ABPInst.state.fullscreen) {
-					if (ABPInst.defaults.w > 0) {
-						ABPInst.cmManager.options.scrollScale = playerUnit.offsetWidth / ABPInst.defaults.w;
-					}
-				} else {
-					ABPInst.cmManager.options.scrollScale = 1;
-				}
+				ABPInst.state.commentListShow = !ABPInst.state.commentListShow;
 			});
 			ABPInst.btnDm[addEventListener]("click", function() {
 				if (ABPInst.cmManager.display == false) {
@@ -2502,7 +2483,6 @@ ABP.Strings={
 					autoOpacity: ABPInst.cmManager.options.global.autoOpacity,
 					useCSS: ABPInst.cmManager.options.global.useCSS,
 					autoPlay: ABPInst.autoPlay,
-					defaultWide: ABPInst.defaultWide,
 					defaultFull: ABPInst.defaultFull,
 					playSpeed: ABPInst.video.playbackRate,
 					recordPlaySpeed: ABPInst.recordPlaySpeed,
@@ -3212,18 +3192,18 @@ ABP.Strings={
 			sock.addEventListener('error',error);
 		}
 		var watchingCountMover=function(e){
-			var widescreen=ABPInst.state.widescreen,fullscreen=ABPInst.state.fullscreen,
+			var commentListShow = ABPInst.state.commentListShow,
 			countDivInPlayer=ABPInst.playerUnit.querySelector('.ABP-Player .ABP-Comment-List-Count'),
 			countDivInList=ABPInst.playerUnit.querySelector('.ABP-Comment-List .ABP-Comment-List-Count');
-			if(widescreen || fullscreen){
-				if(countDivInList!=null)
-					ABPInst.playerUnit.querySelector('.ABP-Player').appendChild(countDivInList);
-			}else if(countDivInPlayer!=null){
+			if(!commentListShow && countDivInList!=null){
+				ABPInst.playerUnit.querySelector('.ABP-Player').appendChild(countDivInList);
+			}else if(commentListShow && countDivInPlayer!=null){
 				var commentList=ABPInst.playerUnit.querySelector('.ABP-Comment-List')
 				commentList.insertBefore(countDivInPlayer,commentList.childNodes[0]);
 			}
 		}
 		ABPInst.controlBar[addEventListener]('click',watchingCountMover);
+		watchingCountMover();
 		shield.init(ABPInst);
 		return ABPInst;
 	}

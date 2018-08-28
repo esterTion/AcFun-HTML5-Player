@@ -185,11 +185,11 @@
     "exitWebFull": {
         "message": "Exit webpage fullscreen"
     },
-    "wideScreen": {
-        "message": "Enter widescreen"
+    "cmtListShow": {
+        "message": "Show comment list"
     },
-    "exitWideScreen": {
-        "message": "Exit widescreen"
+    "cmtListHide": {
+        "message": "Hide comment list"
     },
     "sendTooltip": {
         "message": "Shoot!"
@@ -397,9 +397,6 @@
     },
     "autoPlay": {
         "message": "Start playback automatically"
-    },
-    "defaultWide": {
-        "message": "Enter widescreen mode automatically"
     },
     "defaultFull": {
         "message": "Enter fullscreen mode automatically"
