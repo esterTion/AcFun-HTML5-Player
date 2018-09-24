@@ -348,7 +348,7 @@ let load_fail = function (type, info, detail) {
 };
 let flvparam = function (select) {
     currentSrc = select;
-    createPlayer({ detail: { src: srcUrl[select], option: { seekType: 'range', reuseRedirectedURL: false } } });
+    createPlayer({ detail: { src: srcUrl[select], option: { seekType: 'range', reuseRedirectedURL: false, fixAudioTimestampGap: false } } });
     if (srcUrl[select].partial) {
         setTimeout(function () { abpinst.createPopup(_t('partialAvailable'), 3e3); }, 4e3);
     }
