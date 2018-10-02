@@ -406,19 +406,21 @@ function sendComment(e) {
 
 let dest = null;
 let ABPConfig;
+let currentBangumiUrl = location.href.split('?')[0];
 function chkInit() {
     readStorage('PlayerSettings', function (item) {
         ABPConfig = item.PlayerSettings || {};
         init();
-        let observer = new MutationObserver(bangumiEpisodeChange);
-        observer.observe(document.body, { childList: true, subtree: true });
+        if (/\/bangumi\/ab/.test(currentBangumiUrl)) {
+            let observer = new MutationObserver(bangumiEpisodeChange);
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
     });
 }
 function bangumiEpisodeChange() {
-    let flash;
-    if ((flash = document.getElementById('ACFlashPlayer')) != null) {
-        flash.remove();
-        location.href = location.href;
+    let newUrl = location.href.split('?')[0];
+    if (newUrl != currentBangumiUrl) {
+        location.href = newUrl;
     }
 }
 function init() {
@@ -485,7 +487,7 @@ function init() {
                         .then(loadCommentBySize);
                     pageInfo.sourceId = data.sourceId;
                     pageInfo.sourceType = data.sourceType;
-                    console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId);
+                    console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId, data);
                     let backupSina;
                     // 提取sourceUrl新浪源
                     if (['zhuzhan', 'sina', 'youku', 'youku2'].indexOf(data.sourceType) == -1 && (backupSina = (data.sourceUrl || '').match(/video\.sina\.com\.cn\/v\/b\/(\d+)-/))) {
@@ -587,6 +589,9 @@ function sourceTypeRoute(data) {
                 cache: 'no-cache'
             }).then(function (r) {
                 r.json().then(function (data) {
+                    if (data.e && data.e.code !== 0) {
+                        return fetchSrcThen({ error: data.e });
+                    }
                     let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
                     fetchSrcThen(decrypted);
                 });
