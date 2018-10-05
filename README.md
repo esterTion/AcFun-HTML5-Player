@@ -12,4 +12,4 @@
 
 视频源目前支持`主站 优酷版权视频 新浪`，其他源请提供视频地址，我可能会加上支持（咕咕咕）  
 
-![](https://wx1.sinaimg.cn/large/763783e4gy1fls8d5tvghj20zk0m8ws8.jpg)
+![](https://estertion.win/wp-content/uploads/2018/10/f2018174470233ba6ca7f89a0b3fd60957e2f96a.png)
