@@ -21,9 +21,13 @@ let _ = function (type, props, children) {
         }
     }
     if (children) {
-        for (let i = 0; i < children.length; i++) {
-            if (children[i] != null)
-                elem.appendChild(children[i]);
+		if (typeof children == 'string') {
+			elem.innerHTML = children;
+		} else if (Array.isArray(children)) {
+			for (let i = 0; i < children.length; i++) {
+				if (children[i] != null)
+					elem.appendChild(children[i]);
+			}
         }
     }
     return elem;
