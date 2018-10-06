@@ -474,36 +474,47 @@ function init() {
             method: 'GET',
             credentials: 'include',
             cache: 'no-cache'
-        }).then(function (r) {
-            r.json().then(function (data) {
-                if (data.success) {
-                    fetch('http://danmu.aixifan.com/size/' + pageInfo.vid, {
-                        method: 'GET',
-                        credentials: 'include',
-                        referrer: location.href,
-                        cache: 'no-cache'
-                    })
-                        .then(r => r.json())
-                        .then(loadCommentBySize);
-                    pageInfo.sourceId = data.sourceId;
-                    pageInfo.sourceType = data.sourceType;
-                    console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId, data);
-                    let backupSina;
-                    // 提取sourceUrl新浪源
-                    if (['zhuzhan', 'sina', 'youku', 'youku2'].indexOf(data.sourceType) == -1 && (backupSina = (data.sourceUrl || '').match(/video\.sina\.com\.cn\/v\/b\/(\d+)-/))) {
-                        pageInfo.sourceType = 'sina';
-                        pageInfo.sourceId = backupSina[1];
-                        console.log('[AHP] Using backup sina vid: ' + pageInfo.sourceId);
-                    }
-                    sourceTypeRoute(data);
-                } else {
-                    dots.stopTimer();
-                    createPopup({
-                        content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', data.result)],
-                        showConfirm: false
-                    });
+        })
+        .then(r => r.json())
+        .then(r => {
+            if (r.success) return r;
+            else if (r.result === '您所在地区限制观看') {
+                // 代理获取，迟早被封？
+                return fetch('https://tx.biliplus.com/acfun_getVideo?id=' + pageInfo.vid, {
+                    method: 'GET',
+                    cache: 'no-cache'
+                }).then(r => r.json());
+            }
+            return r;
+        })
+        .then(function (data) {
+            if (data.success) {
+                fetch('http://danmu.aixifan.com/size/' + pageInfo.vid, {
+                    method: 'GET',
+                    credentials: 'include',
+                    referrer: location.href,
+                    cache: 'no-cache'
+                })
+                    .then(r => r.json())
+                    .then(loadCommentBySize);
+                pageInfo.sourceId = data.sourceId;
+                pageInfo.sourceType = data.sourceType;
+                console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId, data);
+                let backupSina;
+                // 提取sourceUrl新浪源
+                if (['zhuzhan', 'sina', 'youku', 'youku2'].indexOf(data.sourceType) == -1 && (backupSina = (data.sourceUrl || '').match(/video\.sina\.com\.cn\/v\/b\/(\d+)-/))) {
+                    pageInfo.sourceType = 'sina';
+                    pageInfo.sourceId = backupSina[1];
+                    console.log('[AHP] Using backup sina vid: ' + pageInfo.sourceId);
                 }
-            });
+                sourceTypeRoute(data);
+            } else {
+                dots.stopTimer();
+                createPopup({
+                    content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', data.result)],
+                    showConfirm: false
+                });
+            }
         }).catch(function (e) {
             dots.stopTimer();
             createPopup({
@@ -520,7 +531,7 @@ function init() {
         }
     });
     readStorage('updateNotifyVer', function (item) {
-        let notVer = '1.2.2';
+        let notVer = '1.3.0';
         console.log(item);
         if (item.updateNotifyVer != notVer) {
             saveStorage({ 'updateNotifyVer': notVer });
@@ -528,7 +539,7 @@ function init() {
                 content: [
                     _('p', { style: { fontSize: '16px' } }, [_('text', 'AHP 最近有更新啦！')]),
                     _('div', { style: { whiteSpace: 'pre-wrap' } }, [
-                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\nchrome用户现在可以放大音量到400%（通过键盘↑↓调节）")
+                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\n- ac番剧可以跨区观看了（代理吃枣被封？）（代理不记录任何个人信息）\n- 改进音频同步？（我不知道好没好，感觉好像改进了）")
                     ])
                 ],
                 showConfirm: false
