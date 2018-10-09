@@ -255,8 +255,8 @@ function fetchSrcThen(json) {
             }
         });*/
     }
-    firstTime = false;
     changeSrc('', currentSrc, true);
+    firstTime = false;
 }
 
 window.changeSrc = function (e, t, force) {
@@ -270,7 +270,7 @@ window.changeSrc = function (e, t, force) {
     abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination div[name=' + t + ']').className = 'on';
     abpinst.video.pause();
     if (srcUrl[t] != undefined) {
-        div.childNodes[0].childNodes[0].textContent = ABP.Strings.switching;
+        if (!firstTime) div.childNodes[0].childNodes[0].textContent = ABP.Strings.switching;
         if (!dots.running)
             dots.runTimer();
         if (abpinst.lastTime == undefined)
@@ -308,6 +308,13 @@ let createPlayer = function (e) {
     self.flvplayer.load();
     self.flvplayer.reloadSegment = reloadSegment;
 };
+window.addEventListener('beforeunload', function () {
+    if (self.flvplayer != undefined) {
+        self.flvplayer.unload();
+        self.flvplayer.destroy();
+        delete self.flvplayer;
+    }
+})
 let load_fail = function (type, info, detail) {
     if (['youku', 'youku2'].indexOf(pageInfo.sourceType) != -1 && detail.code == 403) {
         sourceTypeRoute();
@@ -475,53 +482,53 @@ function init() {
             credentials: 'include',
             cache: 'no-cache'
         })
-        .then(r => r.json())
-        .then(r => {
-            if (r.success) return r;
-            else if (r.result === '您所在地区限制观看') {
-                // 代理获取，迟早被封？
-                return fetch('https://tx.biliplus.com/acfun_getVideo?id=' + pageInfo.vid, {
-                    method: 'GET',
-                    cache: 'no-cache'
-                }).then(r => r.json());
-            }
-            return r;
-        })
-        .then(function (data) {
-            if (data.success) {
-                fetch('http://danmu.aixifan.com/size/' + pageInfo.vid, {
-                    method: 'GET',
-                    credentials: 'include',
-                    referrer: location.href,
-                    cache: 'no-cache'
-                })
-                    .then(r => r.json())
-                    .then(loadCommentBySize);
-                pageInfo.sourceId = data.sourceId;
-                pageInfo.sourceType = data.sourceType;
-                console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId, data);
-                let backupSina;
-                // 提取sourceUrl新浪源
-                if (['zhuzhan', 'sina', 'youku', 'youku2'].indexOf(data.sourceType) == -1 && (backupSina = (data.sourceUrl || '').match(/video\.sina\.com\.cn\/v\/b\/(\d+)-/))) {
-                    pageInfo.sourceType = 'sina';
-                    pageInfo.sourceId = backupSina[1];
-                    console.log('[AHP] Using backup sina vid: ' + pageInfo.sourceId);
+            .then(r => r.json())
+            .then(r => {
+                if (r.success) return r;
+                else if (r.result === '您所在地区限制观看') {
+                    // 代理获取，迟早被封？
+                    return fetch('https://tx.biliplus.com/acfun_getVideo?id=' + pageInfo.vid, {
+                        method: 'GET',
+                        cache: 'no-cache'
+                    }).then(r => r.json());
                 }
-                sourceTypeRoute(data);
-            } else {
+                return r;
+            })
+            .then(function (data) {
+                if (data.success) {
+                    fetch('http://danmu.aixifan.com/size/' + pageInfo.vid, {
+                        method: 'GET',
+                        credentials: 'include',
+                        referrer: location.href,
+                        cache: 'no-cache'
+                    })
+                        .then(r => r.json())
+                        .then(loadCommentBySize);
+                    pageInfo.sourceId = data.sourceId;
+                    pageInfo.sourceType = data.sourceType;
+                    console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId, data);
+                    let backupSina;
+                    // 提取sourceUrl新浪源
+                    if (['zhuzhan', 'sina', 'youku', 'youku2'].indexOf(data.sourceType) == -1 && (backupSina = (data.sourceUrl || '').match(/video\.sina\.com\.cn\/v\/b\/(\d+)-/))) {
+                        pageInfo.sourceType = 'sina';
+                        pageInfo.sourceId = backupSina[1];
+                        console.log('[AHP] Using backup sina vid: ' + pageInfo.sourceId);
+                    }
+                    sourceTypeRoute(data);
+                } else {
+                    dots.stopTimer();
+                    createPopup({
+                        content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', data.result)],
+                        showConfirm: false
+                    });
+                }
+            }).catch(function (e) {
                 dots.stopTimer();
                 createPopup({
-                    content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', data.result)],
+                    content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', e.message)],
                     showConfirm: false
                 });
-            }
-        }).catch(function (e) {
-            dots.stopTimer();
-            createPopup({
-                content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', e.message)],
-                showConfirm: false
             });
-        });
     };
     container.style.position = 'relative';
     resizeSensor(playerIframe.parentNode, function () {
