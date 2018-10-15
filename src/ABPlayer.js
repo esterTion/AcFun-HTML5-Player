@@ -2939,6 +2939,7 @@ ABP.Strings={
 							}else{
 								var volume = ABPInst.video.volume;
 								var newVolume = volume + (volume >= 1 ? .25 : .1);
+								if (volume < 1 && newVolume > 1) newVolume = 1
 								var max = isChrome ? 4 : 1;
 								if (newVolume > max) newVolume = max;
 								ABPInst.video.volume = newVolume.toFixed(3);
