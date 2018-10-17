@@ -44,6 +44,11 @@
     "storage",
     "clipboardWrite"
   ],
+  "background": {
+    "scripts": [
+      "video_fix.js"
+    ]
+  },
   "icons": {
     "48": "icon.png"
   },
