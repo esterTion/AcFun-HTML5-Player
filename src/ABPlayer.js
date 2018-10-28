@@ -2569,22 +2569,15 @@ ABP.Strings={
 				size:[0,0]
 			},
 			fetchedPreview=function(json){
-				if(json.code!=0 || !json.data)
+				if(json.code!=0)
 					return false;
-				var data=json.data;
-				preview.imgs=JSON.parse(JSON.stringify(data.image).replace(/\"\/\//g,'"http://'));
-				preview.len=[data.img_x_len,data.img_y_len];
-				preview.size=[data.img_x_size,data.img_y_size];
-				var xhr=new XMLHttpRequest(),arr=[];
-				xhr.open('GET','/api/videoshot_index?file='+encodeURIComponent(data.pvdata),true);
-				xhr.onreadystatechange=function(e){
-					if(xhr.readyState==4 && xhr.status==200){
-						var data=JSON.parse(xhr.response);
-						data.index.shift();
-						preview.data=data.index;
-					}
+				preview.imgs=json.data.image;
+				preview.len=[json.data.img_x_len,json.data.img_y_len];
+				preview.size=[json.data.img_x_size,json.data.img_y_size];
+				for(var i=0,arr=[];i<preview.imgs.length*100;i++){
+					arr.push(i*json.data.step);
 				}
-				xhr.send();
+				preview.data=arr;
 			},
 			onTimeBar=!1;
 			ABPInst.barTimeHitArea[addEventListener]("mouseenter",function(e){
@@ -2593,6 +2586,9 @@ ABP.Strings={
 			ABPInst.barTimeHitArea[addEventListener]("mouseleave",function(e){
 				onTimeBar=!1;
 			});
+			ABPInst.playerUnit[addEventListener]('previewData',function(e){
+				fetchedPreview(e.detail);
+			})
 			playerIframe.contentDocument[addEventListener]("mouseup", function(e) {
 				if (dragging) {
 					var newTime = ((e.clientX - ABPInst.barTimeHitArea.getBoundingClientRect().left) / ABPInst.barTimeHitArea.offsetWidth) * ABPInst.video.duration;
@@ -2640,7 +2636,10 @@ ABP.Strings={
 						})
 						tooltip.parentNode.insertBefore(div,tooltip);
 					}
-					div.style.left=tooltip.offsetLeft+(tooltip.offsetWidth-preview.size[0])/2+'px';
+					var left = tooltip.offsetLeft+(tooltip.offsetWidth-preview.size[0])/2;
+					if (left < 5) left = 5;
+					else if (left > ABPInst.cmManager.width - 5 - preview.size[0]) left = ABPInst.cmManager.width - 5 - preview.size[0];
+					div.style.left=left+'px';
 					div.style.top=tooltip.offsetTop+(tooltip.offsetHeight-preview.size[1])+'px';
 					div.style.display='block';
 					div.style.backgroundImage='url("'+preview.imgs[numPic]+'")';

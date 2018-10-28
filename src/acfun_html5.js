@@ -308,7 +308,7 @@ let createPlayer = function (e) {
     self.flvplayer.load();
     self.flvplayer.reloadSegment = reloadSegment;
 };
-window.addEventListener('beforeunload', function () {
+window.addEventListener('unload', function () {
     if (self.flvplayer != undefined) {
         self.flvplayer.unload();
         self.flvplayer.destroy();
@@ -538,7 +538,7 @@ function init() {
         }
     });
     readStorage('updateNotifyVer', function (item) {
-        let notVer = '1.3.0';
+        let notVer = '1.5.0';
         console.log(item);
         if (item.updateNotifyVer != notVer) {
             saveStorage({ 'updateNotifyVer': notVer });
@@ -546,7 +546,7 @@ function init() {
                 content: [
                     _('p', { style: { fontSize: '16px' } }, [_('text', 'AHP 最近有更新啦！')]),
                     _('div', { style: { whiteSpace: 'pre-wrap' } }, [
-                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\n- ac番剧可以跨区观看了（代理吃枣被封？）（代理不记录任何个人信息）\n- 改进音频同步？（我不知道好没好，感觉好像改进了）")
+                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\n- 为部分番剧添加了进度条预览功能\n- 更新flv.js修复部分进度条长度问题\n\n（为什么版本号起飞了？因为我上次手残输错发布版本号然后飞升了）")
                     ])
                 ],
                 showConfirm: false
@@ -612,6 +612,31 @@ function sourceTypeRoute(data) {
                     }
                     let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
                     fetchSrcThen(decrypted);
+                    // 缩略图服务
+                    fetch('https://acfun-thumbs.estertion.win/?videoId=' + pageInfo.vid, {
+                        method: 'GET',
+                        referrer: location.href,
+                        cache: 'no-cache'
+                    })
+                        .then(r => r.json())
+                        .then(r => {
+                            if (r.code != 0 || !r.hasThumb || !r.data.count) return;
+                            let thumbData = {
+                                code: 0,
+                                data: {
+                                    step: 5,
+                                    img_x_len: 10,
+                                    img_y_len: 10,
+                                    img_x_size: r.data.width,
+                                    img_y_size: r.data.height,
+                                    image: []
+                                }
+                            };
+                            for (let i = 0; i < r.data.count;) {
+                                thumbData.data.image.push('https://acfun-thumbs.estertion.win/thumbs/'+pageInfo.vid+'/' + (++i) + '.jpg');
+                            }
+                            abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
+                        })
                 });
             });
             break;
