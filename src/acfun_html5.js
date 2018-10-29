@@ -613,7 +613,7 @@ function sourceTypeRoute(data) {
                     let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
                     fetchSrcThen(decrypted);
                     // 缩略图服务
-                    fetch('https://acfun-thumbs.estertion.win/?videoId=' + pageInfo.vid, {
+                    fetch('https://acfun-thumbs.s2.dogecdn.com/?videoId=' + pageInfo.vid, {
                         method: 'GET',
                         referrer: location.href,
                         cache: 'no-cache'
@@ -633,7 +633,7 @@ function sourceTypeRoute(data) {
                                 }
                             };
                             for (let i = 0; i < r.data.count;) {
-                                thumbData.data.image.push('https://acfun-thumbs.estertion.win/thumbs/'+pageInfo.vid+'/' + (++i) + '.jpg');
+                                thumbData.data.image.push('https://acfun-thumbs.s2.dogecdn.com/thumbs/'+pageInfo.vid+'/' + (++i) + '.jpg');
                             }
                             abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
                         })
