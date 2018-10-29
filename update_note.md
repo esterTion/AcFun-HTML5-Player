@@ -1,5 +1,8 @@
 # 更新日志
 
+## 1.5.1
+- *换用[DogeCloud](https://www.dogecloud.com/)提供的cdn
+
 ## 1.5.0
 - +部分番剧追加进度条预览
 - *更新flv.js
