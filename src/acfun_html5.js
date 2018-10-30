@@ -613,30 +613,34 @@ function sourceTypeRoute(data) {
                     let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
                     fetchSrcThen(decrypted);
                     // 缩略图服务
-                    fetch('https://acfun-thumbs.s2.dogecdn.com/?videoId=' + pageInfo.vid, {
-                        method: 'GET',
-                        referrer: location.href,
-                        cache: 'no-cache'
-                    })
-                        .then(r => r.json())
-                        .then(r => {
-                            if (r.code != 0 || !r.hasThumb || !r.data.count) return;
-                            let thumbData = {
-                                code: 0,
-                                data: {
-                                    step: 5,
-                                    img_x_len: 10,
-                                    img_y_len: 10,
-                                    img_x_size: r.data.width,
-                                    img_y_size: r.data.height,
-                                    image: []
-                                }
-                            };
-                            for (let i = 0; i < r.data.count;) {
-                                thumbData.data.image.push('https://acfun-thumbs.s2.dogecdn.com/thumbs/'+pageInfo.vid+'/' + (++i) + '.jpg');
-                            }
-                            abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
+                    (function getThumbs() {
+                        fetch('https://acfun-thumbs.s2.dogecdn.com/?videoId=' + pageInfo.vid, {
+                            method: 'GET',
+                            referrer: location.href,
+                            cache: 'no-cache'
                         })
+                            .then(r => r.json())
+                            .then(r => {
+                                // 新任务，5分钟后重新获取
+                                if (r.comeBackLater) return setTimeout(getThumbs, 5 * 60 * 1000);
+                                if (r.code != 0 || !r.hasThumb || !r.data.count) return;
+                                let thumbData = {
+                                    code: 0,
+                                    data: {
+                                        step: 5,
+                                        img_x_len: 10,
+                                        img_y_len: 10,
+                                        img_x_size: r.data.width,
+                                        img_y_size: r.data.height,
+                                        image: []
+                                    }
+                                };
+                                for (let i = 0; i < r.data.count;) {
+                                    thumbData.data.image.push('https://acfun-thumbs.s2.dogecdn.com/thumbs/' + pageInfo.vid + '/' + (++i) + '.jpg');
+                                }
+                                abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
+                            })
+                    })();
                 });
             });
             break;
