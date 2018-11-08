@@ -18,6 +18,7 @@
         "md5.js",
         "x2js.min.js",
         "flv.min.js",
+        "hls.light.min.js",
         "jquery-3.3.1.min.js",
         "google-style-loading.min.js",
         "CommentCoreLibrary.min.js",

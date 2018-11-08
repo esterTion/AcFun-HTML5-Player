@@ -42,6 +42,7 @@ window.currentSrc = '';
 window.currentLang = '';
 let firstTime = true;
 let highestType;
+let coreMode = 'hls';
 
 function response2url(json) {
     let data = {};
@@ -611,7 +612,25 @@ function sourceTypeRoute(data) {
                         return fetchSrcThen({ error: data.e });
                     }
                     let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
-                    fetchSrcThen(decrypted);
+                    if (coreMode == 'flv') {
+                        fetchSrcThen(decrypted);
+                    } else if (coreMode == 'hls') {
+                        let playlists = decrypted.stream.filter(i => i.m3u8 !== undefined);
+                        playlists.sort((a, b) => a.width - b.width);
+                        console.log(playlists)
+                        let masterManifest = '#EXTM3U\n' + playlists.map(i => (
+                            `#EXT-X-STREAM-INF:BANDWIDTH=${Math.round(i.total_size / i.duration * 8)},RESOLUTION=${i.width}x${i.height}\n${i.m3u8}\n`
+                        )).join('');
+                        let masterManifestBlob = new Blob([masterManifest], { mimeType: 'application/vnd.apple.mpegurl' });
+                        let masterManifestUrl = URL.createObjectURL(masterManifestBlob);
+                        window.hlsplayer = new Hls();
+                        hlsplayer.loadSource(masterManifestUrl);
+                        hlsplayer.attachMedia(abpinst.video);
+                        hlsplayer.on(Hls.Events.MANIFEST_PARSED, () => URL.revokeObjectURL(masterManifestUrl));
+
+                        hlsplayer.on(Hls.Events.LEVEL_SWITCHING, function(n, d) { console.log(n, d); });
+                        hlsplayer.on(Hls.Events.LEVEL_SWITCHED, function(n, d) { console.log(n, d); });
+                    }
                     // 缩略图服务
                     (function getThumbs() {
                         fetch('https://acfun-thumbs.s2.dogecdn.com/?videoId=' + pageInfo.vid, {
