@@ -261,6 +261,14 @@ function fetchSrcThen(json) {
 }
 
 window.changeSrc = function (e, t, force) {
+    if (coreMode == 'hls') {
+        hlsplayer.nextLevel = t;
+        abpinst.createPopup(_t('switchingTo') + e.target.value, 3e3);
+        t != -1 && hlsplayer.once(Hls.Events.LEVEL_SWITCHED, () => {
+            abpinst.createPopup(_t('switched'), 2e3);
+        })
+        return;
+    }
     let div = abpinst.playerUnit.querySelector('#info-box');
     if ((abpinst == undefined || (currentSrc == t)) && !force)
         return false;
@@ -312,6 +320,11 @@ let createPlayer = function (e) {
 window.addEventListener('unload', function () {
     if (self.flvplayer != undefined) {
         self.flvplayer.unload();
+        self.flvplayer.destroy();
+        delete self.flvplayer;
+    }
+    if (self.hlsplayer != undefined) {
+        self.flvplayer.stopLoad();
         self.flvplayer.destroy();
         delete self.flvplayer;
     }
@@ -626,10 +639,31 @@ function sourceTypeRoute(data) {
                         window.hlsplayer = new Hls();
                         hlsplayer.loadSource(masterManifestUrl);
                         hlsplayer.attachMedia(abpinst.video);
-                        hlsplayer.on(Hls.Events.MANIFEST_PARSED, () => URL.revokeObjectURL(masterManifestUrl));
+                        hlsplayer.once(Hls.Events.MANIFEST_PARSED, () => URL.revokeObjectURL(masterManifestUrl));
 
-                        hlsplayer.on(Hls.Events.LEVEL_SWITCHING, function(n, d) { console.log(n, d); });
-                        hlsplayer.on(Hls.Events.LEVEL_SWITCHED, function(n, d) { console.log(n, d); });
+                        HlsjsMediaInfoModule.observeMediaInfo(hlsplayer);
+                        hlsplayer.on(Hls.Events.LEVEL_SWITCHING, function (n, d) { console.log(n, d); });
+                        hlsplayer.on(Hls.Events.LEVEL_SWITCHED, function (n, d) { console.log(n, d); });
+                        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination').appendChild(_('div', {
+                            changeto: JSON.stringify([-1, _t('Auto')]),
+                            name: _t('Auto'),
+                            className: 'on'
+                        }, [_('text', _t('Auto'))]));
+                        hlsplayer.levelName = playlists.map(i => {
+                            let name = {
+                                'm3u8_flv': _t('flvhd'),
+                                'm3u8_mp4': _t('mp4hd'),
+                                'm3u8_hd': _t('mp4hd2'),
+                                'm3u8_hd3': _t('mp4hd3')
+                            }[i.stream_type];
+                            abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination').appendChild(_('div', {
+                                changeto: JSON.stringify([playlists.indexOf(i), name]),
+                                name: name
+                            }, [_('text', name)]));
+                            return name;
+                        });
+                        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.width = playlists.length > 3 ? (((playlists.length + 1) * 50) + 'px') : ''
+                        //hlsplayer.on('hlsMIStatPercentage', function(n, d) { console.log(n, d); });
                     }
                     // 缩略图服务
                     (function getThumbs() {
