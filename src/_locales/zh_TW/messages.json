@@ -457,5 +457,26 @@
     },
     "copied": {
         "message": "已複製"
+    },
+    "Auto": {
+        "message": "自動"
+    },
+    "switchingTo": {
+        "message": "正在切換至 "
+    },
+    "switched": {
+        "message": "已切換"
+    },
+    "currentQuality": {
+        "message": "當前清晰度："
+    },
+    "currentFragment": {
+        "message": "當前分片："
+    },
+    "playerCoreSetting": {
+        "message": "播放機核心："
+    },
+    "playerCoreSettingTip": {
+        "message": "切換後需刷新頁面"
     }
 }

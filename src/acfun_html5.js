@@ -43,6 +43,9 @@ window.currentLang = '';
 let firstTime = true;
 let highestType;
 let coreMode = 'hls';
+readStorage('coreMode', function (item) {
+    coreMode = item.coreMode || 'hls';
+});
 
 function response2url(json) {
     let data = {};
@@ -491,6 +494,17 @@ function init() {
         });
         dots.runTimer();
 
+        // 播放核心设置
+        abpinst.settingPanel.firstChild.lastChild.appendChild(_('p', { className: 'label prop' }, [
+            _('text', _t('playerCoreSetting')),
+            _('select', { id: 'setting-playerCore', event: { mouseup: function (e) { e.stopPropagation(); }, change: function () { saveStorage({ coreMode: this.value }); } } }, [
+                _('option', { value: 'hls' }, [_('text', 'hls.js / hls')]),
+                _('option', { value: 'flv' }, [_('text', 'flv.js / mp4')])
+            ]), _('br'),
+            _('span', { style: { fontSize: '11px' } }, [_('text', _t('playerCoreSettingTip'))])
+        ]));
+        abpinst.settingPanel.querySelector('#setting-playerCore').value = coreMode;
+
         fetch('http://www.acfun.cn/video/getVideo.aspx?id=' + pageInfo.vid, {
             method: 'GET',
             credentials: 'include',
@@ -552,7 +566,7 @@ function init() {
         }
     });
     readStorage('updateNotifyVer', function (item) {
-        let notVer = '1.5.0';
+        let notVer = '1.6.0';
         console.log(item);
         if (item.updateNotifyVer != notVer) {
             saveStorage({ 'updateNotifyVer': notVer });
@@ -560,7 +574,7 @@ function init() {
                 content: [
                     _('p', { style: { fontSize: '16px' } }, [_('text', 'AHP 最近有更新啦！')]),
                     _('div', { style: { whiteSpace: 'pre-wrap' } }, [
-                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\n- 为部分番剧添加了进度条预览功能\n- 更新flv.js修复部分进度条长度问题\n\n（为什么版本号起飞了？因为我上次手残输错发布版本号然后飞升了）")
+                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\n- 主站源视频更换使用hls.js，并默认自动切换，视频统计信息中可以确认正在播放的清晰度，左下角可以强制选择清晰度\n- 播放器设置中可以切换播放器核心")
                     ])
                 ],
                 showConfirm: false
@@ -630,7 +644,6 @@ function sourceTypeRoute(data) {
                     } else if (coreMode == 'hls') {
                         let playlists = decrypted.stream.filter(i => i.m3u8 !== undefined);
                         playlists.sort((a, b) => a.width - b.width);
-                        console.log(playlists)
                         let masterManifest = '#EXTM3U\n' + playlists.map(i => (
                             `#EXT-X-STREAM-INF:BANDWIDTH=${Math.round(i.total_size / i.duration * 8)},RESOLUTION=${i.width}x${i.height}\n${i.m3u8}\n`
                         )).join('');
@@ -642,8 +655,6 @@ function sourceTypeRoute(data) {
                         hlsplayer.once(Hls.Events.MANIFEST_PARSED, () => URL.revokeObjectURL(masterManifestUrl));
 
                         HlsjsMediaInfoModule.observeMediaInfo(hlsplayer);
-                        hlsplayer.on(Hls.Events.LEVEL_SWITCHING, function (n, d) { console.log(n, d); });
-                        hlsplayer.on(Hls.Events.LEVEL_SWITCHED, function (n, d) { console.log(n, d); });
                         abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination').appendChild(_('div', {
                             changeto: JSON.stringify([-1, _t('Auto')]),
                             name: _t('Auto'),

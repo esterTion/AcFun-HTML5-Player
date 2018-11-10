@@ -457,5 +457,26 @@
     },
     "copied": {
         "message": "Copied! "
+    },
+    "Auto": {
+        "message": "Auto"
+    },
+    "switchingTo": {
+        "message": "Switching to "
+    },
+    "switched": {
+        "message": "Switched"
+    },
+    "currentQuality": {
+        "message": "Current quality："
+    },
+    "currentFragment": {
+        "message": "Current fragment："
+    },
+    "playerCoreSetting": {
+        "message": "Player core："
+    },
+    "playerCoreSettingTip": {
+        "message": "Need to refresh page after change"
     }
 }
