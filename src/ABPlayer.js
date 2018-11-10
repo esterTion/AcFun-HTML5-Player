@@ -16,139 +16,18 @@ return check; }
 var ABP = {
 	"version": "0.8.0"
 };
-ABP.Strings={
-	statsPlayer:_t('statsPlayer'),
-	statsVideo:_t('statsVideo'),
-	statsBuffer:_t('statsBuffer'),
-	statsBufferClip:_t('statsBufferClip'),
-	statsPresent:_t('statsPresent'),
-	statsDrop:_t('statsDrop'),
-	statsMimetype:_t('statsMimetype'),
-	statsVideoBitrate:_t('statsVideoBitrate'),
-	statsAudioBitrate:_t('statsAudioBitrate'),
-	statsCurrentBitrate:_t('statsCurrentBitrate'),
-	statsRealtimeBitrate:_t('statsRealtimeBitrate'),
-	overallBitrate:_t('overallBitrate'),
-	reload:_t('reload'),
-	statsDownloadSpeed:_t('statsDownloadSpeed'),
-	statsSourceHost:_t('statsSourceHost'),
-	statsRedirection:_t('statsRedirection'),
-	statsRedirectionNone:_t('statsRedirectionNone'),
-	copySegUrl:_t('copySegUrl'),
-	
-	sendSmall:_t('sendSmall'),
-	sendMid:_t('sendMid'),
-	sendSize:_t('sendSize'),
-	sendMode:_t('sendMode'),
-	sendTop:_t('sendTop'),
-	sendScroll:_t('sendScroll'),
-	sendBottom:_t('sendBottom'),
-	send:_t('send'),
-	sendStyle:_t('sendStyle'),
-	sendColor:_t('sendColor'),
-	
-	commentSpeed:_t('commentSpeed'),
-	commentScale:_t('commentScale'),
-	commentDensity:_t('commentDensity'),
-	commentOpacity:_t('commentOpacity'),
-	commentBlock:_t('commentBlock'),
-	
-	playSpeed:_t('playSpeed'),
-	playSpeedReset:_t('playSpeedReset'),
-	
-	displayScaleD:_t('displayScaleD'),
-	displayScaleF:_t('displayScaleF'),
-	
-	shieldTypeText:_t('shieldTypeText'),
-	shieldTypeUser:_t('shieldTypeUser'),
-	shieldTypeColor:_t('shieldTypeColor'),
-	shieldTypeSetting:_t('shieldTypeSetting'),
-	shieldAdd:_t('shieldAdd'),
-	shieldUseRegex:_t('shieldUseRegex'),
-	shieldBlockTop:_t('shieldBlockTop'),
-	shieldBlockBottom:_t('shieldBlockBottom'),
-	shieldBlockVisitor:_t('shieldBlockVisitor'),
-	shieldRepeat:_t('shieldRepeat'),
-	
-	viewers:_t('viewers'),
-	comments:_t('comments'),
-	commentTime:_t('commentTime'),
-	commentContent:_t('commentContent'),
-	commentDate:_t('commentDate'),
-	
-	showStats:_t('showStats'),
-	
-	loadingMeta:_t('loadingMeta'),
-	switching:_t('switching'),
-	fetchURL:_t('fetchURL'),
-	buffering:_t('buffering'),
-	play:_t('play'),
-	next:_t('next'),
-	pause:_t('pause'),
-	mute:_t('mute'),
-	unmute:_t('unmute'),
-	muteNotSupported:_t('muteNotSupported'),
-	fullScreen:_t('fullScreen'),
-	exitFullScreen:_t('exitFullScreen'),
-	webFull:_t('webFull'),
-	exitWebFull:_t('exitWebFull'),
-	cmtListShow:_t('cmtListShow'),
-	cmtListHide:_t('cmtListHide'),
-	sendTooltip:_t('sendTooltip'),
-	showComment:_t('showComment'),
-	hideComment:_t('hideComment'),
-	loopOn:_t('loopOn'),
-	loopOff:_t('loopOff'),
-	usingCanvas:_t('usingCanvas'),
-	usingCSS:_t('usingCSS'),
-	useCSS:_t('useCSS'),
-	autoOpacityOn:_t('autoOpacityOn'),
-	autoOpacityOff:_t('autoOpacityOff'),
-	settings:_t('settings'),
-	
-	copyComment:_t('copyComment'),
-	findComment:_t('findComment'),
-	blockContent:_t('blockContent'),
-	blockUser:_t('blockUser'),
-	blockColor:_t('blockColor'),
-	blockColorWhite:_t('blockColorWhite'),
-	copied:_t('copied'),
-	copyFail:_t('copyFail'),
-	
-	blockUserEmpty:_t('blockUserEmpty'),
-	blockColorEmpty:_t('blockColorEmpty'),
-	repeatPcs:_t('repeatPcs'),
-	repeatUnlimited:_t('repeatUnlimited'),
-	
-	dragControlLowInc:_t('dragControlLowInc'),
-	dragControlLowDec:_t('dragControlLowDec'),
-	dragControlMedInc:_t('dragControlMedInc'),
-	dragControlMedDec:_t('dragControlMedDec'),
-	dragControlHighInc:_t('dragControlHighInc'),
-	dragControlHighDec:_t('dragControlHighDec'),
-	dragControlCancel:_t('dragControlCancel'),
-	
-	settComment:_t('settComment'),
-	recordPlaySpeed:_t('recordPlaySpeed'),
-	settPlayer:_t('settPlayer'),
-	autoPlay:_t('autoPlay'),
-	defaultFull:_t('defaultFull'),
-	playerTheme:_t('playerTheme'),
-	cmStyle:_t('cmStyle'),
-	cmStyle_st:_t('cmStyle_st'),
-	cmStyle_sh:_t('cmStyle_sh'),
-	cmStyle_stsh:_t('cmStyle_stsh'),
-
-	volumeChange:_t('volumeChange'),
-	rateChange:_t('rateChange')
-};
+ABP.Strings = new Proxy({}, {
+	get: function(target, property, receiver) {
+		return _t(property) || (console.warn('[YHP] Undefined translation key', property),property);
+  }
+});
 
 (function() {
 	"use strict";
 	if (!ABP) return;
 	var $$ = jQuery,
 	addEventListener='addEventListener',
-	versionString='HTML5 Player ver.180625 based on ABPlayer-bilibili-ver',
+	versionString='HTML5 Player ver.181110 based on ABPlayer-bilibili-ver',
 	mousePrevPos=[0,0],
 	mouseMoved=function(e){
 		var oldPos=mousePrevPos;
@@ -512,6 +391,18 @@ ABP.Strings={
 				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsDownloadSpeed)]),_('span',{className:'stats-column',id:'download-speed-column',style:{verticalAlign:'top'}}),_('span')]),
 				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsSourceHost)]),_('span',{className:'srcUrl'})]),
 				_('div',{className:'flvjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsRedirection)]),_('span',{className:'redirUrl'})]),
+				
+				_('br',{className:'hlsjs'}),
+				_('div',{className:'hlsjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.currentQuality)]),_('span')]),
+				_('div',{className:'hlsjs'},[_('span',{className:'stats_name'},[_('text','fps：')]),_('span')]),
+				_('div',{className:'hlsjs',title:'1 kbps = 1000 bps'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsVideoBitrate)]),_('span')]),
+				_('div',{className:'hlsjs',title:'1 kbps = 1000 bps'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsAudioBitrate)]),_('span')]),
+				_('div',{className:'hlsjs',title:'1 kbps = 1000 bps'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.overallBitrate)]),_('span')]),
+				_('div',{className:'hlsjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.currentFragment)]),_('span',{style:{width:'180px',height:'5px',display:'inline-block',position:'relative',border:'solid #AAA 1px',borderRadius:'4px',verticalAlign:'middle',marginRight:'2px'}},[
+					_('span',{id:'download-progress-hls',style:{position:'absolute',left:'2px',right:'2px',top:'1px',bottom:'1px',background:'#CCC',borderRadius:'3px',transition:'width .3s',width:0}})
+				]),_('span')]),
+				_('div',{className:'hlsjs',title:'1 kbps = 1000 bps'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsRealtimeBitrate)]),_('span',{className:'stats-column',id:'realtime-bitrate-column-hls',style:{verticalAlign:'top'}}),_('span')]),
+				_('div',{className:'hlsjs'},[_('span',{className:'stats_name'},[_('text',ABP.Strings.statsDownloadSpeed)]),_('span',{className:'stats-column',id:'download-speed-hls-column',style:{verticalAlign:'top'}}),_('span')]),
 				_('br'),
 
 				_('div',{id:'canvas-fps'},[_('span',{className:'stats_name'},[_('text','Canvas fps：')]),_('span')]),
@@ -1655,20 +1546,23 @@ ABP.Strings={
 		canvasFPS=gEle('canvas-fps').lastChild,
 		bufferColumn=gEle('buffer-health-column'),
 		realtimeBitrateColumn=gEle('realtime-bitrate-column'),
+		realtimeBitrateColumnHls=gEle('realtime-bitrate-column-hls'),
 		downloadSpeedColumn=gEle('download-speed-column'),
+		downloadSpeedHlsColumn=gEle('download-speed-hls-column'),
 		playFpsColumn=gEle('playback-fps-column'),
 		playFpsNum = playFpsColumn.parentNode.lastChild,
 		dropFpsColumn=gEle('drop-fps-column'),
 		dropFpsNum = dropFpsColumn.parentNode.lastChild,
 		bufferArr=[],
 		downloadSpeedArr=[],
+		downloadSpeedHlsArr=[],
 		playFpsArr=[],
 		dropFpsArr=[],
 		prevPlayedFrames=0,
 		prevDroppedFrames=0,
 		bufferNum=gEle('buffer-health').lastChild,
 		svgStats='<svg style="width:180px;height:21px"><polyline style="fill:transparent;stroke:#ccc"></polyline><polyline points="1,21 180,21 180,1" style="fill:transparent;stroke:#fff"></polyline></svg>',
-		addStyle='',style=_('style'),flvjsStyle=_('style'),flvjsStats=playerIframe.contentDocument.querySelectorAll('.flvjs>:last-child'),i=0,
+		addStyle='',style=_('style'),flvjsStyle=_('style'),hlsjsStyle=_('style'),flvjsStats=playerIframe.contentDocument.querySelectorAll('.flvjs>:last-child'),hlsjsStats=playerIframe.contentDocument.querySelectorAll('.hlsjs>:last-child'),i=0,
 		renderColumn=function(column,arr){
 			var max=0,i,points=[];
 			arr.forEach(function(i){max=(i>max)?i:max});
@@ -1692,6 +1586,7 @@ ABP.Strings={
 		for(;i<60;i++){
 			bufferArr.push(0);
 			downloadSpeedArr.push(0);
+			downloadSpeedHlsArr.push(0);
 			playFpsArr.push(0);
 			dropFpsArr.push(0);
 		}
@@ -1701,8 +1596,13 @@ ABP.Strings={
 		realtimeBitrateColumn.innerHTML=svgStats;
 		realtimeBitrateColumn.firstChild.lastChild.setAttribute('points', '1,21 180,21 60,22 60,1');
 		realtimeBitrateColumn=realtimeBitrateColumn.firstChild.firstChild;
+		realtimeBitrateColumnHls.innerHTML=svgStats;
+		realtimeBitrateColumnHls.firstChild.lastChild.setAttribute('points', '1,21 180,21 120,22 120,1');
+		realtimeBitrateColumnHls=realtimeBitrateColumnHls.querySelector('polyline');
 		downloadSpeedColumn.innerHTML=svgStats;
-		downloadSpeedColumn=downloadSpeedColumn.firstChild.firstChild;
+		downloadSpeedColumn=downloadSpeedColumn.querySelector('polyline');
+		downloadSpeedHlsColumn.innerHTML=svgStats;
+		downloadSpeedHlsColumn=downloadSpeedHlsColumn.querySelector('polyline');
 		playFpsColumn.innerHTML=svgStats;
 		playFpsColumn=playFpsColumn.firstChild.firstChild;
 		dropFpsColumn.innerHTML=svgStats;
@@ -1720,6 +1620,8 @@ ABP.Strings={
 		playerIframe.contentDocument.head.appendChild(style);
 		flvjsStyle.textContent='.flvjs{display:none}';
 		playerIframe.contentDocument.head.appendChild(flvjsStyle);
+		hlsjsStyle.innerHTML='.hlsjs{display:none}';
+		playerIframe.contentDocument.head.appendChild(hlsjsStyle);
 		if(window.flvplayer==undefined){
 			enabledStats.flvjs=false;
 		}
@@ -1893,6 +1795,53 @@ ABP.Strings={
 						segSeperatorChild[1].remove();
 					}
 				}
+			}
+
+			// hls
+			if(window.hlsplayer && window.hlsplayer.mediaInfo){
+				hlsjsStyle.innerHTML='';
+				var percentage = hlsplayer.downloadPercentage * 100, i = 0, levelName = function (n) { return (hlsplayer.levelName&&hlsplayer.levelName[n])||n; }, level = levelName(hlsplayer.currentLevel), mediaInfo = hlsplayer.mediaInfo;
+				if (level != levelName(hlsplayer.nextLoadLevel)) {
+					level += ' '+ABP.Strings.switchingTo+': '+ levelName(hlsplayer.nextLoadLevel);
+				}
+				hlsjsStats[i++].textContent = level;
+				
+				hlsjsStats[i++].textContent=to2digitFloat(mediaInfo.video.fps);
+				hlsjsStats[i++].textContent=to2digitFloat(mediaInfo.video.averageBitrate / 1000)+' kbps';
+				hlsjsStats[i++].textContent=to2digitFloat(mediaInfo.audio.averageBitrate / 1000)+' kbps';
+				hlsjsStats[i++].textContent=to2digitFloat(
+					(mediaInfo.video.totalSize + mediaInfo.audio.totalSize) / (mediaInfo.video.totalDuration / mediaInfo.video.timeScale) / 1000*8
+				) + ' kbps';
+
+				document_querySelector('#download-progress-hls').style.width=percentage+'%';
+				hlsjsStats[i++].textContent = to2digitFloat(percentage)+'%'
+
+				// 码率
+				var bitrateMap = hlsplayer.mediaInfo.bitrateMap, bitrate = bitrateMap[video.currentTime | 0];
+				if (bitrate!=undefined) {
+					hlsjsStats[i++].textContent = to2digitFloat(bitrate)+' kbps';
+				} else {
+					hlsjsStats[i++].textContent = 'N/A';
+				}
+				if (playerStatsOn) {
+					var realtimeBitrateArr=[];
+					var time = (video.currentTime | 0) - 40;
+					while (realtimeBitrateArr.length < 60) {
+						realtimeBitrateArr.push(bitrateMap[time] ||0);
+						time++;
+					}
+					renderColumn(realtimeBitrateColumnHls,realtimeBitrateArr);
+				}
+				if(odd){
+					var speed = hlsplayer.downloadSpeed||0;
+					downloadSpeedHlsArr.push(speed);
+					downloadSpeedHlsArr.shift();
+					if(playerStatsOn)
+						renderColumn(downloadSpeedHlsColumn,downloadSpeedHlsArr);
+					hlsjsStats[i++].innerHTML=to2digitFloat(speed)+' KB/s'
+				}
+			}else{
+				hlsjsStyle.innerHTML='.hlsjs{display:none}';
 			}
 			if(!window.overallBitrate){
 				gEle('overall-bitrate').parentNode.style.display='none'

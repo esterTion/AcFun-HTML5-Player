@@ -324,9 +324,9 @@ window.addEventListener('unload', function () {
         delete self.flvplayer;
     }
     if (self.hlsplayer != undefined) {
-        self.flvplayer.stopLoad();
-        self.flvplayer.destroy();
-        delete self.flvplayer;
+        self.hlsplayer.stopLoad();
+        self.hlsplayer.destroy();
+        delete self.hlsplayer;
     }
 })
 let load_fail = function (type, info, detail) {
