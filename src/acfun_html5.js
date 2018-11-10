@@ -649,10 +649,11 @@ function sourceTypeRoute(data) {
                         )).join('');
                         let masterManifestBlob = new Blob([masterManifest], { mimeType: 'application/vnd.apple.mpegurl' });
                         let masterManifestUrl = URL.createObjectURL(masterManifestBlob);
-                        window.hlsplayer = new Hls();
+                        window.hlsplayer = new Hls({enableWorker: false});
                         hlsplayer.loadSource(masterManifestUrl);
                         hlsplayer.attachMedia(abpinst.video);
                         hlsplayer.once(Hls.Events.MANIFEST_PARSED, () => URL.revokeObjectURL(masterManifestUrl));
+                        hlsplayer.on(Hls.Events.ERROR, function (n, d) {console.log(n, d)});
 
                         HlsjsMediaInfoModule.observeMediaInfo(hlsplayer);
                         abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination').appendChild(_('div', {

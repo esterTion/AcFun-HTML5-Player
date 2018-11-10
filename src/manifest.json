@@ -44,7 +44,9 @@
   "permissions": [
     "*://*/*",
     "storage",
-    "clipboardWrite"
+    "clipboardWrite",
+    "webRequest",
+    "webRequestBlocking"
   ],
   "background": {
     "scripts": [
