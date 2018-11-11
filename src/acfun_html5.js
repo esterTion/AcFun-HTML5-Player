@@ -263,13 +263,12 @@ function fetchSrcThen(json) {
     firstTime = false;
 }
 
+let hlsPending = -1;
 window.changeSrc = function (e, t, force) {
     if (coreMode == 'hls') {
         hlsplayer.nextLevel = t;
         abpinst.createPopup(_t('switchingTo') + e.target.value, 3e3);
-        t != -1 && hlsplayer.once(Hls.Events.LEVEL_SWITCHED, () => {
-            abpinst.createPopup(_t('switched'), 2e3);
-        })
+        hlsPending = t;
         return;
     }
     let div = abpinst.playerUnit.querySelector('#info-box');
@@ -566,7 +565,7 @@ function init() {
         }
     });
     readStorage('updateNotifyVer', function (item) {
-        let notVer = '1.6.0';
+        let notVer = '1.6.1';
         console.log(item);
         if (item.updateNotifyVer != notVer) {
             saveStorage({ 'updateNotifyVer': notVer });
@@ -574,7 +573,7 @@ function init() {
                 content: [
                     _('p', { style: { fontSize: '16px' } }, [_('text', 'AHP 最近有更新啦！')]),
                     _('div', { style: { whiteSpace: 'pre-wrap' } }, [
-                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\n- 主站源视频更换使用hls.js，并默认自动切换，视频统计信息中可以确认正在播放的清晰度，左下角可以强制选择清晰度\n- 播放器设置中可以切换播放器核心")
+                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\n- 主站源视频更换使用hls.js，并默认自动切换，视频统计信息中可以确认正在播放的清晰度，左下角可以强制选择清晰度\n- 不满意hls自动模式的话可以在播放器设置中切换播放器核心\n\nv1.6.1：\n- 改进hls自动，由上次播放最后加载的清晰度开始加载")
                     ])
                 ],
                 showConfirm: false
@@ -649,11 +648,24 @@ function sourceTypeRoute(data) {
                         )).join('');
                         let masterManifestBlob = new Blob([masterManifest], { mimeType: 'application/vnd.apple.mpegurl' });
                         let masterManifestUrl = URL.createObjectURL(masterManifestBlob);
-                        window.hlsplayer = new Hls({enableWorker: false});
+                        let conf = { enableWorker: false };
+                        if (localStorage.AHP_HLS_AUTOLEVEL) {
+                            conf.startLevel = localStorage.AHP_HLS_AUTOLEVEL;
+                        }
+                        window.hlsplayer = new Hls(conf);
                         hlsplayer.loadSource(masterManifestUrl);
                         hlsplayer.attachMedia(abpinst.video);
                         hlsplayer.once(Hls.Events.MANIFEST_PARSED, () => URL.revokeObjectURL(masterManifestUrl));
-                        hlsplayer.on(Hls.Events.ERROR, function (n, d) {console.log(n, d)});
+                        hlsplayer.on(Hls.Events.LEVEL_SWITCHING, (n, d) => {
+                            localStorage.AHP_HLS_AUTOLEVEL = d.level;
+                        });
+                        hlsplayer.on(Hls.Events.LEVEL_SWITCHED, () => {
+                            if (hlsPending != -1) {
+                                abpinst.createPopup(_t('switched') + ' ' + (hlsplayer.levelName[hlsPending] || hlsPending), 2e3);
+                                hlsPending = -1;
+                            }
+                        });
+                        hlsplayer.on(Hls.Events.ERROR, function (n, d) { console.log(n, d) });
 
                         HlsjsMediaInfoModule.observeMediaInfo(hlsplayer);
                         abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination').appendChild(_('div', {
