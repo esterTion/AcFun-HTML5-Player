@@ -648,22 +648,28 @@ function sourceTypeRoute(data) {
                         )).join('');
                         let masterManifestBlob = new Blob([masterManifest], { mimeType: 'application/vnd.apple.mpegurl' });
                         let masterManifestUrl = URL.createObjectURL(masterManifestBlob);
-                        let conf = { enableWorker: false };
-                        if (localStorage.AHP_HLS_AUTOLEVEL) {
-                            conf.startLevel = localStorage.AHP_HLS_AUTOLEVEL;
+                        let conf = {
+                            enableWorker: false,
+                            capLevelToPlayerSize: true,
+                            startLevel: 2
+                        };
+                        if (abpinst.lastTime) {
+                            conf.startPosition = abpinst.lastTime;
+                            delete abpinst.lastTime;
+                            console.log('starting from', conf.startPosition);
                         }
                         window.hlsplayer = new Hls(conf);
                         hlsplayer.loadSource(masterManifestUrl);
                         hlsplayer.attachMedia(abpinst.video);
                         hlsplayer.once(Hls.Events.MANIFEST_PARSED, () => URL.revokeObjectURL(masterManifestUrl));
-                        hlsplayer.on(Hls.Events.LEVEL_SWITCHING, (n, d) => {
-                            localStorage.AHP_HLS_AUTOLEVEL = d.level;
-                        });
                         hlsplayer.on(Hls.Events.LEVEL_SWITCHED, () => {
                             if (hlsPending != -1) {
                                 abpinst.createPopup(_t('switched') + ' ' + (hlsplayer.levelName[hlsPending] || hlsPending), 2e3);
                                 hlsPending = -1;
                             }
+                        });
+                        hlsplayer.on('hlsMIStatPercentage', function initialDisplay(m, p) {
+                            abpinst.playerUnit.querySelector('#info-box').childNodes[0].childNodes[0].textContent = ABP.Strings.buffering + ' ' + (p * 100).toFixed(2) + '%';
                         });
                         hlsplayer.on(Hls.Events.ERROR, function (n, d) { console.log(n, d) });
 
