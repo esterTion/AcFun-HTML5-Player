@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.6.3
+- *修复弹幕发送
+- *哪个猴子写的统计，出来我打死他，关闭网页发送同步xhr诗人？？ ---beforeunload后强制更换[sendBeacon](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
+
 ## 1.6.2
 - *改进hls配置
 

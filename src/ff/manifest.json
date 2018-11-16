@@ -6,6 +6,17 @@
   "content_scripts": [
     {
       "matches": [
+        "http://*.acfun.cn/*",
+        "http://*.hapame.com/*"
+      ],
+      "all_frames": true,
+      "js": [
+        "analytic_fixer.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
         "http://*.acfun.cn/v/*",
         "http://*.acfun.cn/bangumi/*",
         "http://*.hapame.com/video/*"

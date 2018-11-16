@@ -180,23 +180,6 @@ function fetchSrcThen(json) {
     switchLang(currentLang);
     if (firstTime) {
         console.log('[AHP] Got source url', srcUrl);
-        if (pageInfo.album)
-            abpinst.title = pageInfo.title + ' - AB' + pageInfo.video.part;
-        else if (pageInfo.videoList.length > 1)
-            abpinst.title = '[P' + (pageInfo.P + 1) + '] ' + pageInfo.videoList[pageInfo.P].title + ' || ' + pageInfo.title + ' - AC' + pageInfo.id;
-        else
-            abpinst.title = pageInfo.title + ' - AC' + pageInfo.id;
-        abpinst.playerUnit.addEventListener('sendcomment', sendComment);
-        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = 'scale-menu-show';
-        setTimeout(function () {
-            abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = '';
-        }, 2e3);
-
-        if (user.uid == -1) {
-            abpinst.txtText.disabled = true;
-            abpinst.txtText.placeholder = _t('noVisitorComment');
-            abpinst.txtText.style.textAlign = 'center';
-        }
         let contextMenu = abpinst.playerUnit.querySelector('.Context-Menu-Body');
         if (audioLangs.length > 1) {
             let childs = [];
@@ -542,6 +525,23 @@ function init() {
                         console.log('[AHP] Using backup sina vid: ' + pageInfo.sourceId);
                     }
                     sourceTypeRoute(data);
+
+                    if (user.uid === -1 || user.uid === '') {
+                        abpinst.txtText.disabled = true;
+                        abpinst.txtText.placeholder = _t('noVisitorComment');
+                        abpinst.txtText.style.textAlign = 'center';
+                    }
+                    if (pageInfo.album)
+                        abpinst.title = pageInfo.title + ' - AB' + pageInfo.video.part;
+                    else if (pageInfo.videoList.length > 1)
+                        abpinst.title = '[P' + (pageInfo.P + 1) + '] ' + pageInfo.videoList[pageInfo.P].title + ' || ' + pageInfo.title + ' - AC' + pageInfo.id;
+                    else
+                        abpinst.title = pageInfo.title + ' - AC' + pageInfo.id;
+                    abpinst.playerUnit.addEventListener('sendcomment', sendComment);
+                    abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = 'scale-menu-show';
+                    setTimeout(function () {
+                        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = '';
+                    }, 2e3);
                 } else {
                     dots.stopTimer();
                     createPopup({
@@ -565,15 +565,14 @@ function init() {
         }
     });
     readStorage('updateNotifyVer', function (item) {
-        let notVer = '1.6.1';
-        console.log(item);
+        let notVer = '1.6.3';
         if (item.updateNotifyVer != notVer) {
             saveStorage({ 'updateNotifyVer': notVer });
             createPopup({
                 content: [
                     _('p', { style: { fontSize: '16px' } }, [_('text', 'AHP 最近有更新啦！')]),
                     _('div', { style: { whiteSpace: 'pre-wrap' } }, [
-                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\n- 主站源视频更换使用hls.js，并默认自动切换，视频统计信息中可以确认正在播放的清晰度，左下角可以强制选择清晰度\n- 不满意hls自动模式的话可以在播放器设置中切换播放器核心\n\nv1.6.1：\n- 改进hls自动，由上次播放最后加载的清晰度开始加载")
+                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\nv1.6.2：\n- 改进hls自动，由720p起步\n\n1.6.3：\n- 修复弹幕发送\n　　（1.6更新后hls模式下发送弹幕失效了，我背锅，对呒住各位）\n- 修复缺b乐辣鸡的关闭网页发送统计数据，真正想关就关")
                     ])
                 ],
                 showConfirm: false
@@ -649,7 +648,7 @@ function sourceTypeRoute(data) {
                         let masterManifestBlob = new Blob([masterManifest], { mimeType: 'application/vnd.apple.mpegurl' });
                         let masterManifestUrl = URL.createObjectURL(masterManifestBlob);
                         let conf = {
-                            enableWorker: false,
+                            enableWorker: isChrome,
                             capLevelToPlayerSize: true,
                             startLevel: 2
                         };
@@ -674,7 +673,8 @@ function sourceTypeRoute(data) {
                         hlsplayer.on(Hls.Events.ERROR, function (n, d) { console.log(n, d) });
 
                         HlsjsMediaInfoModule.observeMediaInfo(hlsplayer);
-                        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination').appendChild(_('div', {
+                        let scaleMenu = abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu');
+                        scaleMenu.querySelector('.Video-Defination').appendChild(_('div', {
                             changeto: JSON.stringify([-1, _t('Auto')]),
                             name: _t('Auto'),
                             className: 'on'
@@ -686,13 +686,17 @@ function sourceTypeRoute(data) {
                                 'm3u8_hd': _t('mp4hd2'),
                                 'm3u8_hd3': _t('mp4hd3')
                             }[i.stream_type];
-                            abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination').appendChild(_('div', {
+                            scaleMenu.querySelector('.Video-Defination').appendChild(_('div', {
                                 changeto: JSON.stringify([playlists.indexOf(i), name]),
                                 name: name
                             }, [_('text', name)]));
                             return name;
                         });
-                        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.width = playlists.length > 3 ? (((playlists.length + 1) * 50) + 'px') : ''
+                        scaleMenu.style.width = playlists.length > 3 ? (((playlists.length + 1) * 50) + 'px') : '';
+                        scaleMenu.style.animationName = 'scale-menu-show';
+                        setTimeout(function () {
+                            scaleMenu.style.animationName = '';
+                        }, 2e3);
                         //hlsplayer.on('hlsMIStatPercentage', function(n, d) { console.log(n, d); });
                     }
                     // 缩略图服务

@@ -3016,6 +3016,7 @@ ABP.Strings = new Proxy({}, {
 			}
 			var message = function (e) {
 				var data = JSON.parse(e.data);
+				console.log(data);
 				if(data.action!=undefined){
 					switch(data.action) {
 						case 'post':
