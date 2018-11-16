@@ -1,30 +1,38 @@
 # 更新日志
 
 ## 1.6.3
+Nov 16th, 2018
 - *修复弹幕发送
 - *哪个猴子写的统计，出来我打死他，关闭网页发送同步xhr诗人？？ ---beforeunload后强制更换[sendBeacon](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon)
 
 ## 1.6.2
+Nov 13th, 2018
 - *改进hls配置
 
 ## 1.6.1
+Nov 11th, 2018
 - *改进自动模式起步记忆
 
 ## 1.6.0
+Nov 10th, 2018
 - +添加hls.js核心并设为默认
 - +默认为自动清晰度
 
 ## 1.5.2
+Oct 30th, 2018
 - +缩略图新任务自动重新加载
 
 ## 1.5.1
+Oct 29th, 2018
 - *换用[DogeCloud](https://www.dogecloud.com/)提供的cdn
 
 ## 1.5.0
+Oct 29th, 2018
 - +部分番剧追加进度条预览
 - *更新flv.js
 
 ## 1.4.4
+Oct 18th, 2018
 - *音量到达100%暂停
 - *chrome添加视频请求ua修改 #35
 
