@@ -180,6 +180,10 @@ function fetchSrcThen(json) {
     switchLang(currentLang);
     if (firstTime) {
         console.log('[AHP] Got source url', srcUrl);
+        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = 'scale-menu-show';
+        setTimeout(function () {
+            abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = '';
+        }, 2e3);
         let contextMenu = abpinst.playerUnit.querySelector('.Context-Menu-Body');
         if (audioLangs.length > 1) {
             let childs = [];
@@ -538,10 +542,6 @@ function init() {
                     else
                         abpinst.title = pageInfo.title + ' - AC' + pageInfo.id;
                     abpinst.playerUnit.addEventListener('sendcomment', sendComment);
-                    abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = 'scale-menu-show';
-                    setTimeout(function () {
-                        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = '';
-                    }, 2e3);
                 } else {
                     dots.stopTimer();
                     createPopup({
