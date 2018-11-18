@@ -862,12 +862,12 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
             } else {
                 pageInfo.vid = pageInfo.video.videos[0].danmakuId;
                 pageInfo.coverImage = pageInfo.video.videos[0].image;
-                pageInfo.title = pageInfo.album.title + ' ' + pageInfo.video.videos[0].episodeName;
+                pageInfo.title = (pageInfo.album.title + ' ' + pageInfo.video.videos[0].episodeName + ' ' + pageInfo.video.videos[0].newTitle).trim();
                 document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}.small .AHP-Player-Container{width:260px;height:147px;margin-top:26px}')]));
             }
             chkInit();
         });
-        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo}}));f.ready();')])).remove();
+        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo}}));setTimeout(function(){f.ready();},0)')])).remove();
         /*
         if (document.getElementById('pageInfo') != null) {
             //普通投稿
