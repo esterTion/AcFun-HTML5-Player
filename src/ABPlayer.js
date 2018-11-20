@@ -2433,10 +2433,15 @@ ABP.Strings = new Proxy({}, {
 				try {
 					var url = canvas.toDataURL();
 					var newWin = window.open('about:blank');
+					try {
 					newWin.onload = function() {
 						newWin.document.title = ABP.Strings.screenshot + ' @ ' + formatTime(video.currentTime) + ' - ' + ABP.Strings[shouldContainComment ? 'screenshotWithComment' : 'screenshotWithoutComment'];
 						newWin.document.body.innerHTML = '<style>body{background:#222;padding:0;margin:0}img{width:100%;height:100%;object-fit:scale-down}</style><img src="'+url+'">';
 						console.log(newWin.document.body)
+					}
+					} catch(e) {
+						//火狐 wtf???
+						newWin.location.href = url;
 					}
 				} catch(e) {
 					console.error(e);
