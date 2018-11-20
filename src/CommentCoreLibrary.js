@@ -1008,8 +1008,8 @@ var CommentManager = (function() {
 		var w=this.width,h=this.height,devicePixelRatio=window.devicePixelRatio;
 		this.canvas.width = this.canvas.offsetWidth * devicePixelRatio;
 		this.canvas.height = this.canvas.offsetHeight * devicePixelRatio;
-		this.ttlRecalcAll();
-		canvasDraw(this);
+        this.ttlRecalcAll();
+        drawForResize = true;
 		
 		}catch(e){
 			console.error('shit happened! forcing CSS! ',e.message);
@@ -1017,19 +1017,12 @@ var CommentManager = (function() {
 			return;
 		}
 	};
-	var cachedMaxBottomLine=0,
-	cachedFixedBottomMaxWidth=0,
-	cachedFixedBottomHeight=0,
-	cachedFixedTopMaxWidth=0,
-	cachedFixedTopHeight=0,
-	canvasDraw=function(cmMgr){
-		//console.log('static call',performance.now())
-	}
+	var drawForResize = false;
 	CommentManager.prototype.canvasDrawer = function(){
 		if(this.options.global.useCSS){
 			return;
 		}
-		if(this.paused){
+		if(this.paused && !drawForResize){
 			requestAnimationFrame(this.canvasDrawerWrapper);
 			return;
 		}
@@ -1127,9 +1120,11 @@ var CommentManager = (function() {
 			switch(cmt.mode){
 				case 1:
 					//scroll
-					cmt.rx += cmt.speed * ( now - cmt.prev ) / 1e3;
-					cmt.prev = now;
-					cmt.x = canvasWidth - cmt.rx;
+					if (!drawForResize) {
+						cmt.rx += cmt.speed * ( now - cmt.prev ) / 1e3;
+						cmt.prev = now;
+						cmt.x = canvasWidth - cmt.rx;
+					}
 					x = (canvasWidth - cmt.rx);
 					y = cmt.y;
 				break;
@@ -1151,7 +1146,8 @@ var CommentManager = (function() {
 			ctx.drawImage(cmt.textData, round(x * devicePixelRatio), round(y * devicePixelRatio));
 		});
 		//this.canvas.style.opacity = this.options.global.opacity;
-		//this.canvas.getContext('2d').putImageData(ctx.getImageData(0, 0, this.canvas.width, this.canvas.height), 0, 0)
+        //this.canvas.getContext('2d').putImageData(ctx.getImageData(0, 0, this.canvas.width, this.canvas.height), 0, 0)
+        drawForResize = false;
 		requestAnimationFrame(this.canvasDrawerWrapper);
 	};
 	var prevMoving=false,ceil=Math.ceil,round=Math.round,colorGetter = function(color){

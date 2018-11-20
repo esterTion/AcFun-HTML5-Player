@@ -478,5 +478,20 @@
     },
     "playerCoreSettingTip": {
         "message": "Need to refresh page after change"
+    },
+    "screenshot": {
+        "message": "Screenshot"
+    },
+	"screenshotWithoutComment": {
+        "message": "Without comments"
+    },
+	"screenshotWithComment": {
+        "message": "With comments"
+    },
+	"screenshotCSSNoSupport": {
+        "message": "CSS rendering is not supported"
+    },
+	"screenshotError": {
+        "message": "Cannot take screenshot due to video source limitation"
     }
 }

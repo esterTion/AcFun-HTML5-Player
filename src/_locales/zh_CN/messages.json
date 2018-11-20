@@ -478,5 +478,20 @@
     },
     "playerCoreSettingTip": {
         "message": "切换后需刷新页面"
+    },
+    "screenshot": {
+        "message": "视频截屏"
+    },
+	"screenshotWithoutComment": {
+        "message": "不含弹幕"
+    },
+	"screenshotWithComment": {
+        "message": "含弹幕"
+    },
+	"screenshotCSSNoSupport": {
+        "message": "css弹幕不支持截图"
+    },
+	"screenshotError": {
+        "message": "视频源限制，无法生成截图"
     }
 }
