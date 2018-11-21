@@ -2396,10 +2396,10 @@ ABP.Strings = new Proxy({}, {
 			},
 			touchContextTimer=null,activingContext=!1;
 			contextMenuBody.querySelector('#Player-Screenshot .dmMenu')[addEventListener]('click',function(e){
-				var shouldContainComment=e.target.dataset.comment;
+				var shouldContainComment = e.target.dataset.comment == 'on';
 				var canvas = _('canvas'), video = ABPInst.video, ctx = canvas.getContext('2d'), devicePixelRatio = window.devicePixelRatio, cmManager = ABPInst.cmManager, paused = video.paused;
 				video.pause();
-				if (shouldContainComment == 'on') {
+				if (shouldContainComment) {
 					if (abpinst.cmManager.options.global.useCSS) {
 						ABPInst.createPopup(ABP.Strings.screenshotCSSNoSupport, 3e3);
 						!paused && video.play();
