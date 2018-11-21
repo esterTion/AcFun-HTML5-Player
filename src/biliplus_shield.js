@@ -343,7 +343,7 @@ var shield = (function () {
 				} else {
 					for (j = 0; j < textList.length; j++) {
 						try {
-							if (textList[j].test(cmt.text))
+							if (cmt.text.match(textList[j]) != null)
 								cmt.isBlocked = !0;
 						} catch (e) {}
 					}
