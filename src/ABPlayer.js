@@ -2677,7 +2677,7 @@ ABP.Strings = new Proxy({}, {
 			ABPInst.btnVolume[addEventListener]('mouseenter',showVolume);
 			ABPInst.barVolumeHitArea[addEventListener]('mouseleave',hideVolume);
 			ABPInst.btnVolume[addEventListener]('mouseleave',hideVolume);
-			ABPInst.barVolume.style.width = (ABPInst.video.volume * 100) + "%";
+			ABPInst.barVolume.style.width = Math.min((ABPInst.video.volume * 100), 100) + "%";
 			var updateVolume = function(volume) {
 				ABPInst.barVolume.style.width = Math.min((volume * 100), 100) + "%";
 				ABPInst.video.muted = false;
