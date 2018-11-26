@@ -747,7 +747,8 @@ ABP.Strings = new Proxy({}, {
 			_('p',{className:'label prop'},[_('text',ABP.Strings.defaultFull),_("div",{id:'setting-defaultFull',className:"prop-checkbox"})]),
 			_('p',{className:'label prop'},[_('text',ABP.Strings.playerTheme +'：'),_("select",{id:'setting-playerTheme',event:{mouseup:function(e){e.stopPropagation();}}},[
 				_('option',{value:'bilibili'},[_('text','BiliBili')]),
-				_('option',{value:'YouTube'},[_('text','YouTube')])
+				_('option',{value:'YouTube'},[_('text','YouTube')]),
+				_('option',{value:'AcFun'},[_('text','AcFun')]),
 			])]),
 			//end
 			])
