@@ -2249,6 +2249,9 @@
 .ABP-Unit[theme="AcFun"] .ABP-Video {
 	bottom:56px; /* 50px base + 6px progressbar */
 }
+.ABP-Unit[theme="AcFun"].ABP-FullScreen .ABP-Video {
+	bottom:0px;
+}
 /*
 .ABP-Unit[theme="AcFun"] .ABP-Video.ABP-HideCursor ~ .ABP-Bottom .ABP-Bottom-Wrapper {
     transform: translateY(44px);
