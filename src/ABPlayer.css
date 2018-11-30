@@ -2244,3 +2244,351 @@
 .ABP-Unit[theme="YouTube"] .ABP-Popup{
 	bottom:74px
 }
+
+
+.ABP-Unit[theme="AcFun"] .ABP-Video {
+	bottom:56px; /* 50px base + 6px progressbar */
+}
+.ABP-Unit[theme="AcFun"].ABP-FullScreen .ABP-Video {
+	bottom:0px;
+}
+/*
+.ABP-Unit[theme="AcFun"] .ABP-Video.ABP-HideCursor ~ .ABP-Bottom .ABP-Bottom-Wrapper {
+    transform: translateY(44px);
+    opacity: 0;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Player .ABP-Bottom:hover .ABP-Bottom-Wrapper {
+	transform: translateY(0);
+	opacity: 1;
+}
+*/
+.ABP-Unit[theme="AcFun"] .ABP-Bottom-Wrapper{
+	height:56px;
+    background: #FFF;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control {
+	bottom: 0;
+    height: 50px;
+    padding: 13px 10px 0;
+	border: none;
+	background:transparent
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button {
+	top: unset;
+  bottom: 5px;
+  font-size: 22px;
+  line-height: 40px;
+  color: #999;
+  fill: #999;
+}
+.ABP-Unit[theme="AcFun"] .button svg {
+	width: 100%
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .progress-bar{
+	background: transparent;
+    border: none;
+    top: 0;
+    left: 0px;
+    right: 0px;
+	width: unset;
+	height: 20px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .progress-bar .bar{
+	background:#000;
+	left: 0px;
+	right: 0px;
+	width: 100%;
+	border-radius: 0;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .progress-bar .bar .load{
+	background:#999
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .progress-bar .dark:before{
+	width:0;
+	height:0;
+	top:3px;
+	right:0;
+	transition:.5s;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .progress-bar:hover .dark:before{
+	top: -3px;
+    right: -6px;
+    width: 12px;
+    height: 12px;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .progress-bar .dark:after{
+	width:0;
+	height:0;
+	right:0;
+	top:3px;
+	transition:.5s;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .progress-bar:hover .dark:after{
+	right: -3px;
+	width: 6px;
+	top:0;
+    height: 6px;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button.ABP-Play{
+	left: 12px;
+	font-size:36px;
+	bottom:6px;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button.ABP-Volume{
+	left:58px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .volume-bar{
+	left: 80px;
+    top: unset;
+    height: 36px;
+    margin-top: 14px;
+    width: 0;
+    transition: .2s width;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .time-label{
+    left: 80px;
+    line-height: 40px;
+    bottom: 6px;
+    height: 40px;
+    color: #999;
+    font-size: 15px;
+	width: 126px;
+	transition:left .2s
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .time-jump{
+	right: unset;
+    left: 90px;
+    line-height: 40px;
+    bottom: 12px;
+    height: 24px;
+    font-size: 16px;
+    width: 104px;
+    transition: left .2s;
+}
+.ABP-Unit.volume-show[theme="AcFun"]:not(.ABP-Mini) .ABP-Control .time-label{
+	left:145px;
+}
+.ABP-Unit.volume-show[theme="AcFun"]:not(.ABP-Mini) .ABP-Control .time-jump{
+	left:155px;
+}
+.ABP-Unit.volume-show[theme="AcFun"]:not(.ABP-Mini) .ABP-Control .volume-bar{
+	width:80px;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button-group{
+	top:unset
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button-group.ABP-FullScreenGroup{
+	right: 10px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button.ABP-Web-FullScreen{
+	background: transparent;
+    opacity: 1;
+    bottom: 3px;
+    outline: none;
+    height: 40px;
+    right: 30px;
+    font-size: 22px;
+    display: block;
+    pointer-events: auto;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button.ABP-CommentListShow{
+	right:70px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button.ABP-Setting{
+	right:100px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button-group.ABP-PlaySpeedGroup{
+	right:130px;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button-group.ABP-CommentGroup{
+	right:160px;
+}
+.ABP-Unit.ABP-Mini[theme="AcFun"] .ABP-Control .button.ABP-Web-FullScreen,
+.ABP-Unit.ABP-FullScreen[theme="AcFun"] .ABP-Control .button.ABP-Web-FullScreen{
+	display:none;
+}
+.ABP-Unit.ABP-FullScreen[theme="AcFun"] .ABP-Control .button.ABP-Setting{
+	right:40px
+}
+.ABP-Unit.ABP-FullScreen[theme="AcFun"] .ABP-Control .button-group.ABP-PlaySpeedGroup{
+	right:100px;
+}
+.ABP-Unit.ABP-FullScreen[theme="AcFun"] .ABP-Control .button-group.ABP-CommentGroup{
+	right:130px;
+}
+.ABP-Unit.ABP-Mini[theme="AcFun"] .ABP-Control .button.ABP-Setting{
+	right:40px
+}
+.ABP-Unit.ABP-Mini[theme="AcFun"] .ABP-Control .button-group.ABP-PlaySpeedGroup{
+	right:70px;
+}
+.ABP-Unit.ABP-Mini[theme="AcFun"] .ABP-Control .button-group.ABP-CommentGroup{
+	right:100px;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button.on{
+	color:#fd4c5b;
+	fill:#fd4c5b;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Control .button:active{
+	background: transparent;
+	outline:none;
+	color:#fd4c5b;
+	fill:#fd4c5b;
+}
+.ABP-Unit[theme="AcFun"] .button:active {
+    outline: solid 1px #bb3742;
+    background-color: #fd4c5b;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Comment-Send, 
+.ABP-Unit[theme="AcFun"] .ABP-Comment-Send:focus, 
+.ABP-Unit[theme="AcFun"] .ABP-Comment-Send:hover,
+.ABP-Unit[theme="AcFun"] .ABP-Comment-Send:active,
+.ABP-Unit[theme="AcFun"] .bar .dark, 
+.ABP-Unit[theme="AcFun"] .bar .dark::after, 
+.ABP-Unit[theme="AcFun"] .bar .load{
+	background: #fd4c5b;
+}
+
+.ABP-Unit[theme="AcFun"] .BiliPlus-Scale-Menu{
+	bottom:70px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Settings,
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List{
+	bottom:56px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Text {
+	z-index: 1;
+    left: 205px;
+    right: 200px;
+    bottom: 10px;
+    height: 30px;
+    border-radius: 10px;
+    background: rgba(255,255,255,.4);
+	border: none;
+	transition:left .2s
+}
+.ABP-Unit.hide-comment[theme="AcFun"] .ABP-Text {
+	display:none
+}
+.ABP-Unit.volume-show[theme="AcFun"]:not(.ABP-Mini) .ABP-Text{
+	left:260px
+}
+.ABP-Unit.ABP-Mini[theme="AcFun"] .ABP-Text {
+	display:none
+}
+.ABP-Unit.ABP-FullScreen[theme="AcFun"] .ABP-Text {
+	right: 170px;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Text .button{
+	line-height:30px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Text .ABP-Comment-FontOption,
+.ABP-Unit[theme="AcFun"] .ABP-Text .ABP-Comment-ColorOption{
+	bottom:32px;
+	left:0
+}
+.ABP-Unit[theme="AcFun"] .ABP-Text .ABP-Comment-Color-Display{
+	display:none
+}
+.ABP-Unit[theme="AcFun"] .ABP-Text input.ABP-Comment-Input{
+	height: calc(100% - 4px);
+    opacity: .7;
+    line-height: 30px;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Text input.ABP-Comment-Input:focus,
+.ABP-Unit[theme="AcFun"] .ABP-Text input.ABP-Comment-Input:hover:not(:disabled){
+	opacity:1
+}
+.ABP-Unit[theme="AcFun"] .ABP-Text .ABP-Comment-Send{
+	height: 100%;
+    border: none;
+    border-radius: 0 5px 5px 0;
+	line-height: 30px;
+	opacity: .8
+}
+.ABP-Unit.has-next[theme="AcFun"] .ABP-Bottom .ABP-Next{
+	left:55px;
+	display:inline;
+}
+.ABP-Unit.has-next[theme="AcFun"] .ABP-Control .button.ABP-Volume{
+	left:88px
+}
+.ABP-Unit.has-next[theme="AcFun"] .ABP-Control .volume-bar{
+	left: 110px;
+}
+.ABP-Unit.has-next[theme="AcFun"] .ABP-Control .time-label{
+    left: 110px;
+}
+.ABP-Unit.has-next[theme="AcFun"] .ABP-Control .time-jump{
+    left: 120px;
+}
+.ABP-Unit.has-next.volume-show[theme="AcFun"]:not(.ABP-Mini) .ABP-Control .time-label{
+	left:175px;
+}
+.ABP-Unit.has-next.volume-show[theme="AcFun"]:not(.ABP-Mini) .ABP-Control .time-jump{
+	left:185px;
+}
+.ABP-Unit.has-next[theme="AcFun"] .ABP-Text {
+	left: 235px;
+}
+.ABP-Unit.volume-show[theme="AcFun"]:not(.ABP-Mini) .ABP-Text{
+	left:290px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Popup{
+	bottom:74px
+}
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Container li, 
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Container li * {
+	height: 29px;
+	line-height: 29px;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Container li * {
+	color: #999;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Container li:hover {
+    background: #f5f5f5;
+}
+
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Title, 
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Title *,
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Title *:hover {
+	height: 32px;
+	line-height: 32px;
+	background: #f5f5f5;
+	border-color: #eee;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Count, 
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Count * {
+	height: 40px;
+	line-height: 40px;
+	background: #FFFFFF;
+	color: #333;
+}
+
+.ABP-Unit[theme="AcFun"] .ABP-Settings .label {
+	font-weight: normal;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Settings .bar {
+	background: #e5e5e5;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Settings .prop-checkbox.on {
+    border-color: #bb3742;
+    background-color: #fff;
+}
+.ABP-Unit[theme="AcFun"] .ABP-Settings .prop-checkbox {
+	border-width: 1px;
+	border-radius: 3px;
+	background-color: #fff;
+}
+
+.ABP-Unit[theme="AcFun"] .ABP-Settings .prop-checkbox.on::after{
+	background-color: #fff;
+	color:#fd4c5b;
+	fill:#fd4c5b;
+	left: -3px;
+	top: -3px;
+	border-radius: 0px;
+	width:unset;
+	height: unset;
+	content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 32 32'%3E%3Cpath fill='rgb(255,76,91)' d='M13 18.25l-1.8-1.8c-.6-.6-1.65-.6-2.25 0s-.6 1.5 0 2.25l2.85 2.85c.318.318.762.468 1.2.448.438.02.882-.13 1.2-.448l8.85-8.85c.6-.6.6-1.65 0-2.25s-1.65-.6-2.25 0l-7.8 7.8zM8 4h16c2.21 0 4 1.79 4 4v16c0 2.21-1.79 4-4 4H8c-2.21 0-4-1.79-4-4V8c0-2.21 1.79-4 4-4z'%3E%3C/path%3E%3C/svg%3E");
+}
