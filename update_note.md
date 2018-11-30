@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.7.0
+Nov 30th, 2018
+- +AcFun主题 [@jiangming1399](https://github.com/jiangming1399)
+
 ## 1.6.4.3
 Nov 21st, 2018
 - *修复弹幕屏蔽
