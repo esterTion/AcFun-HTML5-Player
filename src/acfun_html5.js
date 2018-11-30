@@ -486,7 +486,8 @@ function init() {
             _('select', { id: 'setting-playerCore', event: { mouseup: function (e) { e.stopPropagation(); }, change: function () { saveStorage({ coreMode: this.value }); } } }, [
                 _('option', { value: 'hls' }, [_('text', 'hls.js / hls')]),
                 _('option', { value: 'flv' }, [_('text', 'flv.js / mp4')])
-            ]), _('br'),
+            ]),
+            _('text', ' '), _('a', { href: 'https://github.com/esterTion/AcFun-HTML5-Player/blob/master/player_core.md', target:'_blank' }, [_('text', '？')]), _('br'),
             _('span', { style: { fontSize: '11px' } }, [_('text', _t('playerCoreSettingTip'))])
         ]));
         abpinst.settingPanel.querySelector('#setting-playerCore').value = coreMode;
@@ -565,14 +566,25 @@ function init() {
         }
     });
     readStorage('updateNotifyVer', function (item) {
-        let notVer = '1.6.3';
+        let notVer = '1.7.0';
         if (item.updateNotifyVer != notVer) {
             saveStorage({ 'updateNotifyVer': notVer });
             createPopup({
                 content: [
                     _('p', { style: { fontSize: '16px' } }, [_('text', 'AHP 最近有更新啦！')]),
                     _('div', { style: { whiteSpace: 'pre-wrap' } }, [
-                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\nv1.6.2：\n- 改进hls自动，由720p起步\n\n1.6.3：\n- 修复弹幕发送\n　　（1.6更新后hls模式下发送弹幕失效了，我背锅，对呒住各位）\n- 修复缺b乐辣鸡的关闭网页发送统计数据，真正想关就关")
+                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\nv1.7.0：\n- 全新AcFun主题 "),
+                        _('a', {
+                            href: 'javascript:', style: { textDecoration: 'underline' }, event: {
+                                click: () => {
+                                    let themeSelect = abpinst.settingPanel.querySelector('#setting-playerTheme')
+                                    themeSelect.value = 'AcFun';
+                                    themeSelect.dispatchEvent(new Event('change'));
+                                }
+                            }
+                        }, [_('text', '点此一键切换')]),
+                        _('text', '\n制作：'),
+                        _('a', { href: 'https://github.com/jiangming1399', target: '_blank' }, [_('text', '@jiangming1399')])
                     ])
                 ],
                 showConfirm: false
@@ -805,7 +817,7 @@ function getYkStream(vid) {
 (function () {
     let noticeWidth = Math.min(500, innerWidth - 40);
     document.head.appendChild(_('style', {}, [_('text', `#AHP_Notice{
-position:fixed;left:0;right:0;top:0;height:0;z-index:20000;transition:.5s;cursor:default
+position:fixed;left:0;right:0;top:0;height:0;z-index:20000;transition:.5s;cursor:default;pointer-events:none
 }
 .AHP_down_banner{
 margin:2px;padding:2px;color:#FFFFFF;font-size:13px;font-weight:bold;background-color:green
@@ -822,7 +834,7 @@ body.ABP-FullScreen{
 position:absolute;bottom:0;left:0;right:0;font-size:15px
 }
 #AHP_Notice>div>div{
-    border:1px #AAA solid;width:${noticeWidth}px;margin:0 auto;padding:20px 10px 5px;background:#EFEFF4;color:#000;border-radius:5px;box-shadow:0 0 5px -2px
+    border:1px #AAA solid;width:${noticeWidth}px;margin:0 auto;padding:20px 10px 5px;background:#EFEFF4;color:#000;border-radius:5px;box-shadow:0 0 5px -2px;pointer-events:auto
 }
 #AHP_Notice>div>div *{
     margin:5px 0;

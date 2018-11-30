@@ -18,7 +18,7 @@ var ABP = {
 };
 ABP.Strings = new Proxy({}, {
 	get: function(target, property, receiver) {
-		return _t(property) || (console.warn('[YHP] Undefined translation key', property),property);
+		return _t(property) || (console.warn('[YHP] Undefined translation key', property), property);
   }
 });
 
@@ -693,7 +693,7 @@ ABP.Strings = new Proxy({}, {
 					top:'10px',
 					left:'calc(100% - 20px)'
 				}
-			})]), _("div", {
+			}), _('span',{style:{position:'absolute',right:0,top:'-4px'}},[_('text', ABP.Strings.autoOpacityOff)])]), _("div", {
 				"className": "opacity-bar",
 				style:{
 					width:'calc(100% - 25px)'
