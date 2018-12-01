@@ -1936,7 +1936,7 @@ ABP.Strings = new Proxy({}, {
 			}
 			var density = ABP.playerConfig.density||0;
 			ABPInst.cmManager.options.global.density = density;
-			var theme = ABP.playerConfig.theme||'YouTube'
+			var theme = ABP.playerConfig.theme||'AcFun'
 			playerUnit.setAttribute('theme', theme);
 			(document_querySelector('#setting-playerTheme [value='+theme+']') ||{}).selected=true;
 			playerUnit.querySelector('#setting-playerTheme')[addEventListener]('change',function(){
