@@ -993,76 +993,59 @@ ABP.Strings = new Proxy({}, {
 					if (ABPInst.commentList[a][sort] > ABPInst.commentList[b][sort]) return -order;
 					return 0;
 				});
-				ABPInst.commentObjArray = [];
-				for (i in keysSorted) {
-					var key = keysSorted[i];
-					var comment = ABPInst.commentList[key];
-					if (comment && comment.time) {
-						var commentObj = _("li", {}),
-							commentObjTime = _("span", {
-								"className": "cmt-time"
-							}, [_("text", formatTime(comment.time / 1000))]),
-							commentObjContent = _("span", {
-								"className": "cmt-content"
-							}, [_("text", comment.content)]),
-							commentObjDate = _("span", {
-								"className": "cmt-date"
-							}, [_("text", formatDate(comment.date, true))]);
-						hoverTooltip(commentObjContent, false, 36);
-						hoverTooltip(commentObjDate, false, 18);
-						commentObjContent.tooltip(comment.content);
-						commentObjDate.tooltip(formatDate(comment.date));
-						commentObj.appendChild(commentObjTime);
-						commentObj.appendChild(commentObjContent);
-						commentObj.appendChild(commentObjDate);
-						commentObj.data = comment;
-						commentObj.originalData=comment.originalData;
-						if(comment.mode==8){
-							commentObj.style.background='#ffe100';
-						}else if(comment.pool!=0){
-							commentObj.style.background='#20ff20';
-						}
-						commentObj[addEventListener]("dblclick", function(e) {
-							ABPInst.video.currentTime = this.data.time / 1000;
-							updateTime(video.currentTime);
-						});
-						ABPInst.commentObjArray.push(commentObj);
-					}
-				}
+				ABPInst.commentObjArray = keysSorted;
 				ABPInst.commentListContainer.style.height = ABPInst.commentObjArray.length * 24 + "px";
 				ABPInst.renderCommentList();
-				ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').textContent=ABPInst.commentObjArray.length;
+				ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').textContent = ABPInst.commentObjArray.length;
 			},
 			renderCommentList: function() {
 				var offset = ABPInst.commentListContainer.parentElement.scrollTop,
 					firstIndex = parseInt(offset / 24);
 				ABPInst.commentListContainer.textContent = "";
 				for (var i = firstIndex; i <= firstIndex + 40; i++) {
-					if (typeof ABPInst.commentObjArray[i] !== "undefined") {
-						if (i == firstIndex && i > 0) {
-							var commentObj = ABPInst.commentObjArray[i].cloneNode(true),
-								commentObjContent = commentObj.getElementsByClassName("cmt-content")[0],
-								commentObjDate = commentObj.getElementsByClassName("cmt-date")[0];
-							commentObj[addEventListener]("dblclick", function(e) {
-								ABPInst.video.currentTime = ABPInst.commentObjArray[i].data.time / 1000;
-								updateTime(video.currentTime);
-							});
+					if (typeof ABPInst.commentList[ABPInst.commentObjArray[i]] !== "undefined") {
+						var comment = ABPInst.commentList[ABPInst.commentObjArray[i]];
+						if (comment && comment.time) {
+							var commentObj = _("li", {}),
+								commentObjTime = _("span", {
+									"className": "cmt-time"
+								}, [_("text", formatTime(comment.time / 1000))]),
+								commentObjContent = _("span", {
+									"className": "cmt-content"
+								}, [_("text", comment.content)]),
+								commentObjDate = _("span", {
+									"className": "cmt-date"
+								}, [_("text", formatDate(comment.date, true))]);
 							hoverTooltip(commentObjContent, false, 36);
 							hoverTooltip(commentObjDate, false, 18);
-							commentObjContent.tooltip(ABPInst.commentObjArray[i].data.content);
-							commentObjDate.tooltip(formatDate(ABPInst.commentObjArray[i].data.date));
-							commentObj.style.paddingTop = 24 * firstIndex + "px";
-						} else {
-							var commentObj = ABPInst.commentObjArray[i];
+							commentObjContent.tooltip(comment.content);
+							commentObjDate.tooltip(formatDate(comment.date));
+							commentObj.appendChild(commentObjTime);
+							commentObj.appendChild(commentObjContent);
+							commentObj.appendChild(commentObjDate);
+							commentObj.data = comment;
+							commentObj.originalData=comment.originalData;
+							if(comment.mode==8){
+								commentObj.style.background='#ffe100';
+							}else if(comment.pool!=0){
+								commentObj.style.background='#20ff20';
+							}
+							commentObj[addEventListener]("dblclick", function(e) {
+								ABPInst.video.currentTime = this.data.time / 1000;
+								updateTime(video.currentTime);
+							});
+							if (i == firstIndex && i > 0) {
+								commentObj.style.paddingTop = 24 * firstIndex + "px";
+							}
+							if(comment.originalData.isBlocked){
+								commentObjTime.className='cmt-time blocked';
+								commentObjTime.title=ABP.Strings.blockMatch+comment.originalData.blockReason;
+							}else{
+								commentObjTime.className='cmt-time';
+								commentObjTime.title='';
+							}
+							ABPInst.commentListContainer.appendChild(commentObj);
 						}
-						if(ABPInst.commentObjArray[i].data.originalData.isBlocked){
-							ABPInst.commentObjArray[i].childNodes[0].className='cmt-time blocked';
-							ABPInst.commentObjArray[i].childNodes[0].title=ABP.Strings.blockMatch+ABPInst.commentObjArray[i].data.originalData.blockReason;
-						}else{
-							ABPInst.commentObjArray[i].childNodes[0].className='cmt-time';
-							ABPInst.commentObjArray[i].childNodes[0].title='';
-						}
-						ABPInst.commentListContainer.appendChild(commentObj);
 					} else {
 						break;
 					}
@@ -3121,34 +3104,7 @@ ABP.Strings = new Proxy({}, {
 							ABPInst.cmManager.insert(danmaku);
 							shield.shield();
 							ABPInst.commentList[danmaku.dbid] = comment;
-							var commentObj = _("li", {}),
-								commentObjTime = _("span", {
-									"className": "cmt-time"
-								}, [_("text", formatTime(comment.time / 1000))]),
-								commentObjContent = _("span", {
-									"className": "cmt-content"
-								}, [_("text", comment.content)]),
-								commentObjDate = _("span", {
-									"className": "cmt-date"
-								}, [_("text", formatDate(comment.date, true))]);
-							hoverTooltip(commentObjContent, false, 36);
-							hoverTooltip(commentObjDate, false, 18);
-							commentObjContent.tooltip(comment.content);
-							commentObjDate.tooltip(formatDate(comment.date));
-							commentObj.appendChild(commentObjTime);
-							commentObj.appendChild(commentObjContent);
-							commentObj.appendChild(commentObjDate);
-							commentObj.data = comment;
-							if(danmaku.code!=undefined){
-								commentObj.style.background='#ffe100';
-							}else if(danmaku.pool!=0){
-								commentObj.style.background='#20ff20';
-							}
-							commentObj[addEventListener]("dblclick", function(e) {
-								ABPInst.video.currentTime = this.data.time / 1000;
-								updateTime(video.currentTime);
-							});
-							ABPInst.commentObjArray.push(commentObj);
+							ABPInst.commentObjArray.push(danmaku.dbid);
 							var commentListContainer=ABPInst.commentListContainer,scroll=!1;
 							if( commentListContainer.parentNode.scrollTop+commentListContainer.parentNode.offsetHeight == commentListContainer.scrollHeight ){
 								scroll=!0;

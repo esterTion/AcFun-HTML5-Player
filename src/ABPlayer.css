@@ -2564,6 +2564,9 @@
 	background: #FFFFFF;
 	color: #333;
 }
+.ABP-Unit[theme="AcFun"] .ABP-Comment-List .ABP-Comment-List-Container {
+	height: calc(100% - 72px)
+}
 
 .ABP-Unit[theme="AcFun"] .ABP-Settings .label {
 	font-weight: normal;

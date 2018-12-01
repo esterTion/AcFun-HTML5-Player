@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.7.1
+Dec 1st, 2018
+- *优化弹幕载入性能
+
 ## 1.7.0
 Nov 30th, 2018
 - +AcFun主题 [@jiangming1399](https://github.com/jiangming1399)
