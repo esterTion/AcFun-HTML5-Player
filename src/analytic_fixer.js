@@ -1,5 +1,13 @@
 let script = document.createElement('script');
 script.textContent = '(' + (function () {
+  if ([
+    /acfun\.cn\/v\//,
+    /acfun\.cn\/bangumi\//,
+    /hapame\.com\/video\//
+  ].find(i => i.test(location.href))) {
+    console.log('[AHP] 假装有flash');
+    navigator.mimeTypes["application/x-shockwave-flash"] = navigator.mimeTypes["application/x-shockwave-flash"] || [];
+  }
   window.addEventListener('beforeunload', function () {
     XMLHttpRequest = function () {
       return {

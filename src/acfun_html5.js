@@ -446,7 +446,7 @@ function init() {
     dest.remove();
     let blob = new Blob(['<!DOCTYPE HTML><html><head><meta charset="UTF-8"><style>html,body{height:100%;width:100%;margin:0;padding:0}</style><link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL('ABPlayer.css') + '"></head><body></body></html>'], { type: 'text/html' });
     let bloburl = URL.createObjectURL(blob);
-    window.playerIframe = container.appendChild(_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl, allow: 'fullscreen; autoplay' }));
+    window.playerIframe = container.appendChild(_('div', { style: { width: '100%', height: '100%' } }, [_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl, allow: 'fullscreen; autoplay' })])).children[0];
     playerIframe.onload = function () {
         URL.revokeObjectURL(bloburl);
         try {
@@ -487,7 +487,7 @@ function init() {
                 _('option', { value: 'hls' }, [_('text', 'hls.js / hls')]),
                 _('option', { value: 'flv' }, [_('text', 'flv.js / mp4')])
             ]),
-            _('text', ' '), _('a', { href: 'https://github.com/esterTion/AcFun-HTML5-Player/blob/master/player_core.md', target:'_blank' }, [_('text', '？')]), _('br'),
+            _('text', ' '), _('a', { href: 'https://github.com/esterTion/AcFun-HTML5-Player/blob/master/player_core.md', target: '_blank' }, [_('text', '？')]), _('br'),
             _('span', { style: { fontSize: '11px' } }, [_('text', _t('playerCoreSettingTip'))])
         ]));
         abpinst.settingPanel.querySelector('#setting-playerCore').value = coreMode;
@@ -558,7 +558,7 @@ function init() {
                 });
             });
     };
-    container.style.position = 'relative';
+    playerIframe.parentNode.style.position = 'relative';
     resizeSensor(playerIframe.parentNode, function () {
         window.dispatchEvent(new Event('resize'));
         if (!playerIframe.parentNode.classList.contains('small')) {
@@ -870,12 +870,12 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
             };
             if (document.getElementById('pageInfo') != null) {
                 pageInfo.vid = pageInfo.videoId;
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:260px;height:147px;margin-top:26px}')]));
+                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
             } else {
                 pageInfo.vid = pageInfo.video.videos[0].danmakuId;
                 pageInfo.coverImage = pageInfo.video.videos[0].image;
                 pageInfo.title = (pageInfo.album.title + ' ' + pageInfo.video.videos[0].episodeName + ' ' + pageInfo.video.videos[0].newTitle).trim();
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}.small .AHP-Player-Container{width:260px;height:147px;margin-top:26px}')]));
+                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
             }
             chkInit();
         });
