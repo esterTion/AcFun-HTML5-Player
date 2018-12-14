@@ -143,6 +143,9 @@
     "commentDate": {
         "message": "發送日期"
     },
+	"blockMatch":{
+        "message": "命中規則："
+    },
     "showStats": {
         "message": "顯示統計資訊"
     },
@@ -493,5 +496,8 @@
     },
     "screenshotError": {
         "message": "視頻源限制，無法生成截圖"
+    },
+    "chromeAutoPlay": {
+        "message": "自動播放被阻止，請點擊開始播放"
     }
 }

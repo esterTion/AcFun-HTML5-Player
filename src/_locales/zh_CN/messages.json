@@ -143,6 +143,9 @@
     "commentDate": {
         "message": "发送日期"
     },
+	"blockMatch":{
+        "message": "命中规则："
+    },
     "showStats": {
         "message": "显示统计信息"
     },

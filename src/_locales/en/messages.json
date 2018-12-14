@@ -143,6 +143,9 @@
     "commentDate": {
         "message": "Send date"
     },
+	"blockMatch":{
+        "message": "Hit rule："
+    },
     "showStats": {
         "message": "Show playback statstics"
     },
@@ -493,5 +496,8 @@
     },
 	"screenshotError": {
         "message": "Cannot take screenshot due to video source limitation"
+    },
+    "chromeAutoPlay": {
+        "message": "Sound playback denied, click webpage to resume"
     }
 }
