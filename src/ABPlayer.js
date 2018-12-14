@@ -2466,7 +2466,7 @@ ABP.Strings = new Proxy({}, {
 			var saveConfigurations = function() {
 				if (ABPInst.inited)
 				saveStorage({PlayerSettings:{
-					volume: ABPInst.video.volume,
+					volume: Math.min(ABPInst.video.volume, 1),
 					opacity: ABPInst.cmManager.options.global.opacity,
 					scale: ABPInst.commentScale,
 					speed: ABPInst.commentSpeed,
