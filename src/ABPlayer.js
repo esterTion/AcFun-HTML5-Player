@@ -890,6 +890,10 @@ ABP.Strings = new Proxy({}, {
 	window.crc_engine=new BiliBili_midcrc();
 
 	ABP.bind = function(playerUnit, state) {
+		var commentDblClickListener = function(e) {
+			ABPInst.video.currentTime = this.data.time / 1000;
+			updateTime(video.currentTime);
+		};
 		var ABPInst = {
 			playerUnit: playerUnit,
 			btnPlay: null,
@@ -955,36 +959,31 @@ ABP.Strings = new Proxy({}, {
 				settingsShow: false
 			}),
 			createPopup: function(text, delay) {
-				if (playerUnit.hasPopup === true)
-					return false;
+				if ((delay|0) <= 0) delay = 5e3;
 				var p = _("div", {
 					"className": "ABP-Popup"
 				}, [_("text", text)]);
-				p.remove = function() {
-					if (p.isRemoved) return;
-					p.isRemoved = true;
-					playerUnit.removeChild(p);
-					playerUnit.hasPopup = false;
-				};
+				p.bottom=0;
 				playerUnit.appendChild(p);
-				playerUnit.hasPopup = true;
 				if (typeof delay === "number") {
 					setTimeout(function() {
 						p.remove();
 					}, delay);
 				}
+				var prev = playerUnit.getElementsByClassName("ABP-Popup");
+				for (var i=0;i<prev.length;i++) {
+					prev[i] != p && (
+						prev[i].bottom += p.offsetHeight + 10,
+						prev[i].style.transform = 'translateY(-'+prev[i].bottom+'px)'
+					);
+				}
 				return p;
 			},
 			removePopup: function() {
 				var pops = playerUnit.getElementsByClassName("ABP-Popup");
-				for (var i = 0; i < pops.length; i++) {
-					if (pops[i].remove != null) {
-						pops[i].remove();
-					} else {
-						pops[i].parentNode.removeChild(pops[i]);
-					}
+				for (var i = pops.length - 1; i >= 0; i--) {
+					pops[i].remove();
 				}
-				playerUnit.hasPopup = false;
 			},
 			loadCommentList: function(sort, order) {
 				order = order == "asc" ? -1 : 1;
@@ -1006,8 +1005,7 @@ ABP.Strings = new Proxy({}, {
 					if (typeof ABPInst.commentList[ABPInst.commentObjArray[i]] !== "undefined") {
 						var comment = ABPInst.commentList[ABPInst.commentObjArray[i]];
 						if (comment && comment.time) {
-							var commentObj = _("li", {}),
-								commentObjTime = _("span", {
+							var commentObjTime = _("span", {
 									"className": "cmt-time"
 								}, [_("text", formatTime(comment.time / 1000))]),
 								commentObjContent = _("span", {
@@ -1015,14 +1013,12 @@ ABP.Strings = new Proxy({}, {
 								}, [_("text", comment.content)]),
 								commentObjDate = _("span", {
 									"className": "cmt-date"
-								}, [_("text", formatDate(comment.date, true))]);
+								}, [_("text", formatDate(comment.date, true))]),
+								commentObj = _("li", { event: {dblclick: commentDblClickListener}}, [commentObjTime, commentObjContent, commentObjDate]);
 							hoverTooltip(commentObjContent, false, 36);
 							hoverTooltip(commentObjDate, false, 18);
 							commentObjContent.tooltip(comment.content);
 							commentObjDate.tooltip(formatDate(comment.date));
-							commentObj.appendChild(commentObjTime);
-							commentObj.appendChild(commentObjContent);
-							commentObj.appendChild(commentObjDate);
 							commentObj.data = comment;
 							commentObj.originalData=comment.originalData;
 							if(comment.mode==8){
@@ -1030,10 +1026,6 @@ ABP.Strings = new Proxy({}, {
 							}else if(comment.pool!=0){
 								commentObj.style.background='#20ff20';
 							}
-							commentObj[addEventListener]("dblclick", function(e) {
-								ABPInst.video.currentTime = this.data.time / 1000;
-								updateTime(video.currentTime);
-							});
 							if (i == firstIndex && i > 0) {
 								commentObj.style.paddingTop = 24 * firstIndex + "px";
 							}
@@ -1881,13 +1873,17 @@ ABP.Strings = new Proxy({}, {
 				var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 				// 移动设备处理
 				if (audioCtx.state == 'suspended')
-				var pop = (window.addEventListener('touchstart', function temp() {
-					audioCtx.resume().then(function () {window.removeEventListener('touchstart', temp); pop.remove();});
-				}), window.addEventListener('mousedown', function temp() {
-					audioCtx.resume().then(function () {window.removeEventListener('mousedown', temp); pop.remove();});
-				}), playerIframe.contentWindow.addEventListener('mousedown', function temp() {
-					audioCtx.resume().then(function () {playerIframe.contentWindow.removeEventListener('mousedown', temp); pop.remove();});
-				}), ABPInst.createPopup(_t('chromeAutoPlay')));
+				var audioCtxResumer = function temp() {
+					audioCtx.resume().then(function () {
+						window.removeEventListener('touchstart', temp);
+						window.removeEventListener('mousedown', temp);
+						playerIframe.contentWindow.removeEventListener('mousedown', temp);
+						pop.remove();
+					});
+				}, pop = (window.addEventListener('touchstart', audioCtxResumer),
+					window.addEventListener('mousedown', audioCtxResumer),
+					playerIframe.contentWindow.addEventListener('mousedown', audioCtxResumer),
+					ABPInst.createPopup(_t('chromeAutoPlay'), 6e4));
 				var gainNode = audioCtx.createGain();
 				var source = audioCtx.createMediaElementSource(ABPInst.video);
 				source.connect(gainNode);
@@ -3109,6 +3105,7 @@ ABP.Strings = new Proxy({}, {
 							if( commentListContainer.parentNode.scrollTop+commentListContainer.parentNode.offsetHeight == commentListContainer.scrollHeight ){
 								scroll=!0;
 							}
+							ABPInst.commentListContainer.style.height = ABPInst.commentObjArray.length * 24 + "px";
 							ABPInst.renderCommentList();
 							if(scroll)commentListContainer.parentNode.scrollTop+=24;
 							ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').textContent=ABPInst.commentObjArray.length;

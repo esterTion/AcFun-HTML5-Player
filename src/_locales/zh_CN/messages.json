@@ -496,5 +496,8 @@
     },
 	"screenshotError": {
         "message": "视频源限制，无法生成截图"
+    },
+    "chromeAutoPlay": {
+        "message": "自动播放被阻止，请点击开始播放"
     }
 }
