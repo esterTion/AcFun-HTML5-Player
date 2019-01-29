@@ -499,5 +499,8 @@
     },
     "chromeAutoPlay": {
         "message": "自动播放被阻止，请点击开始播放"
+    },
+    "commentLoadPagesSetting": {
+        "message": "加载弹幕数："
     }
 }

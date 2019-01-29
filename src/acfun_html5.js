@@ -382,8 +382,12 @@ function parseComment(data) {
     data[2].forEach(itemParse);
     abpinst.cmManager.load(list);
 }
+let commentLoadPages = 12;
+readStorage('commentLoadPages', function (item) {
+    commentLoadPages = (item.commentLoadPages | 0) || 12;
+});
 function loadCommentBySize(data) {
-    for (let i = 1, page = Math.ceil((data[1] + data[2]) / 1e3); i <= page && i <= 12; i++) {
+    for (let i = 1, page = Math.ceil((data[1] + data[2]) / 1e3); i <= page && i <= commentLoadPages; i++) {
         fetch('http://danmu.aixifan.com/V2/' + pageInfo.vid + '?pageSize=1000&pageNo=' + i, {
             method: 'GET',
             credentials: 'include',
@@ -480,6 +484,21 @@ function init() {
         });
         dots.runTimer();
 
+        // 弹幕页数设置
+        abpinst.settingPanel.firstChild.lastChild.appendChild(_('p', { className: 'label prop' }, [
+            _('text', _t('commentLoadPagesSetting')),
+            _('select', { id: 'setting-commentLoadPages', event: { mouseup: function (e) { e.stopPropagation(); }, change: function () { saveStorage({ commentLoadPages: this.value }); } } }, [
+                _('option', { value: '3' }, [_('text', '3')]),
+                _('option', { value: '5' }, [_('text', '5')]),
+                _('option', { value: '8' }, [_('text', '8')]),
+                _('option', { value: '10' }, [_('text', '10')]),
+                _('option', { value: '12' }, [_('text', '12')]),
+                _('option', { value: '15' }, [_('text', '15')]),
+                _('option', { value: '20' }, [_('text', '20')])
+            ]),
+            _('text', ' k')
+        ]));
+        abpinst.settingPanel.querySelector('#setting-commentLoadPages').value = commentLoadPages;
         // 播放核心设置
         abpinst.settingPanel.firstChild.lastChild.appendChild(_('p', { className: 'label prop' }, [
             _('text', _t('playerCoreSetting')),

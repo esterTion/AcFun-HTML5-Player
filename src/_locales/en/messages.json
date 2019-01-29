@@ -499,5 +499,8 @@
     },
     "chromeAutoPlay": {
         "message": "Sound playback denied, click webpage to resume"
+    },
+    "commentLoadPagesSetting": {
+        "message": "Load comments up to "
     }
 }

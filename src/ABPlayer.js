@@ -936,6 +936,7 @@ ABP.Strings = new Proxy({}, {
 			cmManager: null,
 			commentList: null,
 			commentListContainer: null,
+			commentObjMap: {},
 			lastSelectedComment: null,
 			commentCoolDown: 2000,
 			commentScale: ABP.playerConfig.scale ? ABP.playerConfig.scale : 1,
@@ -998,40 +999,48 @@ ABP.Strings = new Proxy({}, {
 				ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').textContent = ABPInst.commentObjArray.length;
 			},
 			renderCommentList: function() {
+				if (!ABPInst.commentObjArray) return;
 				var offset = ABPInst.commentListContainer.parentElement.scrollTop,
 					firstIndex = parseInt(offset / 24);
 				ABPInst.commentListContainer.textContent = "";
 				for (var i = firstIndex; i <= firstIndex + 40; i++) {
-					if (typeof ABPInst.commentList[ABPInst.commentObjArray[i]] !== "undefined") {
-						var comment = ABPInst.commentList[ABPInst.commentObjArray[i]];
+					var commentId = ABPInst.commentObjArray[i];
+					if (typeof ABPInst.commentList[commentId] !== "undefined") {
+						var comment = ABPInst.commentList[commentId];
 						if (comment && comment.time) {
-							var commentObjTime = _("span", {
-									"className": "cmt-time"
-								}, [_("text", formatTime(comment.time / 1000))]),
-								commentObjContent = _("span", {
-									"className": "cmt-content"
-								}, [_("text", comment.content)]),
-								commentObjDate = _("span", {
-									"className": "cmt-date"
-								}, [_("text", formatDate(comment.date, true))]),
-								commentObj = _("li", { event: {dblclick: commentDblClickListener}}, [commentObjTime, commentObjContent, commentObjDate]);
-							hoverTooltip(commentObjContent, false, 36);
-							hoverTooltip(commentObjDate, false, 18);
-							commentObjContent.tooltip(comment.content);
-							commentObjDate.tooltip(formatDate(comment.date));
-							commentObj.data = comment;
-							commentObj.originalData=comment.originalData;
-							if(comment.mode==8){
-								commentObj.style.background='#ffe100';
-							}else if(comment.pool!=0){
-								commentObj.style.background='#20ff20';
+							if (ABPInst.commentObjMap[commentId]) {
+								var commentObj = ABPInst.commentObjMap[commentId],
+								commentObjTime = commentObj.children[0];
+							} else {
+								var commentObjTime = _("span", {
+										"className": "cmt-time"
+									}, [_("text", formatTime(comment.time / 1000))]),
+									commentObjContent = _("span", {
+										"className": "cmt-content"
+									}, [_("text", comment.content)]),
+									commentObjDate = _("span", {
+										"className": "cmt-date"
+									}, [_("text", formatDate(comment.date, true))]),
+									commentObj = _("li", { event: {dblclick: commentDblClickListener}}, [commentObjTime, commentObjContent, commentObjDate]);
+								hoverTooltip(commentObjContent, false, 36);
+								hoverTooltip(commentObjDate, false, 18);
+								commentObjContent.tooltip(comment.content);
+								commentObjDate.tooltip(formatDate(comment.date));
+								commentObj.data = comment;
+								commentObj.originalData=comment.originalData;
+								if (comment.mode==8) {
+									commentObj.style.background='#ffe100';
+								} else if (comment.pool!=0) {
+									commentObj.style.background='#20ff20';
+								}
+								ABPInst.commentObjMap[commentId] = commentObj;
 							}
 							if (i == firstIndex && i > 0) {
 								commentObj.style.paddingTop = 24 * firstIndex + "px";
 							}
 							if(comment.originalData.isBlocked){
 								commentObjTime.className='cmt-time blocked';
-								commentObjTime.title=ABP.Strings.blockMatch+comment.originalData.blockReason;
+								commentObjTime.title = ABP.Strings.blockMatch + comment.originalData.blockReason;
 							}else{
 								commentObjTime.className='cmt-time';
 								commentObjTime.title='';
@@ -2056,7 +2065,9 @@ ABP.Strings = new Proxy({}, {
 						clearTimeout(timeoutPause);
 					else
 						ABPInst.btnPlay.click();
+					lastClick = 0;
 				}else{
+					lastClick=now;
 					if(autoPlayFailed){
 						ABPInst.btnPlay.click();
 						autoPlayFailed=false;
@@ -2065,7 +2076,6 @@ ABP.Strings = new Proxy({}, {
 						ABPInst.btnPlay.click();
 					},250);
 				}
-				lastClick=now;
 				e.preventDefault();
 			};
 			ABPInst.videoDiv[addEventListener]("click", videoDivClickEventListener);
@@ -2277,20 +2287,18 @@ ABP.Strings = new Proxy({}, {
 				e.preventDefault();
 			},
 			commentLocating=function(id){
-				var i=0,found=-1
-				for(var i=0,len=ABPInst.commentObjArray.length;i<len;i++){
-					if(ABPInst.commentObjArray[i].data.originalData.dbid == id){
-						found=i;
-						break;
-					}
+				var idx = ABPInst.commentObjArray.indexOf(id);
+				if (idx === -1) return;
+				if(ABPInst.state.fullscreen) ABPInst.btnFull.click();
+				if(ABPInst.state.widescreen) ABPInst.btnWide.click();
+				if (!ABPInst.state.commentListShow) {
+					ABPInst.btnCmtListShow.click();
+					setTimeout(function () {
+						ABPInst.commentListContainer.parentNode.scrollTop = idx * 24;
+					}, 100);
+				} else {
+					ABPInst.commentListContainer.parentNode.scrollTop = idx * 24;
 				}
-				if(found==-1)
-					return;
-				if(ABPInst.state.fullscreen)
-					ABPInst.btnFull.click();
-				if(ABPInst.state.widescreen)
-					ABPInst.btnWide.click();
-				ABPInst.commentListContainer.parentNode.scrollTop=found*24;
 			},
 			senderInfoTimeout=null,senderInfoDivTimeout=null,currentSender=0,currentSenderDiv=null,
 			senderInfoCache={},

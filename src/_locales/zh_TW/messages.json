@@ -499,5 +499,8 @@
     },
     "chromeAutoPlay": {
         "message": "自動播放被阻止，請點擊開始播放"
+    },
+    "commentLoadPagesSetting": {
+        "message": "載入彈幕數："
     }
 }
