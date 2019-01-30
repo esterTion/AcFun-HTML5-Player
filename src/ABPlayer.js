@@ -1037,6 +1037,8 @@ ABP.Strings = new Proxy({}, {
 							}
 							if (i == firstIndex && i > 0) {
 								commentObj.style.paddingTop = 24 * firstIndex + "px";
+							} else if (commentObj.style.paddingTop) {
+								commentObj.style.paddingTop = '';
 							}
 							if(comment.originalData.isBlocked){
 								commentObjTime.className='cmt-time blocked';
