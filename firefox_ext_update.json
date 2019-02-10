@@ -3,8 +3,8 @@
     "acfun-player@estertion": {
       "updates": [
         {
-          "version": "1.7.5",
-          "update_link": "https://estertion.github.io/AcFun-HTML5-Player/signed.xpi?ver=1.7.5",
+          "version": "1.7.5.2",
+          "update_link": "https://estertion.github.io/AcFun-HTML5-Player/signed.xpi?ver=1.7.5.2",
           "applications": {
             "gecko": {
               "strict_min_version": "57.0"
