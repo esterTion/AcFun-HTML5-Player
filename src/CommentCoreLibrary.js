@@ -239,6 +239,9 @@ var CoreComment = (function () {
         if (init.hasOwnProperty("text")) {
             this.text = init["text"];
         }
+        if (init.hasOwnProperty("filteredText")) {
+            this.text = init["filteredText"];
+        }
         if (init.hasOwnProperty("motion")) {
             this._motionStart = [];
             this._motionEnd = [];

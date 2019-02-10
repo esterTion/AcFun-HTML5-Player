@@ -292,7 +292,10 @@ var shield = (function () {
 						return false;
 				}
 			}*/
-			if (cm.isBlocked) {
+			delete cm.filteredText;
+			if (cm.isRepeat && cm.isFirstRepeat) {
+				cm.filteredText = cm.text + ' (x' + cm.repeatCount + ')';
+			} else if (cm.isBlocked) {
 				return false;
 			}
 			if (!cm.filtered) {
@@ -305,47 +308,76 @@ var shield = (function () {
 		shield: function () {
 			if (playerInstance == null)
 				return false;
-			var cm = playerInstance.cmManager.timeline, clean = [], i = 0, j, textList = [], len = cm.length, set = {}, onScreen = playerInstance.cmManager.runline, cmt;
+			var cm = playerInstance.cmManager.timeline, clean = [], i = 0, j, textList = [], len = cm.length, onScreen = playerInstance.cmManager.runline, cmt, mergedTimeline = {};
 			if (limit > 0) {
 				for (;i < len; i++) {
 					try {
-					clean.push(cm[i].text.replace(danmakuMatcher, ''));
-					} catch (e) {}
+						clean.push(cm[i].text.replace(danmakuMatcher, ''))
+					} catch (e) {
+						clean.push('')
+					}
 				}
-				var sta = 0, end = sta, count = {};
-				while (end != len) {
-					while (cm[sta].stime + 1e4 < cm[end].stime) {
-						if (--count[clean[sta]] == 0) {
-							delete count[clean[sta]];
+				for (i = 0; i < len; i++) {
+					if (cm[i].mode > 6) continue;
+					var wordSet = mergedTimeline[clean[i]];
+					if (!wordSet) {
+						mergedTimeline[clean[i]] = [[cm[i].stime, cm[i].stime, 1, i]];
+					} else {
+						var lastRange = wordSet[wordSet.length - 1], delta = cm[i].stime - lastRange[1];
+						if (delta >= 10000) {
+							wordSet.push([cm[i].stime, cm[i].stime, 1, i]);
+						} else {
+							lastRange[1] = cm[i].stime;
+							lastRange[2]++;
 						}
-						++sta;
 					}
-					if (count[clean[end]] == undefined)
-						count[clean[end]] = 0;
-					if (++count[clean[end]] > limit && cm[end].mode <= 6) {
-						set[clean[end]] = 1;
-					}
-					++end;
 				}
 			}
 			for (j = 0; j < list.text.length; j++) {
 				textList.push(useReg ? new RegExp(list.text[j]) : list.text[j]);
 			}
+			var shouldBlockRepeat = function (ranges, cmt) {
+				for (var i = 0; i < ranges.length; i++) {
+					if (cmt.stime > ranges[i][1]) continue;
+					return ranges[i][2] >= limit ? ranges[i] : false;
+				}
+				return false;
+			}
 			for (i = 0; i < len; i++) {
 				cmt = cm[i];
-				cmt.isBlocked = !1;
-				if (set[clean[i]] != undefined 
-				|| list.color.indexOf(cmt.color) != -1 
-				|| list.user.indexOf(cmt.hash) != -1 
-				|| list.mode.indexOf(cmt.mode) != -1 
-				|| (list.visitor && isVisitor(cmt.hash))) {
+				cmt.isBlocked = false;
+				cmt.isRepeat = false;
+				var repeatRange;
+				if (cmt.mode <= 6 && mergedTimeline[clean[i]] && (repeatRange = shouldBlockRepeat(mergedTimeline[clean[i]], cmt))) {
 					cmt.isBlocked = !0;
+					cmt.isRepeat = true;
+					cmt.isFirstRepeat = false;
+					if (repeatRange[3] === i) {
+						cmt.isFirstRepeat = true;
+						cmt.repeatCount = repeatRange[2];
+					};
+					cmt.blockReason = '重复弹幕';
+				} else if (list.color.indexOf(cmt.color) != -1) {
+					cmt.isBlocked = !0;
+					cmt.blockReason = '颜色';
+				} else if (list.user.indexOf(cmt.hash) != -1) {
+					cmt.isBlocked = !0;
+					cmt.blockReason = '用户';
+				} else if (list.mode.indexOf(cmt.mode) != -1) {
+					cmt.isBlocked = !0;
+					cmt.blockReason = '位置';
+				} else if ((list.visitor && isVisitor(cmt.hash))) {
+					cmt.isBlocked = !0;
+					cmt.blockReason = '游客';
 				} else {
 					for (j = 0; j < textList.length; j++) {
 						try {
-							if (cmt.text.match(textList[j]) != null)
+							if (cmt.text.match(textList[j]) != null) {
 								cmt.isBlocked = !0;
-						} catch (e) {}
+								cmt.blockReason = textList[j];
+								break;
+							}
+						} catch (e) { }
 					}
 				}
 			}
