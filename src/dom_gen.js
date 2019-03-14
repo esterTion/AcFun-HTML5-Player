@@ -35,9 +35,11 @@ let _ = function (type, props, children) {
 
 let isChrome = /chrome/i.test(navigator.userAgent);
 let _t = function (s) { return chrome.i18n.getMessage(s) };
-let firefoxVer = 0;
+let firefoxVer = 0, chromeVer = 0;
 if (!isChrome) {
     firefoxVer = (navigator.userAgent.match(/Firefox\/(\d+)/) || [, 0])[1];
+} else {
+    chromeVer = (navigator.userAgent.match(/Chrome\/(\d+)/) || [, 0])[1];
 }
 function readStorage(name, cb) {
     if (!isChrome && firefoxVer < 53)
