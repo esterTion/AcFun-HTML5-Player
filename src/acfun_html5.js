@@ -688,6 +688,9 @@ function sourceTypeRoute(data) {
                             delete abpinst.lastTime;
                             console.log('starting from', conf.startPosition);
                         }
+                        /*if (isChrome && chromeVer >= 73) {
+                            conf.loader = Hls.FetchLoader;
+                        }*/
                         window.hlsplayer = new Hls(conf);
                         hlsplayer.loadSource(masterManifestUrl);
                         hlsplayer.attachMedia(abpinst.video);
@@ -899,6 +902,18 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
             chkInit();
         });
         document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo}}));setTimeout(function(){f.ready();},0)')])).remove();
+        window.screenshotWrapperForm = document.body.appendChild(_('form', { name: 'screenshot-wrapper', style: { display: 'none' } }, [_('input', { name: 'sc_title' }),_('input', { name: 'sc_body' })]));
+        document.head.appendChild(_('script', {}, [_('text', '(' + function () {
+            document.querySelector('form[name="screenshot-wrapper"]').addEventListener('click', function (e) {
+                e.preventDefault();
+                var newWin = window.open('about:blank');
+                var title = this['sc_title'].value, body = this['sc_body'].value;
+                newWin.onload = function() {
+                    newWin.document.title = title;
+                    newWin.document.body.innerHTML = body;
+                }
+            })
+        }.toString() + ')()')])).remove();
         /*
         if (document.getElementById('pageInfo') != null) {
             //普通投稿

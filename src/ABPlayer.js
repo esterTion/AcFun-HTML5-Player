@@ -2403,7 +2403,7 @@ ABP.Strings = new Proxy({}, {
 					ctx.fillRect(0, 0, width, height);
 
 					// calculate video offset
-					if (vh * (width / vw) > vh) {
+					if (vh * (width / vw) < height) {
 						vh = vh * (width / vw);
 						vw = width;
 						vt = Math.floor((height - vh) / 2);
@@ -2422,7 +2422,10 @@ ABP.Strings = new Proxy({}, {
 				}
 				try {
 					var url = canvas.toDataURL();
-					var newWin = window.open('about:blank');
+					window.screenshotWrapperForm['sc_title'].value = ABP.Strings.screenshot + ' @ ' + formatTime(video.currentTime) + ' - ' + ABP.Strings[shouldContainComment ? 'screenshotWithComment' : 'screenshotWithoutComment'];
+					window.screenshotWrapperForm['sc_body'].value = '<style>body{background:#222;padding:0;margin:0}img{width:100%;height:100%;object-fit:scale-down}</style><img src="'+url+'">';
+					window.screenshotWrapperForm.click();
+					/*var newWin = window.open('about:blank');
 					try {
 					newWin.onload = function() {
 						newWin.document.title = ABP.Strings.screenshot + ' @ ' + formatTime(video.currentTime) + ' - ' + ABP.Strings[shouldContainComment ? 'screenshotWithComment' : 'screenshotWithoutComment'];
@@ -2432,7 +2435,7 @@ ABP.Strings = new Proxy({}, {
 					} catch(e) {
 						//火狐 wtf???
 						newWin.location.href = url;
-					}
+					}*/
 				} catch(e) {
 					console.error(e);
 					ABPInst.createPopup(ABP.Strings.screenshotError, 3e3);
