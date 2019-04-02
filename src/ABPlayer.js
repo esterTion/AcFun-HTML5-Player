@@ -3060,17 +3060,17 @@ ABP.Strings = new Proxy({}, {
 		*/
 		if(window.cid && window.WebSocket){
 			var connected = false;
-			var sock = new WebSocket('ws://danmaku.acfun.cn:443/' + window.cid);
 			var open = function () {
 				connected = true;
 				var obj = {
-					client: '16bk983221049',
-					client_ck: '884509046',
+					client: '',
+					client_ck: '',
 					vid: window.cid,
 					vlength: 0,
 					time: Date.now(),
 					uid: window.user.uid||null,
-					uid_ck: window.user.uid_ck||null
+					uid_ck: window.user.uid_ck||null,
+					danmakuToken: token
 				}
 				obj.uid == -1 && (obj.uid = null);
 				var data = JSON.stringify({ action: 'auth', command: JSON.stringify(obj) })
@@ -3078,6 +3078,7 @@ ABP.Strings = new Proxy({}, {
 				sock.send(JSON.stringify({ "action": "onlanNumber", "command": "WALLE DOES NOT HAVE PENNIS" }));
 			}
 			var message = function (e) {
+				backoffTimeout = 2e3;
 				var data = JSON.parse(e.data);
 				if(data.action!=undefined){
 					switch(data.action) {
@@ -3157,7 +3158,9 @@ ABP.Strings = new Proxy({}, {
 			var close = function () {
 				connected = false;
 				console.warn('WebSocket closed!');
+				error();
 			}
+			var backoffTimeout = 2e3;
 			var error = function () {
 				connected = false;
 				console.warn('WebSocket connection error!');
@@ -3168,14 +3171,33 @@ ABP.Strings = new Proxy({}, {
 					sock.addEventListener('close',close);
 					sock.addEventListener('error',error);
 					ABPInst.danmu_ws = sock;
-				}, 5e3);
+				}, backoffTimeout);
+				backoffTimeout = Math.min(backoffTimeout*2, 30e3);
 			}
-			ABPInst.danmu_ws = sock;
+			var sock;
+			var connect = function () {
+				sock = new WebSocket('ws://danmaku.acfun.cn:443/' + window.cid);
+				ABPInst.danmu_ws = sock;
+				sock.addEventListener('open',open);
+				sock.addEventListener('message',message);
+				sock.addEventListener('close',close);
+				sock.addEventListener('error',error);
+			}
+			var token = '';
+			if (window.user.uid) {
+				var xhr = new XMLHttpRequest;
+				xhr.open('GET', 'http://www.acfun.cn/rest/pc-direct/passport/getBarrageToken', true);
+				xhr.withCredentials = true;
+				xhr.responseType = 'json';
+				xhr.onload = function () {
+					token = xhr.response.acBarrageToken;
+					connect();
+				}
+				xhr.send();
+			} else {
+				connect();
+			}
 			var sendInterval = setInterval(function () { connected && sock.send(JSON.stringify({ "action": "onlanNumber", "command": "WALLE DOES NOT HAVE PENNIS" })) }, 3e4);
-			sock.addEventListener('open',open);
-			sock.addEventListener('message',message);
-			sock.addEventListener('close',close);
-			sock.addEventListener('error',error);
 		}
 		var watchingCountMover=function(e){
 			var commentListShow = ABPInst.state.commentListShow,
