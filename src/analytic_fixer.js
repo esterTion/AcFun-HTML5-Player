@@ -33,8 +33,11 @@ script.textContent = '(' + (function () {
       clearInterval(blockAcPlayerInterval);
       window.H5Player = new Proxy(window.H5Player, {
         get: function (target, property, receiver) {
-          if (property === 'createPlayer') {
+          if (property === 'createPlayer' || property === 'createPlayerDOM') {
             throw 'AcFun Official Html5 Player creation BLOCKED';
+          }
+          if (property === 'prototype') {
+            target[property].isSupport = function () {return false}
           }
           console.log('[get]', property, target[property]);
           return target[property];

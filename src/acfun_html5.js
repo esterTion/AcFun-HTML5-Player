@@ -472,8 +472,7 @@ function init() {
             },
             width: '100%',
             height: '100%',
-            config: ABPConfig,
-            mobile: isMobile()
+            config: ABPConfig
         });
         dots.init({
             container: abpinst.playerUnit.querySelector('#dots'),
