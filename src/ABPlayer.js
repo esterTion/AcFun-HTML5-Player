@@ -2229,6 +2229,9 @@ ABP.Strings = new Proxy({}, {
 					this.tooltip(ABP.Strings.cmtListHide);
 					if (ABPInst.state.settingsShow) ABPInst.btnSetting.click();
 					ABPInst.commentListContainer.parentNode.scrollTop = prevCmtListScroll;
+					setTimeout(function () {
+						ABPInst.commentListContainer.parentNode.scrollTop = prevCmtListScroll;
+					}, 100);
 				} else {
 					prevCmtListScroll = ABPInst.commentListContainer.parentNode.scrollTop;
 					removeClass(container, "expand");
