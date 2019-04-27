@@ -23,7 +23,7 @@ ABP.Strings = new Proxy({}, {
 	if (!ABP) return;
 	var $$ = jQuery,
 	addEventListener='addEventListener',
-	versionString='HTML5 Player ver.181110 based on ABPlayer-bilibili-ver',
+	versionString='HTML5 Player ver.190427 based on ABPlayer-bilibili-ver',
 	mousePrevPos=[0,0],
 	mouseMoved=function(e){
 		var oldPos=mousePrevPos;
@@ -2068,6 +2068,11 @@ ABP.Strings = new Proxy({}, {
 				}
 				e.preventDefault();
 			};
+			ABPInst.video[addEventListener]('timeupdate', function firstClickFalser() {
+				if (this.paused) return;
+				ABPInst.video.removeEventListener('timeupdate', firstClickFalser);
+				firstClick = false;
+			});
 			ABPInst.videoDiv[addEventListener]("click", videoDivClickEventListener);
 			ABPInst.playerUnit.querySelector('.ABP-Bottom-Extend')[addEventListener]('click',function(e){
 				e.preventDefault();
