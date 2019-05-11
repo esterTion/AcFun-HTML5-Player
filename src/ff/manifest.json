@@ -6,8 +6,8 @@
   "content_scripts": [
     {
       "matches": [
-        "http://*.acfun.cn/*",
-        "http://*.hapame.com/*"
+        "*://*.acfun.cn/*",
+        "*://*.hapame.com/*"
       ],
       "all_frames": true,
       "js": [
@@ -17,9 +17,9 @@
     },
     {
       "matches": [
-        "http://*.acfun.cn/v/*",
-        "http://*.acfun.cn/bangumi/*",
-        "http://*.hapame.com/video/*"
+        "*://*.acfun.cn/v/*",
+        "*://*.acfun.cn/bangumi/*",
+        "*://*.hapame.com/video/*"
       ],
       "all_frames": true,
       "js": [

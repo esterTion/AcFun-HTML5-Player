@@ -388,7 +388,7 @@ readStorage('commentLoadPages', function (item) {
 });
 function loadCommentBySize(data) {
     for (let i = 1, page = Math.ceil((data[1] + data[2]) / 1e3); i <= page && i <= commentLoadPages; i++) {
-        fetch('http://danmu.aixifan.com/V2/' + pageInfo.vid + '?pageSize=1000&pageNo=' + i, {
+        fetch(location.protocol + '//danmu.aixifan.com/V2/' + pageInfo.vid + '?pageSize=1000&pageNo=' + i, {
             method: 'GET',
             credentials: 'include',
             referrer: location.href,
@@ -510,7 +510,7 @@ function init() {
         ]));
         abpinst.settingPanel.querySelector('#setting-playerCore').value = coreMode;
 
-        fetch('http://www.acfun.cn/video/getVideo.aspx?id=' + pageInfo.vid, {
+        fetch(location.protocol + '//www.acfun.cn/video/getVideo.aspx?id=' + pageInfo.vid, {
             method: 'GET',
             credentials: 'include',
             cache: 'no-cache'
@@ -529,7 +529,7 @@ function init() {
             })
             .then(function (data) {
                 if (data.success) {
-                    fetch('http://danmu.aixifan.com/size/' + pageInfo.vid, {
+                    fetch(location.protocol + '//danmu.aixifan.com/size/' + pageInfo.vid, {
                         method: 'GET',
                         credentials: 'include',
                         referrer: location.href,
@@ -615,7 +615,7 @@ function sourceTypeRoute(data) {
         case 'sina':
             //新浪
             var time = parseInt((Date.now() / 1e3 | 0).toString(2).slice(0, -6), 2);
-            fetch('http://ask.ivideo.sina.com.cn/v_play.php?vid=' + pageInfo.sourceId + '&ran=0&r=ent.sina.com.cn&p=i&k=' + hex_md5(pageInfo.sourceId + 'Z6prk18aWxP278cVAH' + time + '0').substr(0, 16) + time,
+            fetch(location.protocol + '//ask.ivideo.sina.com.cn/v_play.php?vid=' + pageInfo.sourceId + '&ran=0&r=ent.sina.com.cn&p=i&k=' + hex_md5(pageInfo.sourceId + 'Z6prk18aWxP278cVAH' + time + '0').substr(0, 16) + time,
                 { method: 'GET', cache: 'no-cache', referrerPolicy: 'no-referrer' })
                 .then(r => r.text())
                 .then(r => (new X2JS({ arrayAccessFormPaths: ["video.durl"] })).xml_str2json(r))
@@ -656,7 +656,7 @@ function sourceTypeRoute(data) {
         case 'zhuzhan':
             //Ac - 优酷云
             pageInfo.sign = data.encode;
-            fetch('http://player.acfun.cn/flash_data?vid=' + pageInfo.sourceId + '&ct=85&ev=3&sign=' + pageInfo.sign + '&time=' + Date.now(), {
+            fetch(location.protocol + '//player.acfun.cn/flash_data?vid=' + pageInfo.sourceId + '&ct=85&ev=3&sign=' + pageInfo.sign + '&time=' + Date.now(), {
                 method: 'GET',
                 credentials: 'include',
                 referrer: location.href,
@@ -690,6 +690,14 @@ function sourceTypeRoute(data) {
                         /*if (isChrome && chromeVer >= 73) {
                             conf.loader = Hls.FetchLoader;
                         }*/
+                        if (isChrome && location.protocol === 'https:') {
+                            conf.xhrSetup = (xhr, url) => {
+                                if (/^http:/.test(url)) {
+                                    xhr.open('GET', url.replace(/http:/, 'https:'), true);
+                                    xhr.withCredentials = true;
+                                }
+                            }
+                        }
                         window.hlsplayer = new Hls(conf);
                         hlsplayer.loadSource(masterManifestUrl);
                         hlsplayer.attachMedia(abpinst.video);
