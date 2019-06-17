@@ -22,33 +22,15 @@ script.textContent = '(' + (function () {
       }
     };
   });
-  /*
-  Object.defineProperty(window, 'H5Player', {
-    value: null,
-    configurable: false,
-    writable: false
-  })*/
+  let fakeIsSupported = () => {/*debugger; */return false};
+  let fakeCreatePlayer = () => {/*debugger; */throw 'AcFun Official Html5 Player creation BLOCKED';};
   let blockAcPlayerInterval = setInterval(function () {
     if (window.H5Player != undefined) {
-      clearInterval(blockAcPlayerInterval);
-      window.H5Player = new Proxy(window.H5Player, {
-        get: function (target, property, receiver) {
-          if (property === 'createPlayer' || property === 'createPlayerDOM') {
-            throw 'AcFun Official Html5 Player creation BLOCKED';
-          }
-          if (property === 'prototype') {
-            target[property].isSupport = function () {return false}
-          }
-          console.log('[get]', property, target[property]);
-          return target[property];
-        },
-        set: function (target, property, value, receiver) {
-          console.log('[set]', property, value);
-          return target[property] = value;
-        }
-      });
+      window.H5Player.prototype.isSupport = fakeIsSupported;
+      window.H5Player.createPlayer = fakeCreatePlayer;
+      window.H5Player.createPlayerDOM = fakeCreatePlayer;
     }
-  }, 0);
+  }, 50);
   window.addEventListener('load', function () {
     clearInterval(blockAcPlayerInterval);
   });

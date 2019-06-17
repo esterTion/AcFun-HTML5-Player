@@ -3155,14 +3155,30 @@ ABP.Strings = new Proxy({}, {
 			var close = function () {
 				connected = false;
 				console.warn('WebSocket closed!');
-				error();
+				reconnect();
 			}
 			var backoffTimeout = 2e3;
+			var reconnecting = false;
 			var error = function () {
 				connected = false;
 				console.warn('WebSocket connection error!');
+				reconnect();
+			}
+			var sock;
+			var connect = function () {
+				sock = new WebSocket('wss://tx.biliplus.com/acfun_ws/' + window.cid);
+				ABPInst.danmu_ws = sock;
+				sock.addEventListener('open',open);
+				sock.addEventListener('message',message);
+				sock.addEventListener('close',close);
+				sock.addEventListener('error',error);
+			}
+			var reconnect = function () {
+				if (reconnecting) return;
+				reconnecting = true;
 				setTimeout(function () {
-					sock = new WebSocket('ws://danmaku.acfun.cn:443/' + window.cid);
+					reconnecting = false;
+					sock = new WebSocket('wss://tx.biliplus.com/acfun_ws/' + window.cid);
 					sock.addEventListener('open',open);
 					sock.addEventListener('message',message);
 					sock.addEventListener('close',close);
@@ -3171,19 +3187,10 @@ ABP.Strings = new Proxy({}, {
 				}, backoffTimeout);
 				backoffTimeout = Math.min(backoffTimeout*2, 30e3);
 			}
-			var sock;
-			var connect = function () {
-				sock = new WebSocket('ws://danmaku.acfun.cn:443/' + window.cid);
-				ABPInst.danmu_ws = sock;
-				sock.addEventListener('open',open);
-				sock.addEventListener('message',message);
-				sock.addEventListener('close',close);
-				sock.addEventListener('error',error);
-			}
 			var token = '';
 			if (window.user.uid) {
 				var xhr = new XMLHttpRequest;
-				xhr.open('GET', 'http://www.acfun.cn/rest/pc-direct/passport/getBarrageToken', true);
+				xhr.open('GET', 'https://www.acfun.cn/rest/pc-direct/passport/getBarrageToken', true);
 				xhr.withCredentials = true;
 				xhr.responseType = 'json';
 				xhr.onload = function () {
