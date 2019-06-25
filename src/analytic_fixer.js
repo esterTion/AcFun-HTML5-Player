@@ -15,24 +15,13 @@ script.textContent = '(' + (function () {
         open: function (method, url, async) {
           this.url = url;
         },
-        send: function (data){
+        send: function (data) {
           navigator.sendBeacon(this.url, data);
           console.log('beacon queued', this.url, data);
         },
       }
     };
   });
-  let fakeIsSupported = () => {/*debugger; */return false};
-  let fakeCreatePlayer = () => {/*debugger; */throw 'AcFun Official Html5 Player creation BLOCKED';};
-  let blockAcPlayerInterval = setInterval(function () {
-    if (window.H5Player != undefined) {
-      window.H5Player.prototype.isSupport = fakeIsSupported;
-      window.H5Player.createPlayer = fakeCreatePlayer;
-      window.H5Player.createPlayerDOM = fakeCreatePlayer;
-    }
-  }, 50);
-  window.addEventListener('load', function () {
-    clearInterval(blockAcPlayerInterval);
-  });
+  MediaSource.isTypeSupported = () => false;
 }).toString() + ')();';
 document.firstElementChild.appendChild(script).remove();
