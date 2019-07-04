@@ -381,6 +381,7 @@ function parseComment(data) {
     data[1].forEach(itemParse);
     data[2].forEach(itemParse);
     abpinst.cmManager.load(list);
+    shield.shield();
 }
 let commentLoadPages = 12;
 readStorage('commentLoadPages', function (item) {
