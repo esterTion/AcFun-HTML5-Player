@@ -742,10 +742,11 @@ function sourceTypeRoute(data) {
                     }
                     // 缩略图服务
                     (function getThumbs() {
-                        fetch('https://acfun-thumbs.s2.dogecdn.com/?videoId=' + pageInfo.vid, {
+                        fetch('https://acfun-thumbs.estertion.win/?videoId=' + pageInfo.vid, {
                             method: 'GET',
                             referrer: location.href,
-                            cache: 'no-cache'
+                            cache: 'no-cache',
+                            useOriginalFetch: true
                         })
                             .then(r => r.json())
                             .then(r => {
@@ -764,7 +765,7 @@ function sourceTypeRoute(data) {
                                     }
                                 };
                                 for (let i = 0; i < r.data.count;) {
-                                    thumbData.data.image.push('https://acfun-thumbs.s2.dogecdn.com/thumbs/' + pageInfo.vid + '/' + (++i) + '.jpg');
+                                    thumbData.data.image.push('https://acfun-thumbs.estertion.win/thumbs/' + pageInfo.vid + '/' + (++i) + '.jpg');
                                 }
                                 abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
                             })

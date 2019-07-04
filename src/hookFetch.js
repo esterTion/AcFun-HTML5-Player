@@ -4,6 +4,8 @@
 if( isChrome && (location.protocol=='https:' || chromeVer >= 73) ){
   console.log('chrome+https环境 或 chrome73+，替换fetch');
 
+  let originalFetch = window.fetch;
+
   function hookFetchCode () {
     // let self = this
     const convertHeader = function convertHeader (headers) {
@@ -61,6 +63,9 @@ if( isChrome && (location.protocol=='https:' || chromeVer >= 73) ){
             // console.log('fetch err', err)
             this.curReject.call(null, err)
           } else {
+            if (this.curMethod == 'arrayBuffer') {
+              msg.args[0] = base64ToUint8(msg.args[0])
+            }
             this.curResolve.apply(null, msg.args)
           }
           this.curResolve = null
@@ -110,18 +115,45 @@ if( isChrome && (location.protocol=='https:' || chromeVer >= 73) ){
         this.port = new WrapPort(chrome.runtime.connect({name: 'fetch'}))
       }
       fetch (...args) {
+        if (args[0].url) args[0] = args[0].url;
+        if (args[0].substr(0, 5) == 'blob:') {
+          return xhrFakedFetch(...args);
+        }
         return this.port.post('fetch', args).then(r => {
           r.json = () => this.port.post('json')
-          r.arrayBuffer = () => this.port.post('arrayBuffer').then(buf => {
-            return new Uint8Array(buf).buffer
-          })
+          r.text = () => this.port.post('text')
+          r.arrayBuffer = () => this.port.post('arrayBuffer').then(buf => buf.buffer)
           r.headers = convertHeader(r.headers)
           r.body = new PortBody(this.port)
           return r
         })
       }
     }
+    function uint8ToStr (buffer) {
+      let binary = String.fromCharCode.apply(String, buffer);
+      /*let binary = ''
+      let len = buffer.byteLength
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(buffer[i])
+      }*/
+      return binary
+    }
+    function xhrFakedFetch(...args) {
+      return new Promise((res, rej) => {
+        const xhr = new XMLHttpRequest;
+        xhr.open(args[1].method, args[0], true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = () => res({
+          ok: true,
+          url: xhr.responseURL,
+          text: () => new Promise((res) => res(uint8ToStr(new Uint8Array(xhr.response)))),
+          arrayBuffer: () => new Promise((res) => res(xhr.response)),
+        })
+        xhr.send();
+      })
+    }
     const bgFetch = function bgFetch (...args) {
+      if (args[1] && args[1].useOriginalFetch) return originalFetch(...args);
       const fetch = new PortFetch()
       return fetch.fetch(...args)
     }
