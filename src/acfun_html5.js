@@ -557,10 +557,12 @@ function init() {
                     }
                     if (pageInfo.album)
                         abpinst.title = pageInfo.title + ' - AB' + pageInfo.video.part;
-                    else if (pageInfo.videoList.length > 1)
-                        abpinst.title = '[P' + (pageInfo.P + 1) + '] ' + pageInfo.videoList[pageInfo.P].title + ' || ' + pageInfo.title + ' - AC' + pageInfo.id;
+                    else if (pageInfo.bangumiId)
+                        abpinst.title = pageInfo.episodeName + ' ' + pageInfo.title + ' - AB' + pageInfo.bangumiId;
+                    else if (pageInfo.videoList && pageInfo.videoList.length > 1)
+                        abpinst.title = '[P' + (pageInfo.currentVideoInfo.priority + 1) + '] ' + pageInfo.videoList[pageInfo.currentVideoInfo.priority].title + ' || ' + pageInfo.title + ' - AC' + pageInfo.dougaId;
                     else
-                        abpinst.title = pageInfo.title + ' - AC' + pageInfo.id;
+                        abpinst.title = pageInfo.title + ' - AC' + pageInfo.dougaId;
                     abpinst.playerUnit.addEventListener('sendcomment', sendComment);
                 } else {
                     dots.stopTimer();
@@ -676,6 +678,14 @@ function sourceTypeRoute(data) {
                         let masterManifest = '#EXTM3U\n' + playlists.map(i => (
                             `#EXT-X-STREAM-INF:BANDWIDTH=${Math.round(i.total_size / i.duration * 8)},RESOLUTION=${i.width}x${i.height}\n${i.m3u8}\n`
                         )).join('');
+                        /*
+                        let ksPlayJson = JSON.parse(pageInfo.currentVideoInfo.ksPlayJson);
+                        let playlists = ksPlayJson.adaptationSet.representation;
+                        playlists.sort((a, b) => a.width - b.width);
+                        let masterManifest = '#EXTM3U\n' + playlists.map(i => (
+                            `#EXT-X-STREAM-INF:BANDWIDTH=${i.bandwidth},RESOLUTION=${i.width}x${i.height}\n${i.url}\n`
+                        )).join('');
+                        */
                         let masterManifestBlob = new Blob([masterManifest], { mimeType: 'application/vnd.apple.mpegurl' });
                         let masterManifestUrl = URL.createObjectURL(masterManifestBlob);
                         let conf = {
@@ -905,6 +915,10 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
             } else if (pageInfo.dougaId) {
                 pageInfo.vid = pageInfo.currentVideoInfo.id;
                 pageInfo.coverImage = pageInfo.coverUrl;
+                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
+            } else if (pageInfo.currentVideoInfo) {
+                pageInfo.vid = pageInfo.currentVideoInfo.id;
+                pageInfo.coverImage = pageInfo.image;
                 document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
             } else {
                 pageInfo.vid = pageInfo.video.videos[0].danmakuId;
