@@ -26,10 +26,6 @@
         "dom_gen.js",
         "hookFetch.js",
         "resizeSensor.js",
-        "rc4.js",
-        "md5.js",
-        "x2js.min.js",
-        "flv.min.js",
         "hls.light.min.js",
         "hlsjsMediaInfo.min.js",
         "jquery-3.3.1.min.js",
@@ -38,17 +34,6 @@
         "biliplus_shield.min.js",
         "ABPlayer.min.js",
         "acfun_html5.js"
-      ],
-      "run_at": "document_end"
-    },
-    {
-      "matches": [
-        "*://v.youku.com/*"
-      ],
-      "all_frames": true,
-      "js": [
-        "dom_gen.js",
-        "yk_ckey_getter.js"
       ],
       "run_at": "document_end"
     }
@@ -62,8 +47,7 @@
   ],
   "background": {
     "scripts": [
-      "hookFetch_background.js",
-      "video_fix.js"
+      "hookFetch_background.js"
     ]
   },
   "icons": {

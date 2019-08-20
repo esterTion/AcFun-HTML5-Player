@@ -24,7 +24,6 @@ function createPopup(param) {
     div.style.height = div.firstChild.offsetHeight + 'px';
 }
 
-const rc4_key = '8bdc7e1a';
 let pageInfo;
 let knownTypes = {
     'mp4sd': _t('flvhd'),
@@ -43,275 +42,15 @@ window.currentLang = '';
 let firstTime = true;
 let highestType;
 let coreMode = 'hls';
-readStorage('coreMode', function (item) {
-    coreMode = item.coreMode || 'hls';
-});
-
-function response2url(json) {
-    let data = {};
-    let savedLang = localStorage.YHP_PreferedLang || '';
-    for (let val of json.stream) {
-        if (!data[val.audio_lang])
-            data[val.audio_lang] = {};
-        if (!val.channel_type)
-            data[val.audio_lang][val.stream_type] = val;
-        //片尾、片头独立片段暂时丢弃
-    }
-
-    audioLangs.length = 0;
-    for (let lang in data) {
-        audioLangs[lang] = {
-            src: {},
-            available: []
-        };
-        audioLangs.length++;
-        if (currentLang == '')
-            currentLang = lang;
-        if (savedLang == lang)
-            currentLang = lang;
-
-        if (data[lang].mp4hd3v2)
-            delete data[lang].mp4hd3;
-        if (data[lang].mp4hd2v2)
-            delete data[lang].mp4hd2;
-        if (data[lang].mp4sd)
-            delete data[lang].flvhd,
-                typeDropMap = {
-                    'mp4hd3v2': 'mp4hd2v2',
-                    'mp4hd2v2': 'mp4hd',
-                    'mp4hd': 'mp4sd'
-                };
-
-        for (let type in knownTypes) {
-            if (data[lang][type]) {
-                let time = 0;
-                audioLangs[lang].src[type] = {
-                    type: 'flv',
-                    segments: [],
-                    fetchM3U8: false,
-                    withCredentials: true
-                };
-                for (let part of data[lang][type].segs) {
-                    if (part.key == -1) {
-                        audioLangs[lang].src[type].partial = true;
-                        continue;
-                    }
-                    let seg = {
-                        filesize: part.size | 0,
-                        duration: part.total_milliseconds_video | 0,
-                        url: part.url || part.cdn_url,
-                        withCredentials: true
-                    };
-                    if (part.cdn_backup && part.cdn_backup.length) {
-                        seg.backup_url = part.cdn_backup;
-                    }
-                    audioLangs[lang].src[type].segments.push(seg);
-                    time += part.total_milliseconds_video | 0;
-                }
-                if ((pageInfo.sourceType == 'youku' || pageInfo.sourceType == 'youku2') && time < json.video.seconds * 1e3 - 30e3) {
-                    //差距30s以上，视为限制视频
-                    console.log('[AHP] Restricted video, trying hack');
-                    pageInfo.sourceType = 'youku_hack';
-                    sourceTypeRoute();
-                    throw 'break out';
-                }
-                audioLangs[lang].src[type].duration = time;
-                audioLangs[lang].src.duration = time;
-                highestType = type;
-            }
-        }
-
-        let selected;
-        let hitPrefer = false;
-        let prefer = localStorage.YHP_PreferedType || '';
-        for (let type in knownTypes) {
-            if (audioLangs[lang].src[type]) {
-                selected = [type, knownTypes[type]];
-                audioLangs[lang].available.push(selected);
-                if (firstTime && !hitPrefer && currentLang == lang) {
-                    currentSrc = type;
-                }
-                if (prefer == type)
-                    hitPrefer = true;
-            }
-        }
-        if (firstTime && currentLang == lang && !hitPrefer)
-            currentSrc = selected[0];
-    }
-}
-
-function switchLang(lang) {
-    Array.from(abpinst.playerUnit.querySelectorAll('.BiliPlus-Scale-Menu .Video-Defination>div')).forEach(function (i) {
-        i.remove();
-    });
-
-    srcUrl = audioLangs[lang].src;
-    availableSrc = audioLangs[lang].available;
-
-    for (let i = 0; i < availableSrc.length; i++) {
-        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination').appendChild(_('div', {
-            changeto: JSON.stringify(availableSrc[i]),
-            name: availableSrc[i][0],
-            className: availableSrc[i][0] == currentSrc ? 'on' : ''
-        }, [_('text', availableSrc[i][1])]));
-    }
-    if (audioLangs.length > 1)
-        abpinst.removePopup(), abpinst.createPopup(_t('currentLang') + (knownLangs[lang] || lang), 3e3);
-}
-
-
-function fetchSrcThen(json) {
-    if (json.error) {
-        /*
-        处理错误
-        -2002 需要密码
-        -2003 密码错误
-        */
-        dots.stopTimer();
-        let error = json.error;
-        createPopup({
-            content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', JSON.stringify(json.error))],
-            showConfirm: false
-        });
-        return;
-    } else {
-        response2url(json);
-    }
-    switchLang(currentLang);
-    if (firstTime) {
-        console.log('[AHP] Got source url', srcUrl);
-        abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = 'scale-menu-show';
-        setTimeout(function () {
-            abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu').style.animationName = '';
-        }, 2e3);
-        let contextMenu = abpinst.playerUnit.querySelector('.Context-Menu-Body');
-        if (audioLangs.length > 1) {
-            let childs = [];
-            for (let lang in audioLangs) {
-                childs.push(_('div', { 'data-lang': lang }, [_('text', knownLangs[lang] || lang)]));
-            }
-            let langChange = _('div', { className: 'dm static' }, [
-                _('div', {}, [_('text', _t('audioLang'))]),
-                _('div', {
-                    className: 'dmMenu', event: {
-                        click: function (e) {
-                            let lang = e.target.getAttribute('data-lang');
-                            if (lang == currentLang)
-                                return;
-                            while (audioLangs[lang].src[currentSrc] == undefined) {
-                                if (typeDropMap[currentSrc] == undefined) {
-                                    abpinst.createPopup('切换错误，没有清晰度', 3e3);
-                                    return false;
-                                }
-                                currentSrc = typeDropMap[currentSrc];
-                            }
-                            switchLang(lang);
-                            currentLang = lang;
-                            localStorage.YHP_PreferedLang = lang;
-                            changeSrc('', currentSrc, true);
-                        }
-                    }
-                }, childs)
-            ]);
-            contextMenu.insertBefore(langChange, contextMenu.firstChild);
-        }
-
-        if (json.preview)
-            abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', {
-                detail: {
-                    code: 0, data: {
-                        img_x_len: 10,
-                        img_y_len: 10,
-                        img_x_size: 128,
-                        img_y_size: 72,
-                        image: json.preview.thumb,
-                        step: json.preview.timespan / 1e3
-                    }
-                }
-            }));
-        /*readStorage('updateNotifyVer', function (item) {
-            if (item.updateNotifyVer != '1.3.2') {
-                saveStorage({ 'updateNotifyVer': '1.3.2' });
-                chrome.runtime.sendMessage('version', function (version) {
-                    createPopup({
-                        content: [
-                            _('p', { style: { fontSize: '16px' } }, [_('text', _t('extUpdated'))]),
-                            _('div', { style: { whiteSpace: 'pre-wrap' } }, [
-                                _('text', _t('extUpdated_ver') + version + "\n\n" + _t('extUpdated_detail'))
-                            ])
-                        ],
-                        showConfirm: false
-                    });
-                });
-            }
-        });*/
-    }
-    changeSrc('', currentSrc, true);
-    firstTime = false;
-}
 
 let hlsPending = -1;
 window.changeSrc = function (e, t, force) {
-    if (coreMode == 'hls') {
-        hlsplayer.nextLevel = t;
-        abpinst.createPopup(_t('switchingTo') + e.target.value, 3e3);
-        hlsPending = t;
-        return;
-    }
-    let div = abpinst.playerUnit.querySelector('#info-box');
-    if ((abpinst == undefined || (currentSrc == t)) && !force)
-        return false;
-    if (div.style.opacity == 0) {
-        div.style.opacity = 1;
-    }
-    abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination div.on').className = '';
-    abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu .Video-Defination div[name=' + t + ']').className = 'on';
-    abpinst.video.pause();
-    if (srcUrl[t] != undefined) {
-        if (!firstTime) div.childNodes[0].childNodes[0].textContent = ABP.Strings.switching;
-        if (!dots.running)
-            dots.runTimer();
-        if (abpinst.lastTime == undefined)
-            abpinst.lastTime = abpinst.video.currentTime;
-        if (abpinst.lastSpeed == undefined)
-            abpinst.lastSpeed = abpinst.video.playbackRate;
-        abpinst.video.dispatchEvent(new CustomEvent('autoplay'));
-        if (!force) {
-            let setPrefer = t == highestType ? '' : t;
-            localStorage.YHP_PreferedType = setPrefer;
-        }
-        flvparam(t);
-    }
+    hlsplayer.nextLevel = t;
+    abpinst.createPopup(_t('switchingTo') + e.target.value, 3e3);
+    hlsPending = t;
 };
-function reloadSegment() {
-    let io = this._transmuxer._controller._ioctl;
-    clearInterval(this._progressChecker);
-    this._progressChecker = null;
-    io.pause();
-    io.resume();
-    this._transmuxer._controller._enableStatisticsReporter();
-}
 let self = window;
-let createPlayer = function (e) {
-    if (self.flvplayer != undefined) {
-        self.flvplayer.unload();
-        self.flvplayer.destroy();
-        delete self.flvplayer;
-    }
-    if (e.detail == null)
-        return false;
-    self.flvplayer = flvjs.createPlayer(e.detail.src, e.detail.option);
-    self.flvplayer.on('error', load_fail);
-    self.flvplayer.attachMediaElement(abpinst.video);
-    self.flvplayer.load();
-    self.flvplayer.reloadSegment = reloadSegment;
-};
 window.addEventListener('unload', function () {
-    if (self.flvplayer != undefined) {
-        self.flvplayer.unload();
-        self.flvplayer.destroy();
-        delete self.flvplayer;
-    }
     if (self.hlsplayer != undefined) {
         self.hlsplayer.stopLoad();
         self.hlsplayer.destroy();
@@ -319,10 +58,6 @@ window.addEventListener('unload', function () {
     }
 })
 let load_fail = function (type, info, detail) {
-    if (['youku', 'youku2'].indexOf(pageInfo.sourceType) != -1 && detail.code == 403) {
-        sourceTypeRoute();
-        return;
-    }
     let div = _('div', {
         style: {
             width: '100%',
@@ -355,20 +90,6 @@ let load_fail = function (type, info, detail) {
         content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('playErr'))]), _('div', { style: { whiteSpace: 'pre-wrap' } }, [_('text', JSON.stringify({ type, info, detail }, null, '  '))])],
         showConfirm: false
     });
-};
-let flvparam = function (select) {
-    currentSrc = select;
-    createPlayer({ detail: { src: srcUrl[select], option: { seekType: 'range', reuseRedirectedURL: false, fixAudioTimestampGap: false } } });
-    if (srcUrl[select].partial) {
-        setTimeout(function () { abpinst.createPopup(_t('partialAvailable'), 3e3); }, 4e3);
-    }
-    if (srcUrl[select].segments) {
-        let totalSize = 0;
-        srcUrl[select].segments.forEach(function (i) { totalSize += i.filesize; });
-        window.overallBitrate = totalSize / srcUrl.duration * 8;
-    } else {
-        window.overallBitrate = srcUrl[select].filesize / srcUrl.duration * 8;
-    }
 };
 
 let danmuParse = new AcfunFormat.JSONParser;
@@ -499,85 +220,135 @@ function init() {
             _('text', ' k')
         ]));
         abpinst.settingPanel.querySelector('#setting-commentLoadPages').value = commentLoadPages;
-        // 播放核心设置
-        abpinst.settingPanel.firstChild.lastChild.appendChild(_('p', { className: 'label prop' }, [
-            _('text', _t('playerCoreSetting')),
-            _('select', { id: 'setting-playerCore', event: { mouseup: function (e) { e.stopPropagation(); }, change: function () { saveStorage({ coreMode: this.value }); } } }, [
-                _('option', { value: 'hls' }, [_('text', 'hls.js / hls')]),
-                _('option', { value: 'flv' }, [_('text', 'flv.js / mp4')])
-            ]),
-            _('text', ' '), _('a', { href: 'https://github.com/esterTion/AcFun-HTML5-Player/blob/master/player_core.md', target: '_blank' }, [_('text', '？')]), _('br'),
-            _('span', { style: { fontSize: '11px' } }, [_('text', _t('playerCoreSettingTip'))])
-        ]));
-        abpinst.settingPanel.querySelector('#setting-playerCore').value = coreMode;
 
-        fetch(location.protocol + '//www.acfun.cn/video/getVideo.aspx?id=' + pageInfo.vid, {
+        if (!pageInfo.currentVideoInfo || !pageInfo.currentVideoInfo.ksPlayJson) {
+            createPopup({
+                content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', pageInfo.playErrorMessage || '未找到视频播放地址')],
+                showConfirm: false
+            });
+            return;
+        }
+
+        let ksPlayJson = JSON.parse(pageInfo.currentVideoInfo.ksPlayJson);
+        let playlists = ksPlayJson.adaptationSet.representation;
+        playlists.sort((a, b) => a.width - b.width);
+        let masterManifest = '#EXTM3U\n' + playlists.map(i => (
+            `#EXT-X-STREAM-INF:BANDWIDTH=${i.bandwidth},RESOLUTION=${i.width}x${i.height}\n${i.url}\n`
+        )).join('');
+        let masterManifestBlob = new Blob([masterManifest], { mimeType: 'application/vnd.apple.mpegurl' });
+        let masterManifestUrl = URL.createObjectURL(masterManifestBlob);
+        let conf = {
+            enableWorker: isChrome,
+            capLevelToPlayerSize: true,
+            startLevel: 2
+        };
+        if (abpinst.lastTime) {
+            conf.startPosition = abpinst.lastTime;
+            delete abpinst.lastTime;
+            console.log('starting from', conf.startPosition);
+        }
+        /*if (isChrome && chromeVer >= 73) {
+            conf.loader = Hls.FetchLoader;
+        }*/
+        if (isChrome && location.protocol === 'https:') {
+            conf.xhrSetup = (xhr, url) => {
+                if (/^http:/.test(url)) {
+                    xhr.open('GET', url.replace(/http:/, 'https:'), true);
+                    xhr.withCredentials = true;
+                }
+            }
+        }
+        window.hlsplayer = new Hls(conf);
+        hlsplayer.loadSource(masterManifestUrl);
+        hlsplayer.attachMedia(abpinst.video);
+        hlsplayer.once(Hls.Events.MANIFEST_PARSED, () => URL.revokeObjectURL(masterManifestUrl));
+        hlsplayer.on(Hls.Events.LEVEL_SWITCHED, () => {
+            if (hlsPending != -1) {
+                abpinst.createPopup(_t('switched') + ' ' + (hlsplayer.levelName[hlsPending] || hlsPending), 2e3);
+                hlsPending = -1;
+            }
+        });
+        hlsplayer.on('hlsMIStatPercentage', function initialDisplay(m, p) {
+            abpinst.playerUnit.querySelector('#info-box').childNodes[0].childNodes[0].textContent = ABP.Strings.buffering + ' ' + (p * 100).toFixed(2) + '%';
+        });
+        hlsplayer.on(Hls.Events.ERROR, function (n, d) { console.log(n, d) });
+
+        HlsjsMediaInfoModule.observeMediaInfo(hlsplayer);
+        let scaleMenu = abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu');
+        scaleMenu.querySelector('.Video-Defination').appendChild(_('div', {
+            changeto: JSON.stringify([-1, _t('Auto')]),
+            name: _t('Auto'),
+            className: 'on'
+        }, [_('text', _t('Auto'))]));
+        hlsplayer.levelName = playlists.map(i => {
+            let name = (function (w) {
+                return w > 1280 ? _t('mp4hd3') : w > 960 ? _t('mp4hd2') : w > 640 ? _t('mp4hd') : _t('flvhd');
+            })(i.width);
+            scaleMenu.querySelector('.Video-Defination').appendChild(_('div', {
+                changeto: JSON.stringify([playlists.indexOf(i), name]),
+                name: name
+            }, [_('text', name)]));
+            return name;
+        });
+        scaleMenu.style.width = playlists.length > 3 ? (((playlists.length + 1) * 50) + 'px') : '';
+        scaleMenu.style.animationName = 'scale-menu-show';
+        setTimeout(function () {
+            scaleMenu.style.animationName = '';
+        }, 2e3);
+        // 缩略图服务
+        (function getThumbs() {
+            fetch('https://acfun-thumbs.estertion.win/?videoId=' + pageInfo.vid, {
+                method: 'GET',
+                referrer: location.href,
+                cache: 'no-cache',
+                useOriginalFetch: true
+            })
+                .then(r => r.json())
+                .then(r => {
+                    // 新任务，5分钟后重新获取
+                    if (r.comeBackLater) return setTimeout(getThumbs, 5 * 60 * 1000);
+                    if (r.code != 0 || !r.hasThumb || !r.data.count) return;
+                    let thumbData = {
+                        code: 0,
+                        data: {
+                            step: 5,
+                            img_x_len: 10,
+                            img_y_len: 10,
+                            img_x_size: r.data.width,
+                            img_y_size: r.data.height,
+                            image: []
+                        }
+                    };
+                    for (let i = 0; i < r.data.count;) {
+                        thumbData.data.image.push('https://acfun-thumbs.estertion.win/thumbs/' + pageInfo.vid + '/' + (++i) + '.jpg');
+                    }
+                    abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
+                })
+        })();
+        
+        fetch(location.protocol + '//danmu.aixifan.com/size/' + pageInfo.vid, {
             method: 'GET',
             credentials: 'include',
+            referrer: location.href,
             cache: 'no-cache'
         })
             .then(r => r.json())
-            .then(r => {
-                if (r.success) return r;
-                else if (r.result === '您所在地区限制观看') {
-                    // 代理获取，迟早被封？
-                    return fetch('https://tx.biliplus.com/acfun_getVideo?id=' + pageInfo.vid, {
-                        method: 'GET',
-                        cache: 'no-cache'
-                    }).then(r => r.json());
-                }
-                return r;
-            })
-            .then(function (data) {
-                if (data.success) {
-                    fetch(location.protocol + '//danmu.aixifan.com/size/' + pageInfo.vid, {
-                        method: 'GET',
-                        credentials: 'include',
-                        referrer: location.href,
-                        cache: 'no-cache'
-                    })
-                        .then(r => r.json())
-                        .then(loadCommentBySize);
-                    pageInfo.sourceId = data.sourceId;
-                    pageInfo.sourceType = data.sourceType;
-                    console.log('[AHP] Got sourceType:', data.sourceType, 'vid:', data.sourceId, data);
-                    let backupSina;
-                    // 提取sourceUrl新浪源
-                    if (['zhuzhan', 'sina', 'youku', 'youku2'].indexOf(data.sourceType) == -1 && (backupSina = (data.sourceUrl || '').match(/video\.sina\.com\.cn\/v\/b\/(\d+)-/))) {
-                        pageInfo.sourceType = 'sina';
-                        pageInfo.sourceId = backupSina[1];
-                        console.log('[AHP] Using backup sina vid: ' + pageInfo.sourceId);
-                    }
-                    sourceTypeRoute(data);
+            .then(loadCommentBySize);
 
-                    if (user.uid === -1 || user.uid === '') {
-                        abpinst.txtText.disabled = true;
-                        abpinst.txtText.placeholder = _t('noVisitorComment');
-                        abpinst.txtText.style.textAlign = 'center';
-                    }
-                    if (pageInfo.album)
-                        abpinst.title = pageInfo.title + ' - AB' + pageInfo.video.part;
-                    else if (pageInfo.bangumiId)
-                        abpinst.title = pageInfo.episodeName + ' ' + pageInfo.title + ' - AB' + pageInfo.bangumiId;
-                    else if (pageInfo.videoList && pageInfo.videoList.length > 1)
-                        abpinst.title = '[P' + (pageInfo.currentVideoInfo.priority + 1) + '] ' + pageInfo.videoList[pageInfo.currentVideoInfo.priority].title + ' || ' + pageInfo.title + ' - AC' + pageInfo.dougaId;
-                    else
-                        abpinst.title = pageInfo.title + ' - AC' + pageInfo.dougaId;
-                    abpinst.playerUnit.addEventListener('sendcomment', sendComment);
-                } else {
-                    dots.stopTimer();
-                    createPopup({
-                        content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', data.result)],
-                        showConfirm: false
-                    });
-                }
-            }).catch(function (e) {
-                dots.stopTimer();
-                createPopup({
-                    content: [_('p', { style: { fontSize: '16px' } }, [_('text', _t('fetchSourceErr'))]), _('text', e.message)],
-                    showConfirm: false
-                });
-            });
+        if (user.uid === -1 || user.uid === '') {
+            abpinst.txtText.disabled = true;
+            abpinst.txtText.placeholder = _t('noVisitorComment');
+            abpinst.txtText.style.textAlign = 'center';
+        }
+        if (pageInfo.album)
+            abpinst.title = pageInfo.title + ' - AB' + pageInfo.video.part;
+        else if (pageInfo.bangumiId)
+            abpinst.title = pageInfo.episodeName + ' ' + pageInfo.title + ' - AB' + pageInfo.bangumiId;
+        else if (pageInfo.videoList && pageInfo.videoList.length > 1)
+            abpinst.title = '[P' + (pageInfo.currentVideoInfo.priority + 1) + '] ' + pageInfo.videoList[pageInfo.currentVideoInfo.priority].title + ' || ' + pageInfo.title + ' - AC' + pageInfo.dougaId;
+        else
+            abpinst.title = pageInfo.title + ' - AC' + pageInfo.dougaId;
+        abpinst.playerUnit.addEventListener('sendcomment', sendComment);
     };
     playerIframe.parentNode.style.position = 'relative';
     resizeSensor(playerIframe.parentNode, function () {
@@ -587,271 +358,19 @@ function init() {
         }
     });
     readStorage('updateNotifyVer', function (item) {
-        let notVer = '1.7.0';
+        let notVer = '1.9.0';
         if (item.updateNotifyVer != notVer) {
             saveStorage({ 'updateNotifyVer': notVer });
             createPopup({
                 content: [
                     _('p', { style: { fontSize: '16px' } }, [_('text', 'AHP 最近有更新啦！')]),
                     _('div', { style: { whiteSpace: 'pre-wrap' } }, [
-                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\nv1.7.0：\n- 全新AcFun主题 "),
-                        _('a', {
-                            href: 'javascript:', style: { textDecoration: 'underline' }, event: {
-                                click: () => {
-                                    let themeSelect = abpinst.settingPanel.querySelector('#setting-playerTheme')
-                                    themeSelect.value = 'AcFun';
-                                    themeSelect.dispatchEvent(new Event('change'));
-                                }
-                            }
-                        }, [_('text', '点此一键切换')]),
-                        _('text', '\n制作：'),
-                        _('a', { href: 'https://github.com/jiangming1399', target: '_blank' }, [_('text', '@jiangming1399')])
+                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\nv1.9.0：受AcFun改版影响，此版本有如下改动：\n- flv.js核心已移除\n- 第三方源支持已全部移除\n- 不再提供番剧跨区支持\n- 新番剧将不再提供进度条预览，服务器已处理过的缩略图可正常查看")
                     ])
                 ],
                 showConfirm: false
             });
         }
-    });
-}
-function sourceTypeRoute(data) {
-    switch (pageInfo.sourceType) {
-        case 'sina':
-            //新浪
-            var time = parseInt((Date.now() / 1e3 | 0).toString(2).slice(0, -6), 2);
-            fetch(location.protocol + '//ask.ivideo.sina.com.cn/v_play.php?vid=' + pageInfo.sourceId + '&ran=0&r=ent.sina.com.cn&p=i&k=' + hex_md5(pageInfo.sourceId + 'Z6prk18aWxP278cVAH' + time + '0').substr(0, 16) + time,
-                { method: 'GET', cache: 'no-cache', referrerPolicy: 'no-referrer' })
-                .then(r => r.text())
-                .then(r => (new X2JS({ arrayAccessFormPaths: ["video.durl"] })).xml_str2json(r))
-                .then(data => {
-                    if (data.video.result == 'error') {
-                        dots.stopTimer();
-                        createPopup({
-                            content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', _t('fetchSourceErr')), _('text', JSON.stringify(data.video, null, '  '))]), _('text', location.href)],
-                            showConfirm: false
-                        });
-                    } else
-                        fetchSrcThen({
-                            stream: [{
-                                audio_lang: 'default',
-                                milliseconds_audio: data.video.timelength | 0,
-                                milliseconds_video: data.video.timelength | 0,
-                                stream_type: 'mp4hd3',
-                                segs: data.video.durl.map(function (i) {
-                                    return {
-                                        url: i.url,
-                                        size: i.filesize | 0,
-                                        total_milliseconds_audio: i.length | 0,
-                                        total_milliseconds_video: i.length | 0
-                                    };
-                                })
-                            }]
-                        });
-                });
-            break;
-        case 'letv':
-            //乐视云已没救，勿念
-            dots.stopTimer();
-            createPopup({
-                content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', data.sourceType + ' 源大部分视频已经失效，不计划添加支持\ndetail: ' + JSON.stringify({ sourceType: data.sourceType, sourceId: pageInfo.sourceId }, null, '  '))]), _('text', location.href)],
-                showConfirm: false
-            });
-            break;
-        case 'zhuzhan':
-            //Ac - 优酷云
-            pageInfo.sign = data.encode;
-            fetch(location.protocol + '//player.acfun.cn/flash_data?vid=' + pageInfo.sourceId + '&ct=85&ev=3&sign=' + pageInfo.sign + '&time=' + Date.now(), {
-                method: 'GET',
-                credentials: 'include',
-                referrer: location.href,
-                cache: 'no-cache'
-            }).then(function (r) {
-                r.json().then(function (data) {
-                    if (data.e && data.e.code !== 0) {
-                        return fetchSrcThen({ error: data.e });
-                    }
-                    let decrypted = JSON.parse(rc4(rc4_key, atob(data.data)));
-                    if (coreMode == 'flv') {
-                        fetchSrcThen(decrypted);
-                    } else if (coreMode == 'hls') {
-                        let playlists = decrypted.stream.filter(i => i.m3u8 !== undefined);
-                        playlists.sort((a, b) => a.width - b.width);
-                        let masterManifest = '#EXTM3U\n' + playlists.map(i => (
-                            `#EXT-X-STREAM-INF:BANDWIDTH=${Math.round(i.total_size / i.duration * 8)},RESOLUTION=${i.width}x${i.height}\n${i.m3u8}\n`
-                        )).join('');
-                        /*
-                        let ksPlayJson = JSON.parse(pageInfo.currentVideoInfo.ksPlayJson);
-                        let playlists = ksPlayJson.adaptationSet.representation;
-                        playlists.sort((a, b) => a.width - b.width);
-                        let masterManifest = '#EXTM3U\n' + playlists.map(i => (
-                            `#EXT-X-STREAM-INF:BANDWIDTH=${i.bandwidth},RESOLUTION=${i.width}x${i.height}\n${i.url}\n`
-                        )).join('');
-                        */
-                        let masterManifestBlob = new Blob([masterManifest], { mimeType: 'application/vnd.apple.mpegurl' });
-                        let masterManifestUrl = URL.createObjectURL(masterManifestBlob);
-                        let conf = {
-                            enableWorker: isChrome,
-                            capLevelToPlayerSize: true,
-                            startLevel: 2
-                        };
-                        if (abpinst.lastTime) {
-                            conf.startPosition = abpinst.lastTime;
-                            delete abpinst.lastTime;
-                            console.log('starting from', conf.startPosition);
-                        }
-                        /*if (isChrome && chromeVer >= 73) {
-                            conf.loader = Hls.FetchLoader;
-                        }*/
-                        if (isChrome && location.protocol === 'https:') {
-                            conf.xhrSetup = (xhr, url) => {
-                                if (/^http:/.test(url)) {
-                                    xhr.open('GET', url.replace(/http:/, 'https:'), true);
-                                    xhr.withCredentials = true;
-                                }
-                            }
-                        }
-                        window.hlsplayer = new Hls(conf);
-                        hlsplayer.loadSource(masterManifestUrl);
-                        hlsplayer.attachMedia(abpinst.video);
-                        hlsplayer.once(Hls.Events.MANIFEST_PARSED, () => URL.revokeObjectURL(masterManifestUrl));
-                        hlsplayer.on(Hls.Events.LEVEL_SWITCHED, () => {
-                            if (hlsPending != -1) {
-                                abpinst.createPopup(_t('switched') + ' ' + (hlsplayer.levelName[hlsPending] || hlsPending), 2e3);
-                                hlsPending = -1;
-                            }
-                        });
-                        hlsplayer.on('hlsMIStatPercentage', function initialDisplay(m, p) {
-                            abpinst.playerUnit.querySelector('#info-box').childNodes[0].childNodes[0].textContent = ABP.Strings.buffering + ' ' + (p * 100).toFixed(2) + '%';
-                        });
-                        hlsplayer.on(Hls.Events.ERROR, function (n, d) { console.log(n, d) });
-
-                        HlsjsMediaInfoModule.observeMediaInfo(hlsplayer);
-                        let scaleMenu = abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu');
-                        scaleMenu.querySelector('.Video-Defination').appendChild(_('div', {
-                            changeto: JSON.stringify([-1, _t('Auto')]),
-                            name: _t('Auto'),
-                            className: 'on'
-                        }, [_('text', _t('Auto'))]));
-                        hlsplayer.levelName = playlists.map(i => {
-                            let name = {
-                                'm3u8_flv': _t('flvhd'),
-                                'm3u8_mp4': _t('mp4hd'),
-                                'm3u8_hd': _t('mp4hd2'),
-                                'm3u8_hd3': _t('mp4hd3')
-                            }[i.stream_type];
-                            scaleMenu.querySelector('.Video-Defination').appendChild(_('div', {
-                                changeto: JSON.stringify([playlists.indexOf(i), name]),
-                                name: name
-                            }, [_('text', name)]));
-                            return name;
-                        });
-                        scaleMenu.style.width = playlists.length > 3 ? (((playlists.length + 1) * 50) + 'px') : '';
-                        scaleMenu.style.animationName = 'scale-menu-show';
-                        setTimeout(function () {
-                            scaleMenu.style.animationName = '';
-                        }, 2e3);
-                        //hlsplayer.on('hlsMIStatPercentage', function(n, d) { console.log(n, d); });
-                    }
-                    // 缩略图服务
-                    (function getThumbs() {
-                        fetch('https://acfun-thumbs.estertion.win/?videoId=' + pageInfo.vid, {
-                            method: 'GET',
-                            referrer: location.href,
-                            cache: 'no-cache',
-                            useOriginalFetch: true
-                        })
-                            .then(r => r.json())
-                            .then(r => {
-                                // 新任务，5分钟后重新获取
-                                if (r.comeBackLater) return setTimeout(getThumbs, 5 * 60 * 1000);
-                                if (r.code != 0 || !r.hasThumb || !r.data.count) return;
-                                let thumbData = {
-                                    code: 0,
-                                    data: {
-                                        step: 5,
-                                        img_x_len: 10,
-                                        img_y_len: 10,
-                                        img_x_size: r.data.width,
-                                        img_y_size: r.data.height,
-                                        image: []
-                                    }
-                                };
-                                for (let i = 0; i < r.data.count;) {
-                                    thumbData.data.image.push('https://acfun-thumbs.estertion.win/thumbs/' + pageInfo.vid + '/' + (++i) + '.jpg');
-                                }
-                                abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
-                            })
-                    })();
-                });
-            });
-            break;
-        case 'youku':
-        case 'youku2':
-            //优酷版权内容
-            //设置&获取cna
-            pageInfo.sourceId = pageInfo.sourceId.match(/([a-zA-Z0-9+=]+)/)[1];
-            var h = new Headers();
-            h.append('Range', 'bytes=0-0');
-            fetch('https://player.youku.com/player.php/sid/' + pageInfo.sourceId + '/newPlayer/true/v.swf', {
-                method: 'GET',
-                headers: h,
-                credentials: 'include',
-                referrer: location.href,
-                cache: 'no-cache',
-                redirect: 'follow'
-            }).then(function (r) {
-                pageInfo.yk_cna = r.url.match(/cna=([^&]+)/)[1];
-                pageInfo.yk_vext = r.url.match(/vext=([^&]+)/)[1];
-                return fetch('https://api.youku.com/players/custom.json?client_id=0edbfd2e4fc91b72&video_id=' + pageInfo.sourceId + '&refer=http://cdn.aixifan.com/player/cooperation/AcFunXYouku.swf&vext=' + pageInfo.yk_vext + '&embsig=undefined&styleid=undefined&type=flash', {
-                    method: 'GET',
-                    credentials: 'include',
-                    referrer: location.href,
-                    cache: 'no-cache'
-                }).then(function (r) { return r.json(); });
-            }).then(function (data) {
-                pageInfo.yk_r = data.stealsign;
-                return fetch('https://ups.youku.com/ups/get.json?vid=' + pageInfo.sourceId + '&ccode=0405&client_ip=192.168.1.1&utid=' + pageInfo.yk_cna + '&client_ts=' + Date.now() + '&r=' + pageInfo.yk_r, {
-                    method: 'GET',
-                    credentials: 'include',
-                    referrer: location.href,
-                    cache: 'no-cache'
-                }).then(function (r) { return r.json(); });
-            }).then(function (data) { fetchSrcThen(data.data); }).catch(e => { });
-            break;
-        case 'youku_hack':
-            getYkStream(pageInfo.sourceId).then(function (data) { fetchSrcThen(data.data); });
-            break;
-        default:
-            dots.stopTimer();
-            createPopup({
-                content: [_('p', { style: { fontSize: '16px', whiteSpace: 'pre-wrap' } }, [_('text', '暂不支持的视频源：' + data.sourceType + '\n请于 '), _('a', { target: '_blank', href: 'https://github.com/esterTion/AcFun-HTML5-Player/issues' }, [_('text', 'GitHub')]), _('text', ' 留言')]), _('text', location.href)],
-                showConfirm: false
-            });
-            return;
-    }
-}
-
-function getYkStream(vid) {
-    return new Promise(resolve => {
-        window.addEventListener('message', function message(e) {
-            try {
-                let data = JSON.parse(e.data);
-                if (data.cmd == 'stream') {
-                    this.removeEventListener('message', message);
-                    ifr.remove();
-                    resolve(data.data);
-                }
-            } catch (e) { }
-        })
-        let ifr = document.body.appendChild(_('iframe', {
-            src: '//v.youku.com/v_show/id_' + vid + '.html', style: { height: 0, width: 0, display: 'none' }, muted: 'muted',
-            event: {
-                load: function load() {
-                    console.log('[AHP] Subpage loaded, requesting stream');
-                    this.removeEventListener('load', load);
-                    ifr.contentWindow.postMessage('AHP_get_stream', '*');
-                }
-            }
-        }));
     });
 }
 
