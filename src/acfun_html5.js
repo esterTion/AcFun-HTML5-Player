@@ -471,11 +471,7 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
         }*/
     }
 })();
-flvjs.LoggingControl.enableVerbose = false;
-flvjs.LoggingControl.enableInfo = false;
-flvjs.LoggingControl.enableDebug = false;
 window.crc_engine = () => { return ''; };
-
 
 let webFullState = false;
 window.addEventListener('message', function (e) {
