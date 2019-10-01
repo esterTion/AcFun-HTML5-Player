@@ -418,7 +418,7 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
 #AHP_Notice input[type=button]:active {
 	background: #CCC;
 }
-.noflash-alert{display:none}`)]));
+.noflash-alert,.is-ie{display:none !important}`)]));
     if ((dest = document.getElementById('ACFlashPlayer')) != null) {
         window.addEventListener('AHP_pageInfo', function pageInfoGrabber(e) {
             window.removeEventListener('AHP_pageInfo', pageInfoGrabber);

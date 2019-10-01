@@ -757,11 +757,13 @@ ABP.Strings = new Proxy({}, {
 					_('div',{'data-comment':'off'},[_('text',ABP.Strings.screenshotWithoutComment)]),
 					_('div',{'data-comment':'on'}, [_('text',ABP.Strings.screenshotWithComment)])
 				])]),
-				_('div',{id:'Player-Speed-Control',className:'dm preserve'},[_('div',{className:'content'},[_('text',ABP.Strings.playSpeed)]),_('div',{className:'dmMenu',style:{top:'-37px'}},[
+				_('div',{id:'Player-Speed-Control',className:'dm preserve'},[_('div',{className:'content'},[_('text',ABP.Strings.playSpeed)]),_('div',{className:'dmMenu',style:{top:'-74px'}},[
 					_('div',{'data-speed':0.5},[_('text',0.5)]),
+					_('div',{'data-speed':0.75},[_('text',0.75)]),
 					_('div',{'data-speed':1},[_('text',1)]),
 					_('div',{'data-speed':1.25},[_('text',1.25)]),
 					_('div',{'data-speed':1.5},[_('text',1.5)]),
+					_('div',{'data-speed':1.75},[_('text',1.75)]),
 					_('div',{'data-speed':2},[_('text',2)])
 				])]),
 				_('div',{className:'about preserve'},[_('text',versionString)])
@@ -2372,11 +2374,15 @@ ABP.Strings = new Proxy({}, {
 					y=containerBox.height-contextMenuBody.offsetHeight;
 				var lastMenu=contextMenuBody.querySelector('.dm:nth-last-of-type(2)>.dmMenu')
 				if(lastMenu!=null){
-					lastMenu.style.display='block';
-					var lastMenuBox=lastMenu.getBoundingClientRect();
-					lastMenu.style.display='';
-					if( containerBox.top+containerBox.height-lastMenuBox.height-y <0)
-						y=containerBox.height-lastMenuBox.height;
+					requestAnimationFrame(function () {
+						lastMenu.style.display='block';
+						var containerBox=ABPInst.playerUnit.getBoundingClientRect(), lastMenuBox=lastMenu.getBoundingClientRect();
+						lastMenu.style.display='';
+						if( lastMenuBox.top + lastMenuBox.height > containerBox.top + containerBox.height )
+							y -= lastMenuBox.top + lastMenuBox.height - containerBox.top - containerBox.height;
+						contextMenuBody.style.left=x+'px';
+						contextMenuBody.style.top=y+'px';
+					})
 				}
 				contextMenuBody.style.left=x+'px';
 				contextMenuBody.style.top=y+'px';
