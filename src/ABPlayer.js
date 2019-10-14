@@ -3061,153 +3061,66 @@ ABP.Strings = new Proxy({}, {
 		/*
 		Connect WebSocket
 		*/
-		if(window.cid && window.WebSocket){
-			var connected = false;
-			var open = function () {
-				connected = true;
-				var obj = {
-					client: '',
-					client_ck: '',
-					vid: window.cid,
-					vlength: 0,
-					time: Date.now(),
-					uid: window.user.uid||null,
-					uid_ck: window.user.uid_ck||null,
-					danmakuToken: token
-				}
-				obj.uid == -1 && (obj.uid = null);
-				var data = JSON.stringify({ action: 'auth', command: JSON.stringify(obj) })
-				sock.send(data);
-				sock.send(JSON.stringify({ "action": "onlanNumber", "command": "WALLE DOES NOT HAVE PENNIS" }));
-			}
-			var message = function (e) {
-				backoffTimeout = 2e3;
-				var data = JSON.parse(e.data);
-				if(data.action!=undefined){
-					switch(data.action) {
-						case 'post':
-							//收到弹幕
-							var danmaku = JSON.parse(data.command);
-							danmaku={
-								border:false,
-								position:'absolute',
-								stime:danmaku.stime*1e3,
-								mode:danmaku.mode|0,
-								size:danmaku.size|0,
-								color:danmaku.color|0,
-								date:Date.now()/1e3|0,
-								pool:0,
-								hash:danmaku.authUser.userId,
-								dbid:danmaku.commentid,
-								text:danmaku.message
-							};
-							if(danmaku.mode==8){
-								danmaku.code=danmaku.text;
-								delete danmaku.text;
-							}
-							var comment={
-								"date": danmaku.date,
-								"time": danmaku.stime,
-								"mode": danmaku.mode,
-								"user": danmaku.hash,
-								"pool": danmaku.pool,
-								"content": danmaku.text||danmaku.code,
-								"originalData":danmaku
-							};
-							ABPInst.cmManager.insert(danmaku);
-							shield.shield();
-							ABPInst.commentList[danmaku.dbid] = comment;
-							ABPInst.commentObjArray.push(danmaku.dbid);
-							var commentListContainer=ABPInst.commentListContainer,scroll=!1;
-							if( commentListContainer.parentNode.scrollTop+commentListContainer.parentNode.offsetHeight == commentListContainer.scrollHeight ){
-								scroll=!0;
-							}
-							ABPInst.commentListContainer.style.height = ABPInst.commentObjArray.length * 24 + "px";
-							ABPInst.renderCommentList();
-							if(scroll)commentListContainer.parentNode.scrollTop+=24;
-							ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').textContent=ABPInst.commentObjArray.length;
-							break;
-						case 'vow':
-							//公告
-							console.log(data.command);
-							break;
-						case 'close':
-							sock.close();
-							break;
+		if(window.cid){
+			var lastFetchTime = Date.now();
+			var fetchPoll = function() {
+				return new Promise(function (res, rej) {
+					var xhr = new XMLHttpRequest;
+					xhr.open('POST', '/rest/pc-direct/new-danmaku/poll', true);
+					xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+					xhr.responseType = 'json';
+					xhr.onload = function (e) {
+						if (xhr.response) return res(xhr.response);
+						rej(e);
 					}
-				}else if(data.status!=undefined){
-					switch(data.status) {
-						case '600':
-							//在线人数
-							ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#viewer').textContent=data.msg;
-							break;
-						case '500':
-							ABPInst.createPopup(_t('postCommentFail') + '<br>[500]服务器异常');
-							break;
-						case '403':
-							ABPInst.createPopup(_t('postCommentFail') + '<br>[403]' + data.msg);
-							break;
-						case '401':
-							ABPInst.createPopup(_t('postCommentFail') + '<br>[401]你已被封禁');
-							break;
-						case '200':
-							//发送成功，不提示，由ws返回时加入弹幕池
-							break;
-						default:
-							console.log('not implemented status', data);
+					xhr.onerror = rej;
+					xhr.send("videoId="+window.cid+"&lastFetchTime=" + lastFetchTime)
+				});
+			}
+			var processPoll = function (data) {
+				ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#viewer').textContent = data.onlineCount;
+				data.added.forEach(function (danmaku) {
+					danmaku = {
+						border:false,
+						position:'absolute',
+						stime:danmaku.position,
+						mode:danmaku.mode,
+						size:danmaku.size,
+						color:danmaku.color,
+						date:Date.now()/1e3|0,
+						pool:0,
+						hash:danmaku.userId,
+						dbid:danmaku.danmakuId,
+						text:danmaku.body
+					};
+					var comment = {
+						"date": danmaku.date,
+						"time": danmaku.stime,
+						"mode": danmaku.mode,
+						"user": danmaku.hash,
+						"pool": danmaku.pool,
+						"content": danmaku.text||danmaku.code,
+						"originalData":danmaku
+					};
+					ABPInst.cmManager.insert(danmaku);
+					shield.shield();
+					ABPInst.commentList[danmaku.dbid] = comment;
+					ABPInst.commentObjArray.push(danmaku.dbid);
+					var commentListContainer=ABPInst.commentListContainer,scroll=!1;
+					if( commentListContainer.parentNode.scrollTop+commentListContainer.parentNode.offsetHeight == commentListContainer.scrollHeight ){
+						scroll=!0;
 					}
-				}
-			};
-			var close = function () {
-				connected = false;
-				console.warn('WebSocket closed!');
-				reconnect();
+					ABPInst.commentListContainer.style.height = ABPInst.commentObjArray.length * 24 + "px";
+					ABPInst.renderCommentList();
+					if(scroll)commentListContainer.parentNode.scrollTop+=24;
+					ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').textContent=ABPInst.commentObjArray.length;
+				});
+				lastFetchTime = Date.now();
 			}
-			var backoffTimeout = 2e3;
-			var reconnecting = false;
-			var error = function () {
-				connected = false;
-				console.warn('WebSocket connection error!');
-				reconnect();
-			}
-			var sock;
-			var connect = function () {
-				sock = new WebSocket('wss://tx.biliplus.com/acfun_ws/' + window.cid);
-				ABPInst.danmu_ws = sock;
-				sock.addEventListener('open',open);
-				sock.addEventListener('message',message);
-				sock.addEventListener('close',close);
-				sock.addEventListener('error',error);
-			}
-			var reconnect = function () {
-				if (reconnecting) return;
-				reconnecting = true;
-				setTimeout(function () {
-					reconnecting = false;
-					sock = new WebSocket('wss://tx.biliplus.com/acfun_ws/' + window.cid);
-					sock.addEventListener('open',open);
-					sock.addEventListener('message',message);
-					sock.addEventListener('close',close);
-					sock.addEventListener('error',error);
-					ABPInst.danmu_ws = sock;
-				}, backoffTimeout);
-				backoffTimeout = Math.min(backoffTimeout*2, 30e3);
-			}
-			var token = '';
-			if (window.user.uid) {
-				var xhr = new XMLHttpRequest;
-				xhr.open('GET', 'https://www.acfun.cn/rest/pc-direct/passport/getBarrageToken', true);
-				xhr.withCredentials = true;
-				xhr.responseType = 'json';
-				xhr.onload = function () {
-					token = xhr.response.acBarrageToken;
-					connect();
-				}
-				xhr.send();
-			} else {
-				connect();
-			}
-			var sendInterval = setInterval(function () { connected && sock.send(JSON.stringify({ "action": "onlanNumber", "command": "WALLE DOES NOT HAVE PENNIS" })) }, 3e4);
+			var sendInterval = setInterval(function () {
+				fetchPoll().then(processPoll).catch(function (e) {console.error(e)});
+			}, 15000);
+			fetchPoll().then(processPoll).catch(function (e) {console.error(e)});
 		}
 		var watchingCountMover=function(e){
 			var commentListShow = ABPInst.state.commentListShow,

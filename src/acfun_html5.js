@@ -56,7 +56,7 @@ window.addEventListener('unload', function () {
         self.hlsplayer.destroy();
         delete self.hlsplayer;
     }
-})
+});
 let load_fail = function (type, info, detail) {
     let div = _('div', {
         style: {
@@ -68,22 +68,22 @@ let load_fail = function (type, info, detail) {
             color: '#FFF'
         }
     }, [
+        _('div', {
+            style: {
+                position: 'relative',
+                top: '50%'
+            }
+        }, [
             _('div', {
                 style: {
                     position: 'relative',
-                    top: '50%'
+                    fontSize: '16px',
+                    lineHeight: '16px',
+                    top: '-8px'
                 }
-            }, [
-                    _('div', {
-                        style: {
-                            position: 'relative',
-                            fontSize: '16px',
-                            lineHeight: '16px',
-                            top: '-8px'
-                        }
-                    }, [_('text', _t('loadErr'))])
-                ])
-        ]);
+            }, [_('text', _t('loadErr'))])
+        ])
+    ]);
     abpinst.playerUnit.querySelector('.ABP-Video').insertBefore(div, document.querySelector('.ABP-Video>:first-child'));
     abpinst.playerUnit.querySelector('#info-box').remove();
     createPopup({
@@ -124,34 +124,63 @@ function loadCommentBySize(data) {
 }
 function sendComment(e) {
     let cmt = e.detail;
-    let obj = {
-        "action": 'post',
-        "command": JSON.stringify({
-            "mode": cmt.mode,
-            "color": cmt.color,
-            "size": cmt.fontsize,
-            "stime": cmt.playTime | 0,
-            "user": user.uid,
-            "message": cmt.message,
-            "time": (Date.now() / 1e3) | 0,
-            "islock": '2'
-        })
+    //abpinst.danmu_ws.send(JSON.stringify(obj));
+    var form = [];
+    form.push('mode=' + cmt.mode);
+    form.push('color=' + cmt.color);
+    form.push('size=' + cmt.fontsize);
+    form.push('body=' + encodeURIComponent(cmt.message));
+    form.push('videoId=' + pageInfo.vid);
+    form.push('position=' + ((cmt.playTime * 1e3) | 0));
+    form.push('type=' + (isBangumi ? 'bangumi' : 'douga'));
+    form.push('id=' + pageInfo[isBangumi ? 'bangumiId' : 'dougaId']);
+    form.push('subChannelId=' + (isBangumi ? 155 : pageInfo.channel.parentId));
+    form.push('subChannelName=' + encodeURIComponent(isBangumi ? '番剧' : pageInfo.channel.parentName));
+    form.push('roleId=');
+
+    var xhr = new XMLHttpRequest;
+    xhr.open('POST', '/rest/pc-direct/new-danmaku/add', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.responseType = 'json';
+    xhr.onload = function () {
+        var data = xhr.response;
+        if (data.result != 0) {
+            abpinst.createPopup('发送失败：[' + data.result + ']' + data.error_msg, 5e3);
+        }
     };
-    abpinst.danmu_ws.send(JSON.stringify(obj));
+    xhr.onerror = function (e) {
+        abpinst.createPopup('发送失败：' + e.message, 5e3);
+    };
+    xhr.send(form.join('&'));
 }
 
 let dest = null;
 let ABPConfig;
 let currentBangumiUrl = location.href.split('?')[0];
+let isBangumi = /\/bangumi\/aa/.test(currentBangumiUrl);
 function chkInit() {
-    readStorage('PlayerSettings', function (item) {
-        ABPConfig = item.PlayerSettings || {};
-        init();
-        if (/\/bangumi\/ab/.test(currentBangumiUrl)) {
-            let observer = new MutationObserver(bangumiEpisodeChange);
-            observer.observe(document.body, { childList: true, subtree: true });
+    new Promise((res) => {
+        readStorage('PlayerSettings', function (item) {
+            ABPConfig = item.PlayerSettings || {};
+            if (isBangumi) {
+                let observer = new MutationObserver(bangumiEpisodeChange);
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+            res();
+        });
+    }).then(() => {
+        if (!pageInfo.currentVideoInfo) {
+            return fetch(
+                isBangumi ? 'https://tx.biliplus.com:7823/acfun_getBangumi_app?bangumiId=' + pageInfo.bangumiId + '&pageNo=1&pageSize=1000' : 'https://tx.biliplus.com:7823/acfun_getVideo_app?dougaId=' + pageInfo.dougaId
+            ).then(r => r.json()).then(r => {
+                if (isBangumi) {
+                    pageInfo.currentVideoInfo = (r.items.find(v => v.videoId == pageInfo.videoId) || {}).currentVideoInfo;
+                } else {
+                    pageInfo.currentVideoInfo = r.currentVideoInfo;
+                }
+            }).catch(e => console.error(e));
         }
-    });
+    }).then(init)
 }
 function bangumiEpisodeChange() {
     let newUrl = location.href.split('?')[0];
@@ -172,7 +201,7 @@ function init() {
     dest.remove();
     let blob = new Blob(['<!DOCTYPE HTML><html><head><meta charset="UTF-8"><style>html,body{height:100%;width:100%;margin:0;padding:0}</style><link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL('ABPlayer.css') + '"></head><body></body></html>'], { type: 'text/html' });
     let bloburl = URL.createObjectURL(blob);
-    window.playerIframe = container.appendChild(_('div', { style: { width: '100%', height: '100%' } }, [_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl, allow: 'fullscreen; autoplay' })])).children[0];
+    window.playerIframe = container.appendChild(_('div', { style: { height: '0' } }, [_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl, allow: 'fullscreen; autoplay' })])).children[0];
     playerIframe.onload = function () {
         URL.revokeObjectURL(bloburl);
         try {
@@ -256,7 +285,7 @@ function init() {
                     xhr.open('GET', url.replace(/http:/, 'https:'), true);
                     xhr.withCredentials = true;
                 }
-            }
+            };
         }
         window.hlsplayer = new Hls(conf);
         hlsplayer.loadSource(masterManifestUrl);
@@ -271,7 +300,7 @@ function init() {
         hlsplayer.on('hlsMIStatPercentage', function initialDisplay(m, p) {
             abpinst.playerUnit.querySelector('#info-box').childNodes[0].childNodes[0].textContent = ABP.Strings.buffering + ' ' + (p * 100).toFixed(2) + '%';
         });
-        hlsplayer.on(Hls.Events.ERROR, function (n, d) { console.log(n, d) });
+        hlsplayer.on(Hls.Events.ERROR, function (n, d) { console.log(n, d); });
 
         HlsjsMediaInfoModule.observeMediaInfo(hlsplayer);
         let scaleMenu = abpinst.playerUnit.querySelector('.BiliPlus-Scale-Menu');
@@ -323,9 +352,9 @@ function init() {
                         thumbData.data.image.push('https://acfun-thumbs.estertion.win/thumbs/' + pageInfo.vid + '/' + (++i) + '.jpg');
                     }
                     abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
-                })
+                });
         })();
-        
+
         fetch(location.protocol + '//danmu.aixifan.com/size/' + pageInfo.vid, {
             method: 'GET',
             credentials: 'include',
@@ -365,7 +394,7 @@ function init() {
                 content: [
                     _('p', { style: { fontSize: '16px' } }, [_('text', 'AHP 最近有更新啦！')]),
                     _('div', { style: { whiteSpace: 'pre-wrap' } }, [
-                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\nv1.9.0：受AcFun改版影响，此版本有如下改动：\n- flv.js核心已移除\n- 第三方源支持已全部移除\n- 不再提供番剧跨区支持\n- 新番剧将不再提供进度条预览，服务器已处理过的缩略图可正常查看")
+                        _('text', '现在我们的版本是' + notVer + "\n\n更新细节：\nv1.9.0：受AcFun改版影响，此版本有如下改动：\n- flv.js核心已移除\n- 第三方源支持已全部移除\n- 新番剧将不再提供进度条预览，服务器已处理过的缩略图可正常查看")
                     ])
                 ],
                 showConfirm: false
@@ -432,7 +461,11 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
                 pageInfo.vid = pageInfo.videoId;
                 document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
             } else if (pageInfo.dougaId) {
-                pageInfo.vid = pageInfo.currentVideoInfo.id;
+                pageInfo.vid = pageInfo.dougaId;
+                pageInfo.coverImage = pageInfo.coverUrl;
+                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
+            } else if (pageInfo.videoId) {
+                pageInfo.vid = pageInfo.videoId;
                 pageInfo.coverImage = pageInfo.coverUrl;
                 document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
             } else if (pageInfo.currentVideoInfo) {
@@ -447,18 +480,18 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
             }
             chkInit();
         });
-        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo}}));setTimeout(function(){f.ready();},0)')])).remove();
-        window.screenshotWrapperForm = document.body.appendChild(_('form', { name: 'screenshot-wrapper', style: { display: 'none' } }, [_('input', { name: 'sc_title' }),_('input', { name: 'sc_body' })]));
+        document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo}}));setTimeout(function(){try{f.ready();}catch(e){}},0)')])).remove();
+        window.screenshotWrapperForm = document.body.appendChild(_('form', { name: 'screenshot-wrapper', style: { display: 'none' } }, [_('input', { name: 'sc_title' }), _('input', { name: 'sc_body' })]));
         document.head.appendChild(_('script', {}, [_('text', '(' + function () {
             document.querySelector('form[name="screenshot-wrapper"]').addEventListener('click', function (e) {
                 e.preventDefault();
                 var newWin = window.open('about:blank');
                 var title = this['sc_title'].value, body = this['sc_body'].value;
-                newWin.onload = function() {
+                newWin.onload = function () {
                     newWin.document.title = title;
                     newWin.document.body.innerHTML = body;
-                }
-            })
+                };
+            });
         }.toString() + ')()')])).remove();
         /*
         if (document.getElementById('pageInfo') != null) {
