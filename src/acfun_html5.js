@@ -460,17 +460,17 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
             if (document.getElementById('pageInfo') != null) {
                 pageInfo.vid = pageInfo.videoId;
                 document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
+            } else if (pageInfo.currentVideoInfo) {
+                pageInfo.vid = pageInfo.currentVideoInfo.id;
+                pageInfo.coverImage = pageInfo.image;
+                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
             } else if (pageInfo.dougaId) {
-                pageInfo.vid = pageInfo.dougaId;
+                pageInfo.vid = pageInfo.currentVideoId;
                 pageInfo.coverImage = pageInfo.coverUrl;
                 document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
             } else if (pageInfo.videoId) {
                 pageInfo.vid = pageInfo.videoId;
                 pageInfo.coverImage = pageInfo.coverUrl;
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
-            } else if (pageInfo.currentVideoInfo) {
-                pageInfo.vid = pageInfo.currentVideoInfo.id;
-                pageInfo.coverImage = pageInfo.image;
                 document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
             } else {
                 pageInfo.vid = pageInfo.video.videos[0].danmakuId;
