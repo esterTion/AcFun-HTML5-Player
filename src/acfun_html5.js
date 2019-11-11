@@ -188,6 +188,7 @@ function bangumiEpisodeChange() {
         location.href = newUrl;
     }
 }
+let isNewVersionPlayPage = document.getElementById('pagelet_newrecommend') != null;
 function init() {
     if (!pageInfo.vid || dest == null)
         return;
@@ -201,7 +202,7 @@ function init() {
     dest.remove();
     let blob = new Blob(['<!DOCTYPE HTML><html><head><meta charset="UTF-8"><style>html,body{height:100%;width:100%;margin:0;padding:0}</style><link rel="stylesheet" type="text/css" href="' + chrome.extension.getURL('ABPlayer.css') + '"></head><body></body></html>'], { type: 'text/html' });
     let bloburl = URL.createObjectURL(blob);
-    window.playerIframe = container.appendChild(_('div', { style: { height: '0' } }, [_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl, allow: 'fullscreen; autoplay' })])).children[0];
+    window.playerIframe = container.appendChild(_('div', { style: isNewVersionPlayPage ? { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 } : { height: 0 } }, [_('iframe', { className: 'AHP-Player-Container', allowfullscreen: true, src: bloburl, allow: 'fullscreen; autoplay' })])).children[0];
     playerIframe.onload = function () {
         URL.revokeObjectURL(bloburl);
         try {
@@ -379,10 +380,10 @@ function init() {
             abpinst.title = pageInfo.title + ' - AC' + pageInfo.dougaId;
         abpinst.playerUnit.addEventListener('sendcomment', sendComment);
     };
-    playerIframe.parentNode.style.position = 'relative';
+    if (!isNewVersionPlayPage) playerIframe.parentNode.style.position = 'relative';
     resizeSensor(playerIframe.parentNode, function () {
         window.dispatchEvent(new Event('resize'));
-        if (!playerIframe.parentNode.classList.contains('small')) {
+        if (!isNewVersionPlayPage && !playerIframe.parentNode.classList.contains('small')) {
             playerIframe.parentNode.style.left = '';
         }
     });
@@ -457,27 +458,30 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
                 uid_ck: getCookie('auth_key_ac_sha1'),
                 uname: getCookie('ac_username')
             };
+            let additionStyleContent;
             if (document.getElementById('pageInfo') != null) {
                 pageInfo.vid = pageInfo.videoId;
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
+                additionStyleContent = '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}';
             } else if (pageInfo.currentVideoInfo) {
                 pageInfo.vid = pageInfo.currentVideoInfo.id;
                 pageInfo.coverImage = pageInfo.image;
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
+                additionStyleContent = '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}';
             } else if (pageInfo.dougaId) {
                 pageInfo.vid = pageInfo.currentVideoId;
                 pageInfo.coverImage = pageInfo.coverUrl;
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
+                additionStyleContent = '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}';
             } else if (pageInfo.videoId) {
                 pageInfo.vid = pageInfo.videoId;
                 pageInfo.coverImage = pageInfo.coverUrl;
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
+                additionStyleContent = '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}';
             } else {
                 pageInfo.vid = pageInfo.video.videos[0].danmakuId;
                 pageInfo.coverImage = pageInfo.video.videos[0].image;
                 pageInfo.title = (pageInfo.album.title + ' ' + pageInfo.video.videos[0].episodeName + ' ' + pageInfo.video.videos[0].newTitle).trim();
-                document.head.appendChild(_('style', {}, [_('text', '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}')]));
+                additionStyleContent = '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}';
             }
+            if (isNewVersionPlayPage) additionStyleContent = '.AHP-Player-Container{width:100%;height:100%}';
+            document.head.appendChild(_('style', {}, [_('text', additionStyleContent)]));
             chkInit();
         });
         document.head.appendChild(_('script', {}, [_('text', 'window.dispatchEvent(new CustomEvent("AHP_pageInfo", {detail:{pageInfo}}));setTimeout(function(){try{f.ready();}catch(e){}},0)')])).remove();
