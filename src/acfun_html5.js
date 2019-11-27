@@ -92,36 +92,10 @@ let load_fail = function (type, info, detail) {
     });
 };
 
-let danmuParse = new AcfunFormat.JSONParser;
-function parseComment(data) {
-    let list = abpinst.cmManager.timeline;
-    let itemParse = function (i) {
-        let cmt = danmuParse.parseOne(i);
-        list.push(cmt);
-    };
-    data[1].forEach(itemParse);
-    data[2].forEach(itemParse);
-    abpinst.cmManager.load(list);
-    shield.shield();
-}
 let commentLoadPages = 12;
 readStorage('commentLoadPages', function (item) {
     commentLoadPages = (item.commentLoadPages | 0) || 12;
 });
-function loadCommentBySize(data) {
-    for (let i = 1, page = Math.ceil((data[1] + data[2]) / 1e3); i <= page && i <= commentLoadPages; i++) {
-        fetch(location.protocol + '//danmu.aixifan.com/V2/' + pageInfo.vid + '?pageSize=1000&pageNo=' + i, {
-            method: 'GET',
-            credentials: 'include',
-            referrer: location.href,
-            cache: 'no-cache'
-        }).then(function (r) {
-            r.json().then(function (data) {
-                parseComment(data);
-            });
-        });
-    }
-}
 function sendComment(e) {
     let cmt = e.detail;
     //abpinst.danmu_ws.send(JSON.stringify(obj));
@@ -355,15 +329,6 @@ function init() {
                     abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
                 });
         })();
-
-        fetch(location.protocol + '//danmu.aixifan.com/size/' + pageInfo.vid, {
-            method: 'GET',
-            credentials: 'include',
-            referrer: location.href,
-            cache: 'no-cache'
-        })
-            .then(r => r.json())
-            .then(loadCommentBySize);
 
         if (user.uid === -1 || user.uid === '') {
             abpinst.txtText.disabled = true;

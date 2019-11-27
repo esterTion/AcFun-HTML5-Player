@@ -3061,8 +3061,9 @@ ABP.Strings = new Proxy({}, {
 		/*
 		Connect WebSocket
 		*/
+    ABPInst.cmManager.load([]);
 		if(window.cid){
-			var lastFetchTime = Date.now();
+			var lastFetchTime = 0;
 			var fetchPoll = function() {
 				return new Promise(function (res, rej) {
 					var xhr = new XMLHttpRequest;
@@ -3079,6 +3080,10 @@ ABP.Strings = new Proxy({}, {
 			}
 			var processPoll = function (data) {
 				ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#viewer').textContent = data.onlineCount;
+				var commentListContainer=ABPInst.commentListContainer,scroll=!1;
+				if( commentListContainer.parentNode.scrollTop+commentListContainer.parentNode.offsetHeight == commentListContainer.scrollHeight ){
+					scroll=!0;
+				}
 				data.added.forEach(function (danmaku) {
 					danmaku = {
 						border:false,
@@ -3103,18 +3108,14 @@ ABP.Strings = new Proxy({}, {
 						"originalData":danmaku
 					};
 					ABPInst.cmManager.insert(danmaku);
-					shield.shield();
 					ABPInst.commentList[danmaku.dbid] = comment;
 					ABPInst.commentObjArray.push(danmaku.dbid);
-					var commentListContainer=ABPInst.commentListContainer,scroll=!1;
-					if( commentListContainer.parentNode.scrollTop+commentListContainer.parentNode.offsetHeight == commentListContainer.scrollHeight ){
-						scroll=!0;
-					}
 					ABPInst.commentListContainer.style.height = ABPInst.commentObjArray.length * 24 + "px";
-					ABPInst.renderCommentList();
 					if(scroll)commentListContainer.parentNode.scrollTop+=24;
 					ABPInst.playerUnit.querySelector('.ABP-Comment-List-Count span#danmaku').textContent=ABPInst.commentObjArray.length;
 				});
+				ABPInst.renderCommentList();
+				shield.shield();
 				lastFetchTime = Date.now();
 			}
 			var sendInterval = setInterval(function () {
