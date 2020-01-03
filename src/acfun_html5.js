@@ -68,22 +68,22 @@ let load_fail = function (type, info, detail) {
             color: '#FFF'
         }
     }, [
-        _('div', {
-            style: {
-                position: 'relative',
-                top: '50%'
-            }
-        }, [
             _('div', {
                 style: {
                     position: 'relative',
-                    fontSize: '16px',
-                    lineHeight: '16px',
-                    top: '-8px'
+                    top: '50%'
                 }
-            }, [_('text', _t('loadErr'))])
-        ])
-    ]);
+            }, [
+                    _('div', {
+                        style: {
+                            position: 'relative',
+                            fontSize: '16px',
+                            lineHeight: '16px',
+                            top: '-8px'
+                        }
+                    }, [_('text', _t('loadErr'))])
+                ])
+        ]);
     abpinst.playerUnit.querySelector('.ABP-Video').insertBefore(div, document.querySelector('.ABP-Video>:first-child'));
     abpinst.playerUnit.querySelector('#info-box').remove();
     createPopup({
@@ -414,6 +414,10 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
 	background: #CCC;
 }
 .noflash-alert,.is-ie{display:none !important}`)]));
+    let playerContainer = document.getElementById('ACPlayer');
+    if (playerContainer && playerContainer.children.length == 0) {
+        playerContainer.appendChild(_('div', { id: 'ACFlashPlayer' }));
+    }
     if ((dest = document.getElementById('ACFlashPlayer')) != null) {
         window.addEventListener('AHP_pageInfo', function pageInfoGrabber(e) {
             window.removeEventListener('AHP_pageInfo', pageInfoGrabber);
