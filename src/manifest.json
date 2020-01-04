@@ -39,7 +39,7 @@
     }
   ],
   "permissions": [
-    "*://*/*",
+    "*://*.acfun.cn/*",
     "storage",
     "clipboardWrite",
     "webRequest",
