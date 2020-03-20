@@ -23,5 +23,7 @@ script.textContent = '(' + (function () {
     };
   });
   MediaSource.isTypeSupported = () => false;
+  var hack = document.firstElementChild.appendChild(document.createElement('style'));
+  hack.className = 'player';
 }).toString() + ')();';
 document.firstElementChild.appendChild(script).remove();
