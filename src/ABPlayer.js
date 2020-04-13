@@ -2565,24 +2565,18 @@ ABP.Strings = new Proxy({}, {
 			ABPInst.barTimeHitArea[addEventListener]("mousedown", function(e) {
 				dragging = true;
 			});
-			var preview={
-				imgs:[],
-				data:[],
-				len:[0,0],
-				size:[0,0]
-			},
-			fetchedPreview=function(json){
-				if(json.code!=0)
-					return false;
-				preview.imgs=json.data.image;
-				preview.len=[json.data.img_x_len,json.data.img_y_len];
-				preview.size=[json.data.img_x_size,json.data.img_y_size];
-				for(var i=0,arr=[];i<preview.imgs.length*100;i++){
-					arr.push(i*json.data.step);
+			var preview=[], onTimeBar=!1, bi_search = function (haystack, needle, matcher) {
+				var head = 0, tail = haystack.length - 1, mid;
+				if (tail < 0) return false;
+				while (head <= tail) {
+					mid = Math.floor((head + tail) / 2);
+					var result = matcher(haystack[mid], needle);
+					if (result == 0) return mid;
+					else if (result < 0) tail = mid - 1;
+					else if (result > 0) head = mid + 1;
 				}
-				preview.data=arr;
-			},
-			onTimeBar=!1;
+				return false;
+			};
 			ABPInst.barTimeHitArea[addEventListener]("mouseenter",function(e){
 				onTimeBar=!0;
 			});
@@ -2590,7 +2584,7 @@ ABP.Strings = new Proxy({}, {
 				onTimeBar=!1;
 			});
 			ABPInst.playerUnit[addEventListener]('previewData',function(e){
-				fetchedPreview(e.detail);
+				preview = e.detail;
 			})
 			playerIframe.contentDocument[addEventListener]("mouseup", function(e) {
 				if (dragging) {
@@ -2612,42 +2606,38 @@ ABP.Strings = new Proxy({}, {
 				var newTime = ((e.clientX - ABPInst.barTimeHitArea.getBoundingClientRect().left) / ABPInst.barTimeHitArea.offsetWidth) * ABPInst.video.duration;
 				if (newTime < 0) newTime = 0;
 				if (newTime > ABPInst.video.duration) newTime = ABPInst.video.duration;
-				if(preview.data.length>0 && $('ABP-Tooltip')!=null && onTimeBar){
-					var index;
-					for(index=0;index<preview.data.length;index++){
-						if(newTime<preview.data[index]){
-							index--;
-							break;
-						}
-					}
-					var numPic=Math.floor(index/100),
-							posY=Math.floor((index%100)/10),
-							posX=index%10,
-							div=$('preview-container'),
-							tooltip=$('ABP-Tooltip');
+				if(preview.length>0 && $('ABP-Tooltip')!=null && onTimeBar){ do {
+					var index = bi_search(preview, newTime, function (cue, time) {
+						if (time < cue[0]) return -1;
+						if (time > cue[1]) return 1;
+						return 0;
+					});
+					if (index === false) break;
+					var cue = preview[index];
+					var param = cue[2].split('#')[1].split('=')[1].split(',');
+					var div=$('preview-container'), tooltip=$('ABP-Tooltip');
 					if(div==null){
 						div=_("div",{
 							"id":'preview-container',
 							'style':{
 								'position':'absolute',
-								'background-size':preview.size[0]+'px '+preview.size[1]+'px',
-								'width':preview.size[0]+'px',
-								'height':preview.size[1]+'px',
 								'background':'rgba(0,0,0,0)',
 								'display':'none'
 							}
 						})
 						tooltip.parentNode.insertBefore(div,tooltip);
 					}
-					var left = tooltip.offsetLeft+(tooltip.offsetWidth-preview.size[0])/2;
+					var left = tooltip.offsetLeft+(tooltip.offsetWidth-param[2])/2;
 					if (left < 5) left = 5;
-					else if (left > ABPInst.cmManager.width - 5 - preview.size[0]) left = ABPInst.cmManager.width - 5 - preview.size[0];
-					div.style.left=left+'px';
-					div.style.top=tooltip.offsetTop+(tooltip.offsetHeight-preview.size[1])+'px';
-					div.style.display='block';
-					div.style.backgroundImage='url("'+preview.imgs[numPic]+'")';
-					div.style.backgroundPosition='-'+(posX*preview.size[0])+'px -'+(posY*preview.size[1])+'px';
-				}
+					else if (left > ABPInst.cmManager.width - 5 - param[2]) left = ABPInst.cmManager.width - 5 - param[2];
+					div.style.width = param[2]+'px',
+					div.style.height = param[3]+'px',
+					div.style.left = left+'px';
+					div.style.top = tooltip.offsetTop+(tooltip.offsetHeight-param[3])+'px';
+					div.style.display = 'block';
+					div.style.backgroundImage = 'url("'+cue[2].split('#')[0]+'")';
+					div.style.backgroundPosition = '-'+param[0]+'px -'+param[1]+'px';
+				} while (0); }
 				if($('ABP-Tooltip')==null && $('preview-container')!=null){
 					$('preview-container').style.display='none';
 				}
@@ -3067,7 +3057,7 @@ ABP.Strings = new Proxy({}, {
 			var fetchPoll = function() {
 				return new Promise(function (res, rej) {
 					var xhr = new XMLHttpRequest;
-					xhr.open('POST', '/rest/pc-direct/new-danmaku/poll', true);
+					xhr.open('POST', location.origin+'/rest/pc-direct/new-danmaku/poll', true);
 					xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 					xhr.responseType = 'json';
 					xhr.onload = function (e) {

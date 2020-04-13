@@ -113,7 +113,7 @@ function sendComment(e) {
     form.push('roleId=');
 
     var xhr = new XMLHttpRequest;
-    xhr.open('POST', '/rest/pc-direct/new-danmaku/add', true);
+    xhr.open('POST', location.origin+'/rest/pc-direct/new-danmaku/add', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.responseType = 'json';
     xhr.onload = function () {
@@ -299,36 +299,36 @@ function init() {
         setTimeout(function () {
             scaleMenu.style.animationName = '';
         }, 2e3);
-        // 缩略图服务
-        (function getThumbs() {
-            fetch('https://acfun-thumbs.estertion.win/?videoId=' + pageInfo.vid, {
-                method: 'GET',
-                referrer: location.href,
-                cache: 'no-cache',
-                useOriginalFetch: true
-            })
-                .then(r => r.json())
-                .then(r => {
-                    // 新任务，5分钟后重新获取
-                    if (r.comeBackLater) return setTimeout(getThumbs, 5 * 60 * 1000);
-                    if (r.code != 0 || !r.hasThumb || !r.data.count) return;
-                    let thumbData = {
-                        code: 0,
-                        data: {
-                            step: 5,
-                            img_x_len: 10,
-                            img_y_len: 10,
-                            img_x_size: r.data.width,
-                            img_y_size: r.data.height,
-                            image: []
-                        }
-                    };
-                    for (let i = 0; i < r.data.count;) {
-                        thumbData.data.image.push('https://acfun-thumbs.estertion.win/thumbs/' + pageInfo.vid + '/' + (++i) + '.jpg');
-                    }
-                    abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', { detail: thumbData }));
-                });
-        })();
+
+        // 进度条预览
+        {
+            let xhr = new XMLHttpRequest;
+            xhr.open('POST', location.origin+'/rest/pc-direct/play/playInfo/spriteVtt', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.responseType = 'json';
+            xhr.onload = function () {
+                let data = xhr.response;
+                if (data.spriteVtt) {
+                    let blob = new Blob([data.spriteVtt.replace(/(\d\d:\d\d:)(\d\.\d\d\d)/g, '$10$2')], {mimeType: 'text/vtt'});
+                    let url = URL.createObjectURL(blob);
+                    let track = abpinst.video.appendChild(_('track', {
+                        src: url,
+                        kind: 'metadata',
+                        default: '',
+                        event: { load: e => {
+                            URL.revokeObjectURL(url);
+                            let cues = Array.from(abpinst.video.textTracks[0].cues).map(c => [c.startTime, c.endTime, c.text]);
+                            track.remove();
+                            abpinst.playerUnit.dispatchEvent(new CustomEvent('previewData', {detail: cues}));
+                        }}
+                    }));
+                }
+            };
+            xhr.onerror = function (e) {
+                abpinst.createPopup('发送失败：' + e.message, 5e3);
+            };
+            xhr.send(`videoId=${pageInfo.vid}&resourceId=${pageInfo.dougaId}&resourceType=2`);
+        }
 
         if (user.uid === -1 || user.uid === '') {
             abpinst.txtText.disabled = true;
