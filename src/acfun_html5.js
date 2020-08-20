@@ -234,6 +234,7 @@ function init() {
         }
 
         let ksPlayJson = JSON.parse(pageInfo.currentVideoInfo.ksPlayJson);
+        if (ksPlayJson.adaptationSet.length) ksPlayJson.adaptationSet = ksPlayJson.adaptationSet[0];
         let playlists = ksPlayJson.adaptationSet.representation;
         playlists.sort((a, b) => a.width - b.width);
         let masterManifest = '#EXTM3U\n' + playlists.map(i => (
