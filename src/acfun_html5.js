@@ -238,7 +238,7 @@ function init() {
         let playlists = ksPlayJson.adaptationSet.representation;
         playlists.sort((a, b) => a.width - b.width);
         let masterManifest = '#EXTM3U\n' + playlists.map(i => (
-            `#EXT-X-STREAM-INF:BANDWIDTH=${i.bandwidth},RESOLUTION=${i.width}x${i.height}\n${i.url}\n`
+            `#EXT-X-STREAM-INF:BANDWIDTH=${i.avgBitrate},RESOLUTION=${i.width}x${i.height}\n${i.url}\n`
         )).join('');
         let masterManifestBlob = new Blob([masterManifest], { mimeType: 'application/vnd.apple.mpegurl' });
         let masterManifestUrl = URL.createObjectURL(masterManifestBlob);
@@ -259,7 +259,7 @@ function init() {
             conf.xhrSetup = (xhr, url) => {
                 if (/^http:/.test(url)) {
                     xhr.open('GET', url.replace(/http:/, 'https:'), true);
-                    xhr.withCredentials = true;
+                    //xhr.withCredentials = true;
                 }
             };
         }
@@ -444,11 +444,25 @@ position:absolute;bottom:0;left:0;right:0;font-size:15px
                 pageInfo.vid = pageInfo.videoId;
                 pageInfo.coverImage = pageInfo.coverUrl;
                 additionStyleContent = '.AHP-Player-Container{width:1160px;height:730px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:628px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}';
-            } else {
+            } else if (pageInfo.video) {
                 pageInfo.vid = pageInfo.video.videos[0].danmakuId;
                 pageInfo.coverImage = pageInfo.video.videos[0].image;
                 pageInfo.title = (pageInfo.album.title + ' ' + pageInfo.video.videos[0].episodeName + ' ' + pageInfo.video.videos[0].newTitle).trim();
                 additionStyleContent = '.AHP-Player-Container{width:1200px;height:715px}@media screen and (max-width: 1440px){.AHP-Player-Container{width:980px;height:592px}}.small .AHP-Player-Container{width:100%;height:100%;margin-top:26px}';
+            } else {
+                createPopup({
+                    content: [
+                        _('p', {style: {fontSize: '1.5em', fontWeight: 'bold'}}, [_('text', '错误')]),
+                        _('p', {}, [_('text', '未适配的播放页')]),
+                        _('p', {}, [_('text', '（未能找到当前播放视频信息）')])
+                    ],
+                    showConfirm: false
+                })
+                if (isBangumi) {
+                    let observer = new MutationObserver(bangumiEpisodeChange);
+                    observer.observe(document.body, { childList: true, subtree: true });
+                }
+                return;
             }
             if (isNewVersionPlayPage) additionStyleContent = '.AHP-Player-Container{width:100%;height:100%}';
             document.head.appendChild(_('style', {}, [_('text', additionStyleContent)]));
