@@ -42,9 +42,7 @@
     "*://*.acfun.cn/*",
     "https://tx.biliplus.com:7823/*",
     "storage",
-    "clipboardWrite",
-    "webRequest",
-    "webRequestBlocking"
+    "clipboardWrite"
   ],
   "background": {
     "scripts": [
