@@ -145,13 +145,10 @@ function chkInit() {
     }).then(() => {
         if (!pageInfo.currentVideoInfo) {
             return fetch(
-                isBangumi ? 'https://tx.biliplus.com:7823/acfun_getBangumi_app?bangumiId=' + pageInfo.bangumiId + '&pageNo=1&pageSize=1000' : 'https://tx.biliplus.com:7823/acfun_getVideo_app?dougaId=' + pageInfo.dougaId
+                'https://tx.biliplus.com:7823/acfun_getVideoInfoByPage?path=' + encodeURIComponent(location.href.replace(location.origin, ''))
             ).then(r => r.json()).then(r => {
-                if (isBangumi) {
-                    pageInfo.currentVideoInfo = (r.items.find(v => v.videoId == pageInfo.videoId) || {}).currentVideoInfo;
-                } else {
-                    pageInfo.currentVideoInfo = r.currentVideoInfo;
-                }
+                const temp = this.cloneInto ? cloneInto(r.currentVideoInfo, pageInfo) : r.currentVideoInfo
+                pageInfo.currentVideoInfo = temp;
             }).catch(e => console.error(e));
         }
     }).then(init)
